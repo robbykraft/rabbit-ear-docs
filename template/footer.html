@@ -1,0 +1,11 @@
+<script>
+var menuitems = document.getElementsByClassName("caret");
+for (var i = 0; i < menuitems.length; i++) {
+	menuitems[i].addEventListener("click", function() {
+		this.parentElement.querySelector(".nested").classList.toggle("active");
+		this.classList.toggle("caret-down");
+	});
+}
+</script>
+</body>
+</html>

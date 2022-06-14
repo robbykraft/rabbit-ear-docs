@@ -1,0 +1,19 @@
+{
+  "name": "rabbit-ear-docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docs": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "kraft",
+  "license": "mit",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.8.2",
+    "jsdoc-to-markdown": "^7.1.1",
+    "rabbit-ear": "^0.9.2",
+    "showdown": "^2.1.0",
+    "showdown-highlight": "^3.0.0"
+  }
+}
