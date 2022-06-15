@@ -3,42 +3,6 @@ const fs = require("fs");
 const jsdoc2md = require("jsdoc-to-markdown");
 const { exec } = require("child_process");
 
-// {
-//   "id": "magnitude2",
-//   "longname": "magnitude2",
-//   "name": "magnitude2",
-//   "kind": "function",
-//   "scope": "global",
-//   "description": "compute the magnitude a 2D vector",
-//   "params": [
-//     {
-//       "type": {
-//         "names": [
-//           "Array.<number>"
-//         ]
-//       },
-//       "description": "one 2D vector",
-//       "name": "v"
-//     }
-//   ],
-//   "returns": [
-//     {
-//       "type": {
-//         "names": [
-//           "number"
-//         ]
-//       },
-//       "description": "one scalar"
-//     }
-//   ],
-//   "meta": {
-//     "lineno": 417,
-//     "filename": "math.docs.js",
-//     "path": "/Users/robby/Code/RabbitEarJS/Math/docs"
-//   },
-//   "order": 23
-// };
-
 const formatType = (str) => {
 	if (str.substr(0, 6) === "Array.") {
 		const rest = str.substr(6);
@@ -67,13 +31,16 @@ const tsReturnValue = (val) => val.type && val.type.names
 	? `${val.type.names.map(formatType).join("|")}`
 	: undefined;
 
-const makeTSDefinition = (el) => {
-	const params = el.params
-		.map((param, i) => tsParam(param, i))
-		.filter(a => a !== undefined)
-		.join(", ");
-	const returnvalue = el.returns.map(tsReturnValue).join(", ");
-	return returnvalue ? `(${params}): ${returnvalue}` : `(${params})`;
+const makeTSDefinition = (el, functionCall) => {
+	const params = el.params == null
+		? ""
+		: el.params.map((param, i) => tsParam(param, i))
+			.filter(a => a !== undefined)
+			.join(", ");
+	const returnvalue = el.returns
+		? el.returns.map(tsReturnValue).join(", ")
+		: undefined;
+	return returnvalue ? `${functionCall}(${params}): ${returnvalue}` : `${functionCall}(${params})`;
 };
 
 const tsCodeBlock = str => `\`\`\`typescript
@@ -106,11 +73,26 @@ const makeReturnSection = (data) => data.returns && data.returns.length
 	? `returns\n\n${makeTypeDescriptionUnorderedList(data.returns)}`
 	: undefined;
 
-exports.makeMarkdownFunction = (data, subdir) => {
-	if (!data.description || !data.params || !data.returns) { return; }
-	// const title = subdir ? `### ${subdir}.${data.name}` : `### ${data.name}`;
+exports.makeMarkdownConstant = (data, pathString, type) => {
+	// const title = pathString ? `### ${pathString}.${data.name}` : `### ${data.name}`;
 	const title = `### ${data.name}`;
-	const tsDefString = makeTSDefinition(data);
+	const tsDefString = type ? `${[pathString, data.name].join(".")}:${type}` : undefined;
+	const tsDef = tsDefString ? tsCodeBlock(tsDefString) : undefined;
+	const body = [data.description]
+		.filter(a => a !== undefined)
+		.join("\n\n");
+	return [title, tsDef, body].join("\n\n");
+};
+
+exports.makeMarkdownObject = (data, pathString) => {
+	return exports.makeMarkdownConstant(data, pathString, "object");
+};
+
+exports.makeMarkdownFunction = (data, pathString) => {
+	// if (!data.returns) { return; }
+	// const title = pathString ? `### ${pathString}.${data.name}` : `### ${data.name}`;
+	const title = `### ${data.name}`;
+	const tsDefString = makeTSDefinition(data, [pathString, data.name].join("."));
 	const tsDef = tsDefString ? tsCodeBlock(tsDefString) : undefined;
 	const body = [data.description, makeParamsSection(data), makeReturnSection(data)]
 		.filter(a => a !== undefined)

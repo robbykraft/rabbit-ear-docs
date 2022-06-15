@@ -43,16 +43,21 @@ const treeToList = (tree, path=[], depth = 0) => {
 	// console.log("hasChildren", hasChildren);
 	const itemName = hasChildren
 		? `<a href="${[...path, tree.key].join(".")}.html">${tree.key}</a>`
-		: `<a href="${path.join(".")}.html#${tree.key}">${tree.key}</a>`;
+		: `<a href="${path.join(".")}.html#${tree.key.toLowerCase()}">${tree.key}</a>`;
+	const flair = [
+		tree.type === "boolean" || tree.type === "number" || tree.type === "string" ? `<img src="./C.svg" />` : "",
+		tree.type === "function" ? `<img src="./F.svg" />` : "",
+		tree.staticChildren ? `<img src="./S.svg" />` : ""
+	].join("");
 	if (!hasChildren) {
-		return `${indent0}<li>${itemName}</li>`;
+		return `${indent0}<li>${itemName}${flair}</li>`;
 	}
 	const children = [tree.staticChildren, tree.instanceChildren]
 		.filter(a => a !== undefined)
 		.reduce((a, b) => a.concat(b), []);
 	const liStart = depth === 0
-		? `${indent0}<li><span class="caret caret-down">${itemName}</span>`
-		: `${indent0}<li><span class="caret">${itemName}</span>`;
+		? `${indent0}<li><span class="caret caret-down">${itemName}</span>${flair}`
+		: `${indent0}<li><span class="caret">${itemName}</span>${flair}`;
 	const liEnd = `${indent0}</li>`;
 	const ulStart = depth === 0
 		? `${indent1}<ul class="nested active">`

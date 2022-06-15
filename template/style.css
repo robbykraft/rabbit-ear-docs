@@ -32,7 +32,6 @@ body div:nth-child(1) div {
 }
 body div:nth-child(1) ul {
 	font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-	font-weight: bold;
 }
 body div:nth-child(1) h1,
 body div:nth-child(1) h2,
@@ -42,12 +41,19 @@ body div:nth-child(1) h5 {
 	margin: 0;
 }
 
+body div:nth-child(1) ul img {
+	width: 1rem;
+	height: 1rem;
+	margin-left: 0.25rem;
+	vertical-align: text-bottom;
+}
+
 
 /* main content */
 body div:nth-child(2) {
 	flex-grow: 1;
 	display: block;
-	padding: 0 200px 3rem 200px;
+	padding: 0 100px 3rem 100px;
 	overflow-y: auto;
 }
 
@@ -109,11 +115,11 @@ ul code {
 }
 
 /* large computers */
-@media (min-width: 2000px) { body div:nth-child(2) { margin: 0 600px 5rem 600px; } }
+@media (min-width: 2000px) { body div:nth-child(2) { padding: 0 400px 3rem 400px; } }
 /* large computers */
-@media (min-width: 1600px) { body div:nth-child(2) { margin: 0 400px 3rem 400px; } }
+@media (min-width: 1600px) { body div:nth-child(2) { padding: 0 300px 3rem 300px; } }
 /* medium computers */
-@media (max-width: 1000px) { body div:nth-child(2) { margin: 0 100px 3rem 100px; } }
+@media (max-width: 1000px) { body div:nth-child(2) { padding: 0 200px 3rem 200px; } }
 
 ul#tree-start, ul#tree-start ul {
 	list-style-type: none;
@@ -151,7 +157,6 @@ ul .nested { display: none; }
 ul .active { display: block; }
 
 .caret-down>a { color: #fb4; }
-
 
 /*code syntax highlight*/
 :root {
