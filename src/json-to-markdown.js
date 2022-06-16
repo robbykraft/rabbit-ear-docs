@@ -73,7 +73,46 @@ const makeReturnSection = (data) => data.returns && data.returns.length
 	? `returns\n\n${makeTypeDescriptionUnorderedList(data.returns)}`
 	: undefined;
 
-exports.makeMarkdownConstant = (data, pathString, type) => {
+const prototypeChain = (def) => {
+	if (!def.instanceConstructor) { return ""; }
+	// console.log("def.instanceConstructor", def.instanceConstructor);
+	let contents = "prototype chain\n\n```text\n";
+	for (let i = 0; i < def.instanceConstructor.length; i++) {
+		contents += def.instanceConstructor[i] + "\n";
+		if (i === def.instanceConstructor.length - 1) { continue; }
+		contents += " ".repeat(i*4) + "|\n";
+		contents += " ".repeat(i*4) + "|-- ";
+	}
+	contents += "```";
+	return contents;
+};
+
+// ```
+// instance
+// |
+// |-- Vector
+//     |
+//     |-- Array
+//         |
+//         |-- Object
+// ```
+
+
+// const prototypeChain = (def) => {
+// 	const chains = [];
+// 	// if (def.staticConstructor) {
+// 	// 	chains.push("static prototype chain:" + def.staticConstructor.join(", "));
+// 	// }
+// 	if (def.instanceConstructor) {
+// 		const list = def.instanceConstructor
+// 			.map(str => `\`${str}\``)
+// 			.join(" ");
+// 		chains.push("instance prototypes: " + list);
+// 	}
+// 	return chains.join("\n\n");
+// };
+
+exports.makeMarkdownConstant = (data, def, pathString, type) => {
 	// const title = pathString ? `### ${pathString}.${data.name}` : `### ${data.name}`;
 	const title = `### ${data.name}`;
 	const tsDefString = type ? `${[pathString, data.name].join(".")}:${type}` : undefined;
@@ -84,11 +123,11 @@ exports.makeMarkdownConstant = (data, pathString, type) => {
 	return [title, tsDef, body].join("\n\n");
 };
 
-exports.makeMarkdownObject = (data, pathString) => {
-	return exports.makeMarkdownConstant(data, pathString, "object");
+exports.makeMarkdownObject = (data, def, pathString) => {
+	return exports.makeMarkdownConstant(data, def, pathString, "object");
 };
 
-exports.makeMarkdownFunction = (data, pathString) => {
+exports.makeMarkdownFunction = (data, def, pathString) => {
 	// if (!data.returns) { return; }
 	// const title = pathString ? `### ${pathString}.${data.name}` : `### ${data.name}`;
 	const title = `### ${data.name}`;
@@ -97,5 +136,6 @@ exports.makeMarkdownFunction = (data, pathString) => {
 	const body = [data.description, makeParamsSection(data), makeReturnSection(data)]
 		.filter(a => a !== undefined)
 		.join("\n\n");
-	return [title, tsDef, body].join("\n\n");
+	const chain = prototypeChain(def);
+	return [title, tsDef, body, chain].join("\n\n");
 };

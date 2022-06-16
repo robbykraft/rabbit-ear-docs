@@ -18,29 +18,10 @@
 // 	</li>
 // </ul>
 
-// const treeToList = (tree, depth = 0) => {
-// 	const indent0 = "  ".repeat(depth);
-// 	const indent1 = "  ".repeat(depth + 1);
-// 	const hasChildren = tree.staticChildren || tree.instanceChildren;
-// 	// console.log("hasChildren", hasChildren);
-// 	if (!hasChildren) {
-// 		return `${indent0}<li>${tree.key}</li>\n`;
-// 	}
-// 	const children = [tree.staticChildren, tree.instanceChildren]
-// 		.filter(a => a !== undefined)
-// 		.reduce((a, b) => a.concat(b), []);
-// 	const start = depth === 0
-// 		? `${indent0}<ul id="tree-start">\n${indent1}<li><span class="caret">${tree.key}</span>\n`
-// 		: `${indent0}<ul class="nested">\n${indent1}<li><span class="caret">${tree.key}</span>\n`;
-// 	const end = `${indent1}</li>\n${indent0}</ul>\n`;
-// 	return `${start}${children.map(el => treeToList(el, depth+1)).join("")}${end}`;
-// };
-
 const treeToList = (tree, path=[], depth = 0) => {
 	const indent0 = "  ".repeat(depth * 2);
 	const indent1 = "  ".repeat(depth * 2 + 1);
 	const hasChildren = tree.staticChildren || tree.instanceChildren;
-	// console.log("hasChildren", hasChildren);
 	const itemName = hasChildren
 		? `<a href="${[...path, tree.key].join(".")}.html">${tree.key}</a>`
 		: `<a href="${path.join(".")}.html#${tree.key.toLowerCase()}">${tree.key}</a>`;
@@ -71,7 +52,6 @@ const makeList = (tree) => {
 	const ulStart = `<ul id="tree-start">`
 	const ulEnd = `</ul>`
 	return [ulStart, treeToList(tree), ulEnd].join("\n");
-}
-
+};
 
 module.exports = makeList;
