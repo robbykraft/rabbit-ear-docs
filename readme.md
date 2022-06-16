@@ -2,22 +2,23 @@
 
 documentation generator for [rabbit-ear](https://rabbitear.org).
 
+Instead of letting a JSDocs generator run the show, this generator inspects the actual library object (rabbit-ear) and carefully assembles the structure of the documentation to mimic the library. This includes the sidebar navigation and the contents of each individual page.
+
+> this approach uniquely works well with this library because all methods, global or scoped, are mostly-uniquely named, which allows us to backwards match a JSDocs definition to a method found in the object tree.
+
 ```bash
 npm i
 npm run docs
 ```
 
-the workflow is:
+broadly, the workflow is:
 
 1. using `jsdoc-to-markdown`, convert all library source code JSDoc comments to .json data.
 2. using custom code, build markdown files from json data.
 3. using `showdown` convert markdown files into html.
 
-the custom code inspects the rabbit-ear library object recursively, finds all methods and constants, (this includes instancing all functions and looking for instance methods), and assembles a tree structure describing at each level:
+the custom code (step 2) does three things:
 
-- constants
-- static methods
-- instance methods
-- simple objects (which contain other things)
-
-this tree structure is used to build the navigation sidebar and to better organize the contents of the documentation page for each entry.
+- recursively build a tree representation of the object in question (rabbit-ear), gathering all methods and constants (this includes instancing all functions and gathering instance properties/methods). Match each of these properties/methods to the corresponding definition that was gathered in the JSDoc.
+- using the tree and the matched JSDocs definition, format each entry into a markdown file. The output differs heavily depending on the presence of static/instance properties and methods, and the type of the object.
+- build the navigation sidebar using the tree representation of rabbit-ear.

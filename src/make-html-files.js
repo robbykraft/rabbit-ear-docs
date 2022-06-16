@@ -1,19 +1,12 @@
 const fs = require("fs");
 const showdown = require('showdown');
 const showdownHighlight = require('showdown-highlight');
-const makeList = require("./tree-to-list");
+const makeTreeHTMLList = require("./make-html-tree-list");
 
-const makeSidebar = (mdFilenames, libraryTree) => {
-	const filenames = mdFilenames
-		.map(str => str.substr(0, str.length - 3));
-	const links = filenames.map(str => `<li><a href="./${str}.html">${str}</a></li>`);
-	const htmlList = makeList(libraryTree);
-	fs.writeFileSync(`./template/sidebar.html`, htmlList);
-	return `<div>
+const makeSidebar = (libraryTree, path) => `<div>
 	<h2>Rabbit Ear</h2>
-	${htmlList}
+	${makeTreeHTMLList(libraryTree, path)}
 </div>`;
-};
 
 const makeHTMLFiles = (libraryTree) => {
 	const header = fs.readFileSync(`./template/header.html`, "utf8");
@@ -25,8 +18,9 @@ const makeHTMLFiles = (libraryTree) => {
 	});
 	const markdownFiles = fs.readdirSync("./tmp/")
 		.filter(str => str.substr(-3) === ".md");
-	const sidebar = makeSidebar(markdownFiles, libraryTree)
 	markdownFiles.forEach(filename => {
+		const path = filename.substr(0, filename.length - 3).split(".");
+		const sidebar = makeSidebar(libraryTree, path);
 		const name = filename.substr(0, filename.length - 3);
 		const markdown = fs.readFileSync(`./tmp/${filename}`, "utf8");
 		const html = `${header}\n${sidebar}\n<div>\n${converter.makeHtml(markdown)}\n</div>\n${footer}`;

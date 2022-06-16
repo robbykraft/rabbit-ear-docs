@@ -51,7 +51,6 @@ const getChildren = (level) => {
 			? a.key.localeCompare(b.key)
 			: a.type.localeCompare(b.type))
 		.map(el => el.key);
-	if (childKeys.length) { console.log("childKeys", childKeys); }
 
 	return childKeys.map(key => {
 		const staticType = getObjectType(level[key]);
@@ -74,7 +73,7 @@ const getChildren = (level) => {
 				catchFnNames.push(key);
 			}
 		}
-		
+
 		return res;
 	});
 };
@@ -85,7 +84,7 @@ const getChildren = (level) => {
  */
 const makeObjectTree = (obj, objName) => {
 	const res = { key: objName, type: getObjectType(obj), staticChildren: getChildren(obj) };
-	console.log(`${catchCount} instance functions threw and failed to gather data.`, catchFnNames);
+	// console.log(`${catchCount} instance functions threw and failed to gather data.`, catchFnNames);
 	return res;
 };
 
