@@ -1,3 +1,9 @@
+const makeFlair = (node) => [
+		node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" ? `<img src="./C.svg" />` : "",
+		node.staticType === "Function" ? `<img src="./F.svg" />` : "",
+		node.staticChildren ? `<img src="./S.svg" />` : ""
+	].join("");
+
 const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
 	const hasChildren = tree.staticChildren || tree.instanceChildren;
 	const pathNext = hasChildren ? [...path, tree.key] : path;
@@ -9,20 +15,15 @@ const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
 	const itemName = hasChildren
 		? `<a href="${pathNext.join(".")}.html">${tree.key}</a>`
 		: `<a href="${pathNext.join(".")}.html#${tree.key.toLowerCase()}">${tree.key}</a>`;
-	const flair = [
-		tree.staticType === "Boolean" || tree.staticType === "Number" || tree.staticType === "String" ? `<img src="./C.svg" />` : "",
-		tree.staticType === "Function" ? `<img src="./F.svg" />` : "",
-		tree.staticChildren ? `<img src="./S.svg" />` : ""
-	].join("");
 	if (!hasChildren) {
-		return `${indent0}<li>${itemName}${flair}</li>`;
+		return `${indent0}<li>${itemName}${makeFlair(tree)}</li>`;
 	}
 	const children = [tree.staticChildren, tree.instanceChildren]
 		.filter(a => a !== undefined)
 		.reduce((a, b) => a.concat(b), []);
 	const liStart = isExpanded
-		? `${indent0}<li><span class="caret caret-down">${itemName}</span>${flair}`
-		: `${indent0}<li><span class="caret">${itemName}</span>${flair}`;
+		? `${indent0}<li><span class="caret caret-down">${itemName}</span>${makeFlair(tree)}`
+		: `${indent0}<li><span class="caret">${itemName}</span>${makeFlair(tree)}`;
 	const liEnd = `${indent0}</li>`;
 	const ulStart = isExpanded
 		? `${indent1}<ul class="nested active">`

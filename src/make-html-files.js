@@ -4,7 +4,7 @@ const showdownHighlight = require('showdown-highlight');
 const makeTreeHTMLList = require("./make-html-tree-list");
 
 const makeSidebar = (libraryTree, path) => `<div>
-	<h2>Rabbit Ear</h2>
+	<h1>Rabbit Ear</h1>
 	${makeTreeHTMLList(libraryTree, path)}
 </div>`;
 

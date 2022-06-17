@@ -36,23 +36,43 @@ const checkDuplicates = (kinds) => Object.keys(kinds)
 		})
 	});
 
-// ['constant', 'member', 'function', 'typedef', 'package']
-const sortKinds = (json) => {
-	const kinds = {};
-	json.forEach(el => { kinds[el.kind] = true; });
-	Object.keys(kinds)
-		.forEach(kind => { kinds[kind] = json.filter(el => el.kind === kind); });
-	// too many constants. includes constants inside functions. filter them. global only.
-	if (kinds.function) {
-		kinds.function = kinds.function.filter(el => el.scope === "global");
-	}
-	if (kinds.constant) {
-		kinds.constant = kinds.constant.filter(el => el.scope === "global");
-	}
-	if (kinds.member) {
-		kinds.member = kinds.member.filter(el => el.scope === "global");
-	}
-	return kinds;
+// // ['constant', 'member', 'function', 'typedef', 'package']
+// const sortKinds = (json) => {
+// 	const kinds = {};
+// 	json.forEach(el => { kinds[el.kind] = true; });
+// 	Object.keys(kinds)
+// 		.forEach(kind => { kinds[kind] = json.filter(el => el.kind === kind); });
+// 	// too many constants. includes constants inside functions. filter them. global only.
+// 	if (kinds.function) {
+// 		kinds.function = kinds.function.filter(el => el.scope === "global");
+// 	}
+// 	if (kinds.constant) {
+// 		kinds.constant = kinds.constant.filter(el => el.scope === "global");
+// 	}
+// 	if (kinds.member) {
+// 		kinds.member = kinds.member.filter(el => el.scope === "global");
+// 	}
+// 	return kinds;
+// };
+
+const filterJSDocs = (jsdocs) => jsdocs
+	.filter(el => !el.undocumented);
+	// .filter(el => el.scope === "global");
+
+const sortJSDocs = (jsdocs) => {
+	const names = {};
+	jsdocs.forEach(el => { names[el.name] = true; });
+	const res = {};
+	const sorted = Object.keys(names).sort();
+	sorted.forEach(name => { res[name] = []; });
+	jsdocs.forEach(el => {
+		if (res[el.name].push === undefined) {
+			console.log("ERROR", el.name, res[el.name], el);
+		} else {
+			res[el.name].push(el)
+		}
+	});
+	return res;
 };
 /**
  * @description the main function.
@@ -62,14 +82,12 @@ const buildDocs = (jsdocs) => {
 	clearAll();
 	if (jsdocs.constructor !== Array) { return; }
 	const libraryTree = makeObjectTree(ear, "ear");
-	const kinds = sortKinds(jsdocs);
-	// write jsdocs files, sorted by kinds
-	Object.keys(kinds).forEach(kind => fs
-		.writeFileSync(`./tmp/jsdocs.${kind}.json`, JSON.stringify(kinds[kind], null, 2)));
+	const filtered = filterJSDocs(jsdocs);
+	const docsEntries = sortJSDocs(filtered);
+	fs.writeFileSync(`./tmp/docs.json`, JSON.stringify(docsEntries, null, 2));
 	fs.writeFileSync(`./tmp/directory-tree.json`, JSON.stringify(libraryTree, null, 2));
-	// checkDuplicates(kinds);
 	// build docs. first markdown, then convert that into HTML
-	makeMarkdownFiles(kinds, libraryTree);
+	makeMarkdownFiles(docsEntries, libraryTree);
 	makeHTMLFiles(libraryTree);
 	// these template files are copied over to the build folder
 	const copyFileTypes = [".css", ".svg"];
