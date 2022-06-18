@@ -54,6 +54,11 @@ var root = Object.create(null);
  * you're passing in. in the case that it isn't and there's an object
  * in the first slot, it won't find the valid data in the second.
  */
+/**
+ * @description get the type of an object, which includes the custom types in this library.
+ * @param {any} any object
+ * @returns {string} the type name
+ */
 const type_of = function (obj) {
   switch (obj.constructor.name) {
     case "vector":
@@ -1822,7 +1827,7 @@ const signed_area = points => 0.5 * points
 /**
  * @description Calculates the centroid or the center of mass of the polygon.
  * @param {number[][]} points an array of 2D points, which are arrays of numbers
- * @returns {number[]} one 2D point as an array of numbers.
+ * @returns {number[]} one 2D point as an array of numbers
  * @example
  * var centroid = polygon.centroid()
  */
@@ -1836,13 +1841,13 @@ const centroid = (points) => {
     .map(c => c * sixthArea);
 };
 /**
- * @description axis-aligned bounding box. given a set of points.
- * the epsilon is used to make the bounding box inclusive / exclusive
- * by adding a tiny bit of padding on all sides.
- * a positive epsilon results in an inclusive boundary. negative, exclusive.
- * @param {number[][]} points an array of unsorted points, in any dimension.
- * @param {number} [padding=0] an optional epsilon to add padding around the box.
- * @returns {object} "min" and "max" are two points, "span" is the lengths.
+ * @description Make an axis-aligned bounding box that encloses a set of points.
+ * the optional padding is used to make the bounding box inclusive / exclusive
+ * by adding padding on all sides, or inset in the case of negative number.
+ * (positive=inclusive boundary, negative=exclusive boundary)
+ * @param {number[][]} points an array of unsorted points, in any dimension
+ * @param {number} [padding=0] optionally add padding around the box
+ * @returns {object} "min" and "max" are two points, "span" is the lengths
  */
 const bounding_box = (points, padding = 0) => {
   const min = Array(points[0].length).fill(Infinity);
@@ -4194,7 +4199,10 @@ Object.keys(Definitions).forEach(primitiveName => {
 /**
  * Math (c) Kraft
  */
-
+/**
+ * @description A collection of math functions with a focus on linear algebra,
+ * computational geometry, intersection of shapes, and some origami-specific operations.
+ */
 const math = Constructors;
 
 /*
@@ -4240,9 +4248,27 @@ math.core = Object.assign(Object.create(null),
     clip_line_in_convex_polygon,
   }
 );
-
+/**
+ * @description get the type of an object, which includes the custom types in this library.
+ * @param {any} any object
+ * @returns {string} the type name
+ */
 math.typeof = type_of;
+/**
+ * @description get the intersection of two geometry objects, the type of each is inferred.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
+ */
 math.intersect = intersect$1;
+/**
+ * @description test whether or not two geometry objects overlap each other.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {boolean} true if the two objects overlap.
+ */
 math.overlap = overlap$1;
 
 /**
@@ -11742,6 +11768,9 @@ const simple_arrow = (graph, line) => {
  * Rabbit Ear (c) Kraft
  */
 
+/**
+ * @description A collection of methods for drawing origami diagrams.
+ */
 var diagram = Object.assign(Object.create(null),
 	// arrows, {
 	{
@@ -13466,6 +13495,10 @@ const assignment_solver = (faces, assignments, epsilon) => {
 // import * as relationships from "./matrix/relationships";
 // import * as pleat_paths from "./matrix/pleat_paths";
 
+/**
+ * @description A collection of methods for calculating the layer order
+ * of the faces of an origami in its folded state.
+ */
 var layer = Object.assign(Object.create(null), {
 	make_faces_layer,
 	make_faces_layers,
@@ -13574,6 +13607,10 @@ var kawasaki_graph = /*#__PURE__*/Object.freeze({
 
 /**
  * Rabbit Ear (c) Kraft
+ */
+/**
+ * @description A collection of operations done on single vertices
+ * (one vertex in a graph typically surrounded by edges).
  */
 
 var vertex = Object.assign(Object.create(null), {

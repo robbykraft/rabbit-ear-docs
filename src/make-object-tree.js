@@ -49,6 +49,24 @@ const getChildrenTypes = (obj) => {
 	return Object.keys(hash).sort();
 };
 
+// when we encounter a new prototype, add it here.
+const prototypes = [];
+				// 	.filter(el => el !== Function.prototype)
+				// 	.filter(el => el !== Array.prototype)
+				// 	.filter(el => el !== Object.prototype)
+				// 	.filter(el => el !== String.prototype)
+				// 	.filter(el => el !== Number.prototype)
+				// 	.filter(el => el !== Boolean.prototype);
+
+const isUniquePrototype = (proto) => proto !== Function.prototype
+	&& proto !== Array.prototype
+	&& proto !== Object.prototype
+	&& proto !== String.prototype
+	&& proto !== Number.prototype
+	&& proto !== Boolean.prototype;
+const containsUniquePrototype = (protos = []) => protos
+	.map(p => isUniquePrototype(p))
+	.reduce((a, b) => a || b, false);
 /**
  * @description sort by Constructor type, if they are already equal, by name (key)
  * type sort is not purely alphabetical. it is custom:
@@ -98,18 +116,17 @@ const getChildren = (level) => {
 			try {
 				const instance = level[key]();
 				res.instanceType = getObjectType(instance);
-				const instanceChildren = getChildren(instance);
-				if (instanceChildren.length) { res.instanceChildren = instanceChildren; }
 				const instancePrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(instance));
 				if (instancePrototypeNameChain) { res.instancePrototypeNameChain = instancePrototypeNameChain; }
-				const instancePrototypeChain = getPrototypeChain(instance)
-				// 	.filter(el => el !== Function.prototype)
-				// 	.filter(el => el !== Array.prototype)
-				// 	.filter(el => el !== Object.prototype)
-				// 	.filter(el => el !== String.prototype)
-				// 	.filter(el => el !== Number.prototype)
-				// 	.filter(el => el !== Boolean.prototype);
+				const instancePrototypeChain = getPrototypeChain(instance);
+				instancePrototypeChain.map(proto => {
+					const match = prototypes.map(p => p === proto).reduce((a, b) => a || b, false);
+					if (!match) { prototypes.push(proto); }
+				});
 				if (instancePrototypeChain) { res.instancePrototypeChain = instancePrototypeChain; }
+				// finally, we get the children, because this could potentially throw an error
+				const instanceChildren = getChildren(instance);
+				if (instanceChildren.length) { res.instanceChildren = instanceChildren; }
 			} catch(error) {
 				catchCount++;
 				catchFnNames.push(key);
@@ -144,7 +161,21 @@ const labelSimpleObjects = (tree, chain = []) => {
 	const children = [...(tree.instanceChildren || []), ...(tree.staticChildren || [])];
 	children.forEach(child => labelSimpleObjects(child, nextChain));
 };
-/**
+const makeHasOwnPage = (tree, depth = 0) => {
+	// const hasChildren = tree.staticChildren || tree.instanceChildren;
+	tree.hasOwnPage = !tree.simpleObject && tree.staticChildren;
+	if (containsUniquePrototype(tree.instancePrototypeChain)) {
+		tree.hasOwnPage = true;
+	}
+	if (depth < 2) { tree.hasOwnPage = true; }
+	[...(tree.instanceChildren || []), ...(tree.staticChildren || [])]
+		.forEach(child => makeHasOwnPage(child, depth + 1));
+};
+const makeIsExpandable = (tree) => {
+	if (tree.staticChildren && !tree.simpleObject) { tree.isExpandable = true; }
+	[...(tree.instanceChildren || []), ...(tree.staticChildren || [])]
+		.forEach(child => makeIsExpandable(child));
+};/**
  * @param {object} the object to build the tree.
  * @param {string} the name of the variable, the name of the top level object as a string.
  */
@@ -152,6 +183,9 @@ const makeObjectTree = (obj, objName) => {
 	const tree = { key: objName, type: getObjectType(obj), staticChildren: getChildren(obj) };
 	recursivelyLabel(tree);
 	labelSimpleObjects(tree);
+	makeHasOwnPage(tree);
+	makeIsExpandable(tree);
+	tree.prototypes = prototypes;
 	// hardcod preferences here:
 	// tree.staticChildren.filter(el => el.key === "text").forEach(el => delete el.simpleObject);
 	return tree;

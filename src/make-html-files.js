@@ -22,7 +22,11 @@ const makeHTMLFiles = (libraryTree) => {
 		const path = filename.substr(0, filename.length - 3).split(".");
 		const sidebar = makeSidebar(libraryTree, path);
 		const name = filename.substr(0, filename.length - 3);
-		const markdown = fs.readFileSync(`./tmp/${filename}`, "utf8");
+		const customDefinition = fs.existsSync(`./template/custom/${filename}`);
+		if (customDefinition) { console.log(`using custom definition for ${filename}`); }
+		const markdown = customDefinition
+			? fs.readFileSync(`./template/custom/${filename}`, "utf8")
+			: fs.readFileSync(`./tmp/${filename}`, "utf8");
 		const html = `${header}\n${sidebar}\n<div class="body">\n${converter.makeHtml(markdown)}\n</div>\n${footer}`;
 		fs.writeFileSync(`./docs/${name}.html`, html);
 	});

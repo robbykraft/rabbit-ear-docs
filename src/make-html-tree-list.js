@@ -2,21 +2,21 @@ const makeFlair = (node) => [
 		node.simpleObject ? `<img src="./C.svg" />` : "",
 		// node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" || node.staticType === "Array" ? `<img src="./C.svg" />` : "",
 		node.staticType === "Function" ? `<img src="./F.svg" />` : "",
-		node.staticChildren && !node.simpleObject ? `<img src="./S.svg" />` : ""
+		node.staticType === "Function" && node.staticChildren ? `<img src="./S.svg" />` : ""
 	].join("");
 
 const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
-	const hasChildren = (tree.staticChildren || tree.instanceChildren) && !tree.simpleObject;
-	const pathNext = hasChildren ? [...path, tree.key] : path;
+	// const hasChildren = (tree.staticChildren || tree.instanceChildren) && !tree.simpleObject;
+	const pathNext = tree.hasOwnPage ? [...path, tree.key] : path;
 	const isExpanded = expandPath.length >= pathNext.length && pathNext
 		.map((p, i) => p === expandPath[i])
 		.reduce((a, b) => a && b, true);
 	const indent0 = "  ".repeat(depth * 2);
 	const indent1 = "  ".repeat(depth * 2 + 1);
-	const itemName = hasChildren
+	const itemName = tree.hasOwnPage
 		? `<a href="${pathNext.join(".")}.html">${tree.key}</a>`
 		: `<a href="${pathNext.join(".")}.html#${tree.key.toLowerCase()}">${tree.key}</a>`;
-	if (!hasChildren) {
+	if (!tree.isExpandable) {
 		return `${indent0}<li>${itemName}${makeFlair(tree)}</li>`;
 	}
 	const children = [tree.staticChildren, tree.instanceChildren]

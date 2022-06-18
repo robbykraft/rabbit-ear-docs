@@ -54,10 +54,14 @@ code {
 	background-color: var(--darkmode-gray-3);
 }
 
-a { color: var(--darkmode-gray-6); }
-a:visited { color: var(--darkmode-gray-6); }
-a:active { color: var(--darkmode-gray-6); }
-a:hover { color: var(--darkmode-yellow); }
+.sidebar a { color: var(--darkmode-gray-6); }
+.sidebar a:visited { color: var(--darkmode-gray-6); }
+.sidebar a:active { color: var(--darkmode-gray-6); }
+.sidebar a:hover { color: var(--darkmode-yellow); }
+.body a { color: var(--darkmode-yellow); }
+.body a:visited { color: var(--darkmode-yellow); }
+.body a:active { color: var(--darkmode-yellow); }
+.body a:hover { color: var(--darkmode-yellow); }
 
 .caret:hover::before {
 	color: var(--darkmode-yellow);

@@ -2,7 +2,7 @@
 const tsParam = (param, i) => {
 	const name = param.name ? param.name : alphabet[i];
 	const optional = param.optional ? "?" : "";
-	const defaultvalue = param.defaultvalue ? `=${param.defaultvalue}` : "";
+	const defaultvalue = param.defaultvalue === undefined ? "" : `=${param.defaultvalue}`;
 	return param.type && param.type.names
 		? `${name}${optional}: ${param.type.names.map(formatType).join("|")}${defaultvalue}`
 		: undefined;

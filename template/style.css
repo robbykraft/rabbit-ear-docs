@@ -48,7 +48,8 @@ pre code {
 	border-radius: 0.25rem;
 }
 
-code.language-text {
+code.language-text,
+code.language-json {
 	text-align: left;
 	display: block;
 }
@@ -102,7 +103,10 @@ ul .active { display: block; }
 
 p, li { line-height: 1.25rem; }
 code { line-height: 2.5rem; }
-code.language-text { line-height: 1rem; }
+code.language-text,
+code.language-json {
+	line-height: 1rem;
+}
 code { padding: 0.5rem; }
 
 .sidebar { padding: 1rem; }
