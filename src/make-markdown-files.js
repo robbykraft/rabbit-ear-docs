@@ -49,6 +49,7 @@ const makeStaticConstant = (match, tree, path) => {
 	const markdown = [];
 	markdown.push(match.description);
 	markdown.push(tsCodeBlock(makeConstantDefinition(match, tree, path)));
+	markdown.push("value");
 	if (match.meta && match.meta.code) {
 		switch (match.meta.code.type) {
 			case "Literal":
@@ -131,7 +132,7 @@ const makeMarkdownFile = (docsEntries, tree, path = []) => {
 		: tsCodeBlock(pathString)
 
 	const markdown = [];
-	markdown.push(makeDebugSection(tree));
+	// markdown.push(makeDebugSection(tree));
 	markdown.push(mdTitle);
 	// markdown.push(mdPath);
 	markdown.push(tree.instancePrototypeNameChain ? tsCodeBlock("prototype: " + tree.instancePrototypeNameChain.map(a => a.toLowerCase()).join(" → ")) : undefined);
