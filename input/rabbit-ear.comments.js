@@ -1430,22 +1430,23 @@ var nearest$1 = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description check if the first parameter is counter-clockwise between A and B.
- * @param {number} radians
- * @param {number} radians, lower bound
- * @param {number} radians, upper bound
- * @returns {boolean}
+ * floor and ceiling can be unbounded, this method takes care of 0-2pi wrap around.
+ * @param {number} angle angle in radians
+ * @param {number} floor angle in radians, lower bound
+ * @param {number} ceiling angle in radians, upper bound
+ * @returns {boolean} is the angle between floor and ceiling
  */
-const is_counter_clockwise_between = (angle, angleA, angleB) => {
-  while (angleB < angleA) { angleB += TWO_PI; }
-  while (angle > angleA) { angle -= TWO_PI; }
-  while (angle < angleA) { angle += TWO_PI; }
-  return angle < angleB;
+const is_counter_clockwise_between = (angle, floor, ceiling) => {
+  while (ceiling < floor) { ceiling += TWO_PI; }
+  while (angle > floor) { angle -= TWO_PI; }
+  while (angle < floor) { angle += TWO_PI; }
+  return angle < ceiling;
 };
 /**
- * @description There are 2 interior angles between 2 angles: A-to-B clockwise and
- * A-to-B counter-clockwise, this returns the clockwise one from A to B.
- * @param {number} a angle in radians
- * @param {number} b angle in radians
+ * @description There are 2 interior angles between 2 vectors (as an angle in radians),
+ * A-to-B clockwise, and A-to-B counter-clockwise. Get the clockwise one from A to B.
+ * @param {number} a vector as an angle in radians
+ * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians
  */
 const clockwise_angle_radians = (a, b) => {
@@ -1460,10 +1461,10 @@ const clockwise_angle_radians = (a, b) => {
     : TWO_PI - (b - a);
 };
 /**
- * @description There are 2 interior angles between 2 angles: A-to-B clockwise and
- * A-to-B counter-clockwise, this returns the counter-clockwise one.
- * @param {number} a angle in radians
- * @param {number} b angle in radians
+ * @description There are 2 interior angles between 2 vectors (as an angle in radians),
+ * A-to-B clockwise, and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
+ * @param {number} a vector as an angle in radians
+ * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians, counter-clockwise from a to b
  */
 const counter_clockwise_angle_radians = (a, b) => {
@@ -1478,10 +1479,11 @@ const counter_clockwise_angle_radians = (a, b) => {
     : TWO_PI - (a - b);
 };
 /**
- * @description There are 2 angles between 2 vectors, from A to B return the clockwise one.
- * @param {number[]} a vector with 2 numbers
- * @param {number[]} b vector with 2 numbers
- * @returns {number} clockwise angle (from a to b) in radians
+ * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
+ * and A-to-B counter-clockwise. Get the clockwise one from A to B.
+ * @param {number[]} a vector as an array of two numbers
+ * @param {number[]} b vector as an array of two numbers
+ * @returns {number} interior angle in radians, clockwise from a to b
  */
 const clockwise_angle2 = (a, b) => {
   const dotProduct = b[0] * a[0] + b[1] * a[1];
@@ -1491,10 +1493,11 @@ const clockwise_angle2 = (a, b) => {
   return angle;
 };
 /**
- * @description There are 2 angles between 2 vectors, from A to B return the counter-clockwise one.
- * @param {number[]} a vector with 2 numbers
- * @param {number[]} b vector with 2 numbers
- * @returns {number} counter-clockwise angle (from a to b) in radians
+ * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
+ * and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
+ * @param {number[]} a vector as an array of two numbers
+ * @param {number[]} b vector as an array of two numbers
+ * @returns {number} interior angle in radians, counter-clockwise from a to b
  */
 const counter_clockwise_angle2 = (a, b) => {
   const dotProduct = a[0] * b[0] + a[1] * b[1];
@@ -1619,7 +1622,7 @@ const bisect_lines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) =>
  * but this chooses the first element as the first element
  * and sort everything else counter-clockwise around it.
  *
- * @param {number[]} array of angles in radians
+ * @param {number[]} args array of angles in radians
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
  */
@@ -1635,7 +1638,7 @@ const counter_clockwise_order_radians = function () {
 /**
  * @description sort an array of vectors by getting an array of
  * reference indices to the input array, instead of a sorted array of vectors.
- * @param {number[][]} array of vectors (which are arrays of numbers)
+ * @param {number[][]} args array of vectors (which are arrays of numbers)
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
  */
@@ -1647,7 +1650,7 @@ const counter_clockwise_order2 = function () {
 /**
  * @description given an array of angles, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[]} array of angles in radians
+ * @param {number[]} args array of angles in radians
  * @returns {number[]} array of sector angles in radians
  */
 const counter_clockwise_sectors_radians = function () {
@@ -1660,7 +1663,7 @@ const counter_clockwise_sectors_radians = function () {
 /**
  * @description given an array of vectors, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[][]} array of 2D vectors (higher dimensions will be ignored)
+ * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
  * @returns {number[]} array of sector angles in radians
  */
 const counter_clockwise_sectors2 = function () {
@@ -1731,14 +1734,16 @@ const overlap_line_point = (vector, origin, point, func = exclude_l, epsilon = E
  * Math (c) Kraft
  */
 /**
- * @description 2D line intersection function, generalized and works
- * for lines, rays, and segments by passing in a function for each line
- * @param {number[]} array of 2 numbers, the first line's vector
- * @param {number[]} array of 2 numbers, the first line's origin
- * @param {number[]} array of 2 numbers, the second line's vector
- * @param {number[]} array of 2 numbers, the second line's origin
- * @param {function} first line's boolean test normalized value lies collinear
- * @param {function} seconde line's boolean test normalized value lies collinear
+ * @description Find the intersection of two lines. Lines can be lines/rays/segments,
+ * and can be inclusve or exclusive in terms of their endpoints and the epsilon value.
+ * @param {number[]} vector array of 2 numbers, the first line's vector
+ * @param {number[]} origin array of 2 numbers, the first line's origin
+ * @param {number[]} vector array of 2 numbers, the second line's vector
+ * @param {number[]} origin array of 2 numbers, the second line's origin
+ * @param {function} [aFunction=include_l] first line's boolean test normalized value lies collinear
+ * @param {function} [bFunction=include_l] second line's boolean test normalized value lies collinear
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|undefined} one 2D point or undefined
 */
 const intersect_line_line = (
   aVector, aOrigin,
@@ -1867,26 +1872,25 @@ const angles_to_vecs = (angles, radius) => angles
 /**
  * make regular polygon is circumradius by default
  */
-const make_regular_polygon = (sides = 3, radius = 1) =>
+const make_polygon_circumradius = (sides = 3, radius = 1) =>
   angles_to_vecs(angle_array(sides), radius);
 
-const make_regular_polygon_side_aligned = (sides = 3, radius = 1) => {
+const make_polygon_circumradius_s = (sides = 3, radius = 1) => {
   const halfwedge = Math.PI / sides;
   const angles = angle_array(sides).map(a => a + halfwedge);
   return angles_to_vecs(angles, radius);
 };
+const make_polygon_inradius = (sides = 3, radius = 1) => 
+  make_polygon_circumradius(sides, radius / Math.cos(Math.PI / sides));
 
-const make_regular_polygon_inradius = (sides = 3, radius = 1) => 
-  make_regular_polygon(sides, radius / Math.cos(Math.PI / sides));
+const make_polygon_inradius_s = (sides = 3, radius = 1) =>
+  make_polygon_circumradius_s(sides, radius / Math.cos(Math.PI / sides));
 
-const make_regular_polygon_inradius_side_aligned = (sides = 3, radius = 1) =>
-  make_regular_polygon_side_aligned(sides, radius / Math.cos(Math.PI / sides));
+const make_polygon_side_length = (sides = 3, length = 1) =>
+  make_polygon_circumradius(sides, (length / 2) / Math.sin(Math.PI / sides));
 
-const make_regular_polygon_side_length = (sides = 3, length = 1) =>
-  make_regular_polygon(sides, (length / 2) / Math.sin(Math.PI / sides));
-
-const make_regular_polygon_side_length_side_aligned = (sides = 3, length = 1) =>
-  make_regular_polygon_side_aligned(sides, (length / 2) / Math.sin(Math.PI / sides));
+const make_polygon_side_length_s = (sides = 3, length = 1) =>
+  make_polygon_circumradius_s(sides, (length / 2) / Math.sin(Math.PI / sides));
 /**
  * @description removes any collinear vertices from a n-dimensional polygon.
  * @param {number[][]} polygon a polygon as an array of ordered points in array form
@@ -2007,9 +2011,9 @@ const split_convex_polygon = (poly, lineVector, linePoint) => {
   return [poly.slice()];
 };
 /**
- * @description create a 2D convex hull from a set of 2D points,
+ * @description create a 2D convex hull from a set of 2D points, choose whether to include or exclude points which lie collinear inside one of the boundary lines.
  * @param {number[][]} points an array of 2D points (which are arrays of numbers)
- * @param {boolean} [include_collinear=false] when many points lie along a straight edge, include only the endpoints (false, default), or include all points (true)
+ * @param {boolean} [include_collinear=false] should we include points collinear along a boundary edge? by default, no (false).
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} an array of points (which are arrays of numbers)
  */
@@ -2164,10 +2168,10 @@ const recurse_skeleton = (points, lines, bisectors) => {
 };
 /**
  * @description create a straight skeleton inside of a convex polygon
- * @param {number[][]} points counter-clockwise polygon as an array of arrays
- * of numbers (array of points), where each point is an array of numbers.
- * @returns {object[]} list of objects containing "points": two points
- * defining a line segment, and "type": either "skeleton" or "perpendicular"
+ * @param {number[][]} points counter-clockwise polygon as an array of points
+ * (which are arrays of numbers)
+ * @returns {object[]} list of objects containing "points" {number[][]}: two points
+ * defining a line segment, and "type" {string}: either "skeleton" or "perpendicular"
  *
  * make sure:
  *  - your polygon is convex (todo: make this algorithm work with non-convex)
@@ -2204,12 +2208,12 @@ var geometry = /*#__PURE__*/Object.freeze({
   signed_area: signed_area,
   centroid: centroid,
   bounding_box: bounding_box,
-  make_regular_polygon: make_regular_polygon,
-  make_regular_polygon_side_aligned: make_regular_polygon_side_aligned,
-  make_regular_polygon_inradius: make_regular_polygon_inradius,
-  make_regular_polygon_inradius_side_aligned: make_regular_polygon_inradius_side_aligned,
-  make_regular_polygon_side_length: make_regular_polygon_side_length,
-  make_regular_polygon_side_length_side_aligned: make_regular_polygon_side_length_side_aligned,
+  make_polygon_circumradius: make_polygon_circumradius,
+  make_polygon_circumradius_s: make_polygon_circumradius_s,
+  make_polygon_inradius: make_polygon_inradius,
+  make_polygon_inradius_s: make_polygon_inradius_s,
+  make_polygon_side_length: make_polygon_side_length,
+  make_polygon_side_length_s: make_polygon_side_length_s,
   make_polygon_non_collinear: make_polygon_non_collinear,
   pleat: pleat,
   split_convex_polygon: split_convex_polygon,
@@ -2944,7 +2948,17 @@ const get_min_max = (numbers, func, scaled_epsilon) => {
   if (a >= b) { return undefined; }
   return [numbers[a], numbers[b]];
 };
-
+/**
+ * @description find the overlap between one line and one convex polygon and
+ * clip the line into a segment (two endpoints) or return undefined if no overlap.
+ * The input line can be a line, ray, or segment, as determined by "fn_line".
+ * @param {number[][]} poly array of points (which are arrays of numbers)
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin the origin of the line
+ * @param {function} [fn_poly=include] include or exclude polygon boundary in clip
+ * @param {function} [fn_line=include_l] function to determine line/ray/segment, and inclusive or exclusive.
+ * @param {number} [epsilon=1e-6] optional epsilon
+ */
 const clip_line_in_convex_polygon = (
   poly,
   vector,
@@ -3845,7 +3859,7 @@ var Polygon = {
         return this.constructor(...arguments);
       },
       regularPolygon: function () {
-        return this.constructor(make_regular_polygon(...arguments));
+        return this.constructor(make_polygon_circumradius(...arguments));
       },
       convexHull: function () {
         return this.constructor(convex_hull(...arguments));
@@ -4415,8 +4429,7 @@ const singularize = {
 	faces: "face",
 };
 /**
- * English word for what each edge assignment stands for.
- * both upper and lowercase letter keys reference the word.
+ * @description get the English word for every FOLD spec assignment character (like "M", or "b")
  */
 const edges_assignment_names = {
 	b: "boundary",
@@ -4430,13 +4443,15 @@ edges_assignment_values.forEach(key => {
 });
 /**
  * @description convert upper or lowercase edge assignments to lowercase.
- * because edge assignments can be lower or uppercase, this object
- * contains both cases as keys, where the values are only lowercase
+ * Use this to make all assignment cases consistently lowercase.
  */
 const edges_assignment_to_lowercase = {};
 edges_assignment_values.forEach(key => {
 	edges_assignment_to_lowercase[key] = key.toLowerCase();
 });
+/**
+ * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
+ */
 const edges_assignment_degrees = {
 	M: -180,
 	m: -180,

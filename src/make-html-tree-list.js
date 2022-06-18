@@ -1,11 +1,12 @@
 const makeFlair = (node) => [
-		node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" ? `<img src="./C.svg" />` : "",
+		node.simpleObject ? `<img src="./C.svg" />` : "",
+		// node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" || node.staticType === "Array" ? `<img src="./C.svg" />` : "",
 		node.staticType === "Function" ? `<img src="./F.svg" />` : "",
-		node.staticChildren ? `<img src="./S.svg" />` : ""
+		node.staticChildren && !node.simpleObject ? `<img src="./S.svg" />` : ""
 	].join("");
 
 const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
-	const hasChildren = tree.staticChildren || tree.instanceChildren;
+	const hasChildren = (tree.staticChildren || tree.instanceChildren) && !tree.simpleObject;
 	const pathNext = hasChildren ? [...path, tree.key] : path;
 	const isExpanded = expandPath.length >= pathNext.length && pathNext
 		.map((p, i) => p === expandPath[i])

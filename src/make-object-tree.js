@@ -49,15 +49,39 @@ const getChildrenTypes = (obj) => {
 	return Object.keys(hash).sort();
 };
 
+/**
+ * @description sort by Constructor type, if they are already equal, by name (key)
+ * type sort is not purely alphabetical. it is custom:
+ * "undefined"
+ * then "Boolean", "Number", "String", "Array" in one group,
+ * then "Object",
+ * then "Function"
+ */
+const typeGroups = {
+	"undefined": "A",
+	"Boolean": "B",
+	"Number": "B",
+	"String": "B",
+	"Array": "B",
+	"Object": "C",
+	"Function": "D",
+};
+const sortByTypeAndName = (a, b) => {
+	return typeGroups[a.type] === typeGroups[b.type]
+		? a.key.localeCompare(b.key)
+		: typeGroups[a.type].localeCompare(typeGroups[b.type]);
+	// return a.type.localeCompare(b.type) === 0
+	// 	? a.key.localeCompare(b.key)
+	// 	: a.type.localeCompare(b.type);
+};
+
 const getChildren = (level) => {
 	if (level == null) { return []; }
 	// const structure = { constants: [], functions: [], categories: [] };
 	// sort children keys by 1.type 2.key
 	const childKeys = getNonNumericKeys(level)
 		.map(key => ({ key, type: getObjectType(level[key]) }))
-		.sort((a, b) => a.type.localeCompare(b.type) === 0
-			? a.key.localeCompare(b.key)
-			: a.type.localeCompare(b.type))
+		.sort(sortByTypeAndName)
 		.map(el => el.key);
 
 	return childKeys.map(key => {
@@ -95,13 +119,42 @@ const getChildren = (level) => {
 	});
 };
 /**
+ * because everything in Javascript is an object, we need to differentiate between
+ * - container objects which contain methods at some depth (any depth)
+ * - objects which contain no methods (simpleObject)
+ * the reason is that simpleObjects need to not contribute to the tree structure,
+ * the side bar should not contain an expandable triangle for every single entry
+ * in this object which is meant to be a constant (like a lookup table)
+ */
+/**
+ * @description preemptively set all objects to be "simpleObject"
+ */
+const recursivelyLabel = (tree) => {
+	tree.simpleObject = true;
+	[...(tree.instanceChildren || []), ...(tree.staticChildren || [])]
+		.forEach(child => recursivelyLabel(child));
+};
+/**
+ * @description recurse to each leaf, if a function is found, crawl up the parent chain
+ * and remove the label "simpleObject" from every parent.
+ */
+const labelSimpleObjects = (tree, chain = []) => {
+	const nextChain = [...chain, tree];
+	if (tree.staticType === "Function") { nextChain.forEach(el => delete el.simpleObject); }
+	const children = [...(tree.instanceChildren || []), ...(tree.staticChildren || [])];
+	children.forEach(child => labelSimpleObjects(child, nextChain));
+};
+/**
  * @param {object} the object to build the tree.
  * @param {string} the name of the variable, the name of the top level object as a string.
  */
 const makeObjectTree = (obj, objName) => {
-	const res = { key: objName, type: getObjectType(obj), staticChildren: getChildren(obj) };
-	// console.log(`${catchCount} instance functions threw and failed to gather data.`, catchFnNames);
-	return res;
+	const tree = { key: objName, type: getObjectType(obj), staticChildren: getChildren(obj) };
+	recursivelyLabel(tree);
+	labelSimpleObjects(tree);
+	// hardcod preferences here:
+	// tree.staticChildren.filter(el => el.key === "text").forEach(el => delete el.simpleObject);
+	return tree;
 };
 
 module.exports = makeObjectTree;

@@ -38,7 +38,6 @@ pre {
 }
 pre {
 	overflow-x: auto;
-	/*text-align: left;*/
 	white-space: pre;
 	word-spacing: normal;
 	word-break: normal;
@@ -63,7 +62,6 @@ code.language-text {
 	display: block;
 	overflow-y: auto;
 }
-/*.body ul, .body ol { list-style: none; }*/
 
 .sidebar ul img {
 	width: 1rem;
@@ -71,20 +69,10 @@ code.language-text {
 	vertical-align: text-bottom;
 }
 
-/*@media (min-width: 2000px) { .body { padding: 0 10rem; } }*/
-/*@media (min-width: 1600px) { .body { padding: 0 10rem; } }*/
-/*@media (max-width: 1000px) { .body { padding: 0 5rem; } }*/
-
-/*.sidebar ul {
-	list-style-type: none;
-}*/
-
 .caret {
 	cursor: pointer;
-	user-select: none; /* Prevent text selection */
 	margin-left: -0.5rem;
 }
-
 .caret::before {
 	content: "\25B6";
 	font-size: 0.75rem;
@@ -95,29 +83,26 @@ code.language-text {
 	-o-transition: 0.0666s ease-out;
 	transition: 0.0666s ease-out;
 }
-
-.caret-down::before {
-	/*transform: rotate(90deg) translate(0, 0.1rem);*/
-	transform: rotate(90deg);
-}
+.caret-down::before { transform: rotate(90deg); }
 ul .nested { display: none; }
 ul .active { display: block; }
 
 /* margin, padding, line-height */
 
-.body > * { margin: 0.5rem 4rem; }
-/*.body h1 { margin-top: 1.5rem; }*/
+.body h1 { margin-top: 2.5rem; }
 .body h2 { margin-top: 1.5rem; }
 .body h3 { margin-top: 1.5rem; }
+.body h4 { margin-top: 1.0rem; }
 
-/*h1 { margin-top: 2.5rem; }*/
-/*h2 { margin-top: 2.1rem; }*/
-/*h3 { margin-top: 1.7rem; }*/
-/*h4 { margin-top: 1.3rem; }*/
+.body > * { margin: 0.5rem 1rem; }
+@media (min-width: 1000px) { .body > * { margin: 0.5rem 4rem; } }
+@media (min-width: 1400px) { .body > * { margin: 0.5rem 8rem; } }
+@media (min-width: 1800px) { .body > * { margin: 0.5rem 12rem; } }
+@media (min-width: 2200px) { .body > * { margin: 0.5rem 16rem; } }
 
 p, li { line-height: 1.25rem; }
-/*pre { line-height: 1.25rem; }*/
 code { line-height: 2.5rem; }
+code.language-text { line-height: 1rem; }
 code { padding: 0.5rem; }
 
 .sidebar { padding: 1rem; }
@@ -126,28 +111,3 @@ code { padding: 0.5rem; }
 .sidebar li a { margin-left: 0.5rem; }
 .sidebar li { line-height: 1.5rem; }
 .sidebar li img:first-of-type { margin-left: 0.25rem; }
-
-/*.body { padding: 1rem; }*/
-/*code.language-text {
-	padding: 1rem;
-}
-*/
-
-/*.sidebar h1,
-.sidebar h2,
-.sidebar h3,
-.sidebar h4,
-.sidebar h5 {
-	margin: 0;
-}*/
-
-/*.sidebar ul img { margin-left: 0.25rem; }*/
-
-/*#tree-start {
-	padding: 0;
-}
-*/
-
-/*.caret::before { margin-right: 6px; }*/
-
-/*p, ul, pre { margin: 0.5rem 0; }*/

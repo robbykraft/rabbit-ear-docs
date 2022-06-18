@@ -67,7 +67,7 @@ const makeReturnSection = (data) => data.returns && data.returns.length
 	? `returns\n\n${makeTypeDescriptionUnorderedList(data.returns)}`
 	: undefined;
 
-const makeConstantDefinition = (data, tree, path) => `${tree.key}:${tree.staticType.toLowerCase()}`;
+const makeConstantDefinition = (data, tree, path) => `${path.join(".")}.${tree.key}:${tree.staticType.toLowerCase()}`;
 
 const makeFunctionDefinition = (data, tree, path) => {
 	if (!data) { return ""; }

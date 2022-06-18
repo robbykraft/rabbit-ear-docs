@@ -20,12 +20,11 @@
 	--darkmode-purple-dark: #624C82;
 	--darkmode-purple: #B388F5;
 	--darkmode-pink-dark: #626;
+	--darkmode-pink-dark-1: #7E2D7F;
 	--darkmode-pink-medium: #A130A3;
-	--darkmode-pink-dark-2: #A63BA8;
 	--darkmode-pink: #E150E3;
 	--darkmode-pink-light: #EC66F3;
 	--darkmode-pink-very-light: #f0a4f5;
-	/*--darkmode-pink-dark-1: #7E2D7F;*/
 	--darkmode-green: #63D7C6;
 	--darkmode-yellow: #EDAB46;
 	--darkmode-red: #B00020;
@@ -40,13 +39,13 @@ html, body {
 	background-color: var(--darkmode-gray-2);
 }
 
-h1 { color: var(--darkmode-gray-5); }
-h2 { color: var(--darkmode-gray-5); }
+h1 { color: var(--darkmode-gray-6); }
+h2 { color: var(--darkmode-gray-6); }
 h3 { color: var(--darkmode-yellow); }
 h4 { color: var(--darkmode-gray-6); }
 h5 { color: var(--darkmode-gray-6); }
+
 p, ul, pre, code { color: var(--darkmode-gray-6); }
-/*pre { background-color: var(--darkmode-gray-3); }*/
 pre code {
 	border-color: var(--darkmode-gray-5);
 }
@@ -69,5 +68,7 @@ a:hover { color: var(--darkmode-yellow); }
 .hljs-built_in { color: #8be; }
 .hljs-title.class_ { color: #ad6; }
 .hljs-number { color: #e85; }
+.hljs-string { color: var(--darkmode-yellow); }
+/*.hljs-property { color: #ad6; }*/
 .hljs-keyword { color: #8be; }
 .hljs-title.function_ { color: #ad6; }
