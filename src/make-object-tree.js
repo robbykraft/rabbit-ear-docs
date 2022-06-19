@@ -16,12 +16,6 @@ const getPrototypeNameChain = (obj, chain = []) => {
 		: getPrototypeNameChain(Object.getPrototypeOf(obj), [...chain, name]);
 };
 
-let catchCount = 0;
-const catchFnNames = [];
-// todo: dictionary with key:fn-name and value:array of fn-pointers
-// prevent duplicate visits to the same function, called from the same object
-const visited = [];
-
 /**
  * we use obj.constructor.name to get the name of the "type",
  * if constructor doesn't exist, it defaults to "typeof obj"
@@ -51,19 +45,22 @@ const getChildrenTypes = (obj) => {
 
 // when we encounter a new prototype, add it here.
 const prototypes = [];
-				// 	.filter(el => el !== Function.prototype)
-				// 	.filter(el => el !== Array.prototype)
-				// 	.filter(el => el !== Object.prototype)
-				// 	.filter(el => el !== String.prototype)
-				// 	.filter(el => el !== Number.prototype)
-				// 	.filter(el => el !== Boolean.prototype);
+
+// we need to get the DOM Element prototype
+const ElementInstance = ear.svg();
+const Element = ElementInstance.constructor;
+const ElementParentPrototype = Object.getPrototypeOf(Element.prototype);
 
 const isUniquePrototype = (proto) => proto !== Function.prototype
 	&& proto !== Array.prototype
 	&& proto !== Object.prototype
 	&& proto !== String.prototype
 	&& proto !== Number.prototype
-	&& proto !== Boolean.prototype;
+	&& proto !== Boolean.prototype
+	&& proto !== Element.prototype
+	&& proto !== ElementParentPrototype;
+
+
 const containsUniquePrototype = (protos = []) => protos
 	.map(p => isUniquePrototype(p))
 	.reduce((a, b) => a || b, false);
@@ -93,28 +90,83 @@ const sortByTypeAndName = (a, b) => {
 	// 	: a.type.localeCompare(b.type);
 };
 
-const getChildren = (level) => {
-	if (level == null) { return []; }
+const removeInvalids = (tree) => {
+	if (tree.instanceChildren) {
+		tree.instanceChildren = tree.instanceChildren.filter(el => !el.invalid);
+	}
+	if (tree.staticChildren) {
+		tree.staticChildren = tree.staticChildren.filter(el => !el.invalid);
+	}
+	[...(tree.instanceChildren || []), ...(tree.staticChildren || [])]
+		.forEach(child => removeInvalids(child));
+};
+
+let catchCount = 0;
+const catchFnNames = [];
+// todo: dictionary with key:fn-name and value:array of fn-pointers
+// prevent duplicate visits to the same function, called from the same object
+/**
+ * @description keys are fn-names (tree.key) and value is an array.
+ * the array contains objects with keys:
+ * - depth: {int} the recursive depth at which this was found
+ * - obj: the pointer (in memory) to the function/any object
+ */
+let visited = [];
+
+const hasVisitedAlready = (tree, depth) => {
+	const found = visited.filter(el => el.obj === tree).shift();
+	// does not yet exist in the history.
+	if (!found) { return false; }
+	// yes, it exists and it has a depth that outranks this one
+	if (found.depth <= depth) { return true; }
+	// yes, it exists, but this new depth outranks the old one. remove the previous save
+	// set a key "invalid", these will be crawled and removed later
+	found.invalid = true;
+	// update the visited history to remove the old one.
+	visited = visited.filter(el => el.obj !== tree);
+	return false;
+};
+
+const setVisited = (tree, depth) => {
+	visited.push({
+		obj: tree,
+		depth,
+	});
+};
+
+const getChildren = (tree, depth = 0) => {
+	if (tree == null) { return []; }
+	// if (hasVisitedAlready(tree, depth)) {
+	// 	console.log("already seen this tree item", typeof tree);
+	// 	return [];
+	// }
+	// setVisited(tree, depth);
 	// const structure = { constants: [], functions: [], categories: [] };
 	// sort children keys by 1.type 2.key
-	const childKeys = getNonNumericKeys(level)
-		.map(key => ({ key, type: getObjectType(level[key]) }))
+	const childKeys = getNonNumericKeys(tree)
+		.map(key => ({ key, type: getObjectType(tree[key]) }))
 		.sort(sortByTypeAndName)
 		.map(el => el.key);
+	// console.log("childKeys", childKeys.map(key => typeof tree[key]));
 
 	return childKeys.map(key => {
-		const staticType = getObjectType(level[key]);
-		const staticChildren = getChildren(level[key]);
+		const staticType = getObjectType(tree[key]);
+		const staticChildren = getChildren(tree[key], depth+1);
 		const res = { key, staticType };
 		if (staticChildren.length) { res.staticChildren = staticChildren; }
-		const staticPrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(level[key]));
+		const staticPrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(tree[key]));
 		if (staticPrototypeNameChain) { res.staticPrototypeNameChain = staticPrototypeNameChain; }
-		const staticPrototypeChain = getPrototypeChain(level[key]);
+		const staticPrototypeChain = getPrototypeChain(tree[key]);
 		if (staticPrototypeChain) { res.staticPrototypeChain = staticPrototypeChain; }
 
 		if (staticType === "Function") {
 			try {
-				const instance = level[key]();
+				if (hasVisitedAlready(tree[key], depth)) {
+					console.log("already seen this instance constructor", tree[key]);
+					throw "already found. error";
+				}
+				setVisited(tree[key], depth);
+				const instance = tree[key]();
 				res.instanceType = getObjectType(instance);
 				const instancePrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(instance));
 				if (instancePrototypeNameChain) { res.instancePrototypeNameChain = instancePrototypeNameChain; }
@@ -125,7 +177,7 @@ const getChildren = (level) => {
 				});
 				if (instancePrototypeChain) { res.instancePrototypeChain = instancePrototypeChain; }
 				// finally, we get the children, because this could potentially throw an error
-				const instanceChildren = getChildren(instance);
+				const instanceChildren = getChildren(instance, depth+1);
 				if (instanceChildren.length) { res.instanceChildren = instanceChildren; }
 			} catch(error) {
 				catchCount++;
@@ -185,9 +237,11 @@ const makeObjectTree = (obj, objName) => {
 	labelSimpleObjects(tree);
 	makeHasOwnPage(tree);
 	makeIsExpandable(tree);
+	removeInvalids(tree);
 	tree.prototypes = prototypes;
 	// hardcod preferences here:
 	// tree.staticChildren.filter(el => el.key === "text").forEach(el => delete el.simpleObject);
+	console.log("these methods failed to execute and gather instance() information", catchFnNames);
 	return tree;
 };
 

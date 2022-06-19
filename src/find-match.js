@@ -23,7 +23,7 @@ const findMatch = (docsEntries, tree, path, targetProperties) => {
 	// no properties were offered. just get one of the global ones...
 	if (!targetProperties) {
 		const globalItem = list.filter(el => el.scope === "global").shift();
-		console.log("findMatch multiple matches. no target properties. global item found?", globalItem != null);
+		console.log("findMatch multiple matches. no target properties. global item found?", globalItem != null, tree.key);
 		return globalItem ? globalItem : list[0];
 	}
 	let matchIndex = 0;
@@ -32,7 +32,7 @@ const findMatch = (docsEntries, tree, path, targetProperties) => {
 			.map(key => targetProperties[key] === el[key] ? 1 : 0)
 			.reduce((a, b) => a + b, 0));
 	matchCount.forEach((sum, i) => { if (sum > matchCount[matchIndex]) { matchIndex = i; } });
-		console.log("findMatch multiple matches. target properties found best match:", matchCount, matchIndex);
+		console.log("findMatch multiple matches. target properties found best match:", matchCount, matchIndex, tree.key);
 	return list[matchIndex];
 };
 

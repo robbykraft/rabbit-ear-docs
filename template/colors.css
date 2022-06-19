@@ -66,7 +66,7 @@ code {
 .caret:hover::before {
 	color: var(--darkmode-yellow);
 }
-.caret-down>a { color: var(--darkmode-yellow); }
+.sidebar .caret-down>a { color: var(--darkmode-yellow); }
 
 .hljs-attr { color: var(--darkmode-yellow); }
 .hljs-built_in { color: #8be; }

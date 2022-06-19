@@ -1,3 +1,5 @@
+const URL_SUBDIR = "";
+
 const makeFlair = (node) => [
 		node.simpleObject ? `<img src="./C.svg" />` : "",
 		// node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" || node.staticType === "Array" ? `<img src="./C.svg" />` : "",
@@ -13,9 +15,11 @@ const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
 		.reduce((a, b) => a && b, true);
 	const indent0 = "  ".repeat(depth * 2);
 	const indent1 = "  ".repeat(depth * 2 + 1);
+	// const url = depth === 0 ? `${URL_SUBDIR}index.html` : `${URL_SUBDIR}${pathNext.join(".")}.html`;
+	const url = `${URL_SUBDIR}${pathNext.join(".")}.html`;
 	const itemName = tree.hasOwnPage
-		? `<a href="${pathNext.join(".")}.html">${tree.key}</a>`
-		: `<a href="${pathNext.join(".")}.html#${tree.key.toLowerCase()}">${tree.key}</a>`;
+		? `<a href="${url}">${tree.key}</a>`
+		: `<a href="${url}#${tree.key.toLowerCase()}">${tree.key}</a>`;
 	if (!tree.isExpandable) {
 		return `${indent0}<li>${itemName}${makeFlair(tree)}</li>`;
 	}

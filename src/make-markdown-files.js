@@ -127,7 +127,7 @@ const makeInstancePageSection = (docsEntries, tree, path) => {
 		case "Boolean": markdown.push("TODO Boolean"); break;
 		case "Number": markdown.push("TODO Number"); break;
 		case "String": markdown.push("TODO String"); break;
-		case "Object": markdown.push("TODO Object"); break;
+		case "Object": markdown.push(makeStaticObject(matchStatic, tree, path.slice(0, -1))); break;
 		case "Array": markdown.push("TODO Array"); break;
 		case "Function": markdown.push(makeStaticFunction(matchStatic, tree, path)); break;
 		case "undefined": markdown.push(makeStaticContainerObject(matchInstance, tree, path)); break;
@@ -172,8 +172,9 @@ const makeMarkdownFile = (docsEntries, tree, path = []) => {
 		markdown.push(makeStaticPageSection(docsEntries, tree, path));
 	}
 
-	markdown.push(...(docsEntries[tree.key] || [])
-		.map(match => textCodeBlock(match, tree)));
+	// debug section, the matched jsdocs entries
+	// markdown.push(...(docsEntries[tree.key] || [])
+	// 	.map(match => textCodeBlock(match, tree)));
 	// join sections with carriage returns
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
