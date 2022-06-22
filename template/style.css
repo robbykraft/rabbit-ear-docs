@@ -47,6 +47,7 @@ pre code {
 	border: 1px solid;
 	border-radius: 0.25rem;
 }
+blockquote { font-style: italic; }
 
 code.language-text,
 code.language-json {
@@ -69,10 +70,14 @@ code.language-json {
 	height: 1rem;
 	vertical-align: text-bottom;
 }
-.body ul img {
+.body ul img{
 	width: 2rem;
 	height: 2rem;
-	vertical-align: text-bottom;
+}
+.body ul .img {
+	width: 2rem;
+	text-align: center;
+	display: inline-block;
 }
 
 .caret {
@@ -95,16 +100,24 @@ ul .active { display: block; }
 
 /* margin, padding, line-height */
 
-.body h1 { margin-top: 2.5rem; }
-.body h2 { margin-top: 1.5rem; }
-.body h3 { margin-top: 1.5rem; }
-.body h4 { margin-top: 1.0rem; }
-
 .body > * { margin: 0.5rem 1rem; }
+.body h1,
+.body h2,
+.body h3,
+.body h4 { margin-top: 2.5rem; }
+/* shrink the margin between two neighboring headers */
+.body h1 + h1, .body h1 + h2, .body h1 + h3, .body h1 + h4, .body h1 + h5,
+.body h2 + h1, .body h2 + h2, .body h2 + h3, .body h2 + h4, .body h2 + h5,
+.body h3 + h1, .body h3 + h2, .body h3 + h3, .body h3 + h4, .body h3 + h5,
+.body h4 + h1, .body h4 + h2, .body h4 + h3, .body h4 + h4, .body h4 + h5,
+.body h5 + h1, .body h5 + h2, .body h5 + h3, .body h5 + h4, .body h5 + h5 {
+	margin-top: 1rem;
+}
 @media (min-width: 1000px) { .body > * { margin: 0.5rem 4rem; } }
 @media (min-width: 1400px) { .body > * { margin: 0.5rem 8rem; } }
 @media (min-width: 1800px) { .body > * { margin: 0.5rem 12rem; } }
 @media (min-width: 2200px) { .body > * { margin: 0.5rem 16rem; } }
+.body > *:last-child { margin-bottom: 3rem; }
 
 p, li { line-height: 1.25rem; }
 code { line-height: 2.5rem; }
@@ -113,6 +126,11 @@ code.language-json {
 	line-height: 1rem;
 }
 code { padding: 0.5rem; }
+.body blockquote > * {
+	margin-left: 1rem;
+	margin-right: 1rem;
+	padding: 0.5rem;
+}
 
 .sidebar { padding: 1rem; }
 .sidebar ul { margin-left: 0.5rem; }

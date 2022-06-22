@@ -74,6 +74,13 @@ const sortJSDocs = (jsdocs) => {
 	});
 	return res;
 };
+
+const errorsTree = () => ({
+	"key": "errors",
+	// "staticType": "Array",
+	// "simpleObject": true,
+	"hasOwnPage": true
+});
 /**
  * @description the main function.
  * @param {object} jsdocs the JSON result from calling jsdoc2md get JSON subprocess.
@@ -87,8 +94,9 @@ const buildDocs = (jsdocs) => {
 	fs.writeFileSync(`./tmp/docs.json`, JSON.stringify(docsEntries, null, 2));
 	fs.writeFileSync(`./tmp/directory-tree.json`, JSON.stringify(libraryTree, null, 2));
 	// build docs. first markdown, then convert that into HTML
-	makeMarkdownFiles(docsEntries, libraryTree);
-	makeHTMLFiles(libraryTree);
+	const topLevelTrees = [libraryTree, errorsTree()];
+	makeMarkdownFiles(docsEntries, topLevelTrees);
+	makeHTMLFiles(topLevelTrees);
 	// these template files are copied over to the build folder
 	const copyFileTypes = [".css", ".svg"];
 	fs.readdirSync("./template/")

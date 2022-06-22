@@ -53,6 +53,9 @@ code {
 	color: var(--darkmode-gray-6);
 	background-color: var(--darkmode-gray-3);
 }
+blockquote > * {
+	background-color: var(--darkmode-gray-3);
+}
 
 .sidebar a { color: var(--darkmode-gray-6); }
 .sidebar a:visited { color: var(--darkmode-gray-6); }

@@ -4,7 +4,7 @@ const makeFlair = (node) => [
 		node.simpleObject ? `<img src="./C.svg" />` : "",
 		// node.staticType === "Boolean" || node.staticType === "Number" || node.staticType === "String" || node.staticType === "Array" ? `<img src="./C.svg" />` : "",
 		node.staticType === "Function" ? `<img src="./F.svg" />` : "",
-		node.staticType === "Function" && node.staticChildren ? `<img src="./S.svg" />` : ""
+		// node.staticType === "Function" && node.staticChildren ? `<img src="./S.svg" />` : ""
 	].join("");
 
 const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
@@ -38,10 +38,10 @@ const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
 	return [liStart, ulStart, childrenList, ulEnd, liEnd].join("\n");
 };
 
-const makeHTMLTreeList = (tree, expandPath) => {
+const makeHTMLTreeList = (topLevelTrees, expandPath) => {
 	const ulStart = `<ul id="tree-start">`
 	const ulEnd = `</ul>`
-	return [ulStart, treeToList(tree, expandPath), ulEnd].join("\n");
+	return [ulStart, ...topLevelTrees.map(tree => treeToList(tree, expandPath)), ulEnd].join("\n");
 };
 
 module.exports = makeHTMLTreeList;

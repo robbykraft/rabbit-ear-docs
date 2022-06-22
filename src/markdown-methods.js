@@ -72,8 +72,8 @@ const makeConstantDefinition = (data, tree, path) => `${path.join(".")}.${tree.k
 const makeFunctionDefinition = (data, tree, path) => {
 	if (!data) { return ""; }
 	// console.log("tree", tree);
-	// const functionCall = tree.key;
-	const functionCall = path.join(".");
+	const functionCall = [...path, tree.key].join(".");
+	// const functionCall = path.join(".");
 	const params = data.params == null
 		? ""
 		: data.params.map((param, i) => tsParam(param, i))

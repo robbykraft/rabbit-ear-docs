@@ -1,10 +1,8 @@
 # rabbit-ear docgen
 
-documentation generator for [rabbit-ear](https://rabbitear.org).
+Documentation generator for [rabbit-ear](https://rabbitear.org). Sources the JSDoc comments throughout the source code and builds HTML files.
 
 Instead of letting a JSDocs generator run the show, this generator inspects the actual library object (rabbit-ear) and carefully assembles the structure of the documentation to mimic the library. This includes the sidebar navigation and the contents of each individual page.
-
-> this approach uniquely works well with this library because all methods, global or scoped, are mostly-uniquely named, which allows us to backwards match a JSDocs definition to a method found in the object tree.
 
 ```bash
 npm i

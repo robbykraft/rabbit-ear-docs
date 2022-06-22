@@ -8,11 +8,11 @@ The source code is spread out across multiple repositories, each of which are av
 
 ## how to read these docs
 
+- <span class="img">▶</span> this object **contains** nested methods (functions can be containers too)
 - ![constant](C.svg) this is a **constant** (boolean, number, string, object)
 - ![function](F.svg) this is a **function**
-- ![static](S.svg) this is a function with **static** properties or methods
 
-For example **graph** is a constructor (function), but also a container which houses *many* methods which perform operations on graphs.
+<!-- - ![static](S.svg) this is a function with **static** properties or methods -->
 
 ## installation
 

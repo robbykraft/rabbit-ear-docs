@@ -36,10 +36,10 @@ const _none = "none";
  */
 
 // compare to "undefined", the string
-const isBrowser = typeof window !== _undefined
+const isBrowser$1 = typeof window !== _undefined
 	&& typeof window.document !== _undefined;
 
-const isNode = typeof process !== _undefined
+typeof process !== _undefined
 	&& process.versions != null
 	&& process.versions.node != null;
 
@@ -49,11 +49,43 @@ const isWebWorker = typeof self === _object
 
 // // for debugging, uncomment to log system on boot
 // const operating_systems = [
-//   isBrowser ? "browser" : "",
-//   isWebWorker ? "web-worker" : "",
-//   isNode ? "node" : "",
-// ].filter(a => a !== "").join(" ");
+//   isBrowser ? "browser" : undefined,
+//   isWebWorker ? "web-worker" : undefined,
+//   isNode ? "node" : undefined,
+// ].filter(a => a !== undefined).join(" ");
 // console.log(`RabbitEar [${operating_systems}]`);
+
+const errorMessages = [];
+
+errorMessages[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+
+const windowContainer = { window: undefined };
+
+const buildDocument = (newWindow) => new newWindow.DOMParser()
+  .parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+
+const setWindow$1 = (newWindow) => {
+  // make sure window has a document. xmldom does not, and requires it be built.
+  if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
+  windowContainer.window = newWindow;
+  return windowContainer.window;
+};
+// if we are in the browser, by default use the browser's "window".
+if (isBrowser$1) { windowContainer.window = window; }
+/**
+ * @description get the "window" object, which should have
+ * DOMParser, XMLSerializer, and document.
+ */
+const RabbitEarWindow = () => {
+  if (windowContainer.window === undefined) {
+    throw errorMessages[10];
+  }
+  return windowContainer.window;
+};
 
 /**
  * Rabbit Ear (c) Kraft
@@ -1776,7 +1808,7 @@ const intersectLineLine = (
   bFunction = includeL,
   epsilon = EPSILON
 ) => {
-  // a normalized determinant gives consisten values across all epsilon ranges
+  // a normalized determinant gives consistent values across all epsilon ranges
   const det_norm = cross2(normalize(aVector), normalize(bVector));
   // lines are parallel
   if (Math.abs(det_norm) < epsilon) { return undefined; }
@@ -4388,7 +4420,7 @@ const file_creator = "Rabbit Ear";
 /**
  * top-level keys in a FOLD object, sorted into usage categories.
  */
-const fold_keys = {
+const foldKeys = {
 	file: [
 		"file_spec",
 		"file_creator",
@@ -4435,15 +4467,15 @@ const fold_keys = {
  * top-level keys from a FOLD object in one flat array
  */
 const keys = Object.freeze([]
-	.concat(fold_keys.file)
-	.concat(fold_keys.frame)
-	.concat(fold_keys.graph)
-	.concat(fold_keys.orders));
+	.concat(foldKeys.file)
+	.concat(foldKeys.frame)
+	.concat(foldKeys.graph)
+	.concat(foldKeys.orders));
 /**
  * top-level keys from a FOLD object used by this library,
  * not in the official spec. made when calling populate().
  */
-const non_spec_keys = Object.freeze([
+const keysOutOfSpec = Object.freeze([
 	"edges_vector",
 	"vertices_sectors",
 	"faces_sectors",
@@ -4452,7 +4484,7 @@ const non_spec_keys = Object.freeze([
 /**
  * array of single characers, the values of an edge assignment
  */
-const edges_assignment_values = Array.from("MmVvBbFfUu");
+const edgesAssignmentValues = Array.from("MmVvBbFfUu");
 
 /**
  * Rabbit Ear (c) Kraft
@@ -4476,28 +4508,28 @@ const singularize = {
 /**
  * @description get the English word for every FOLD spec assignment character (like "M", or "b")
  */
-const edges_assignment_names = {
+const edgesAssignmentNames = {
 	b: "boundary",
 	m: "mountain",
 	v: "valley",
 	f: "flat",
 	u: "unassigned"
 };
-edges_assignment_values.forEach(key => {
-	edges_assignment_names[key.toUpperCase()] = edges_assignment_names[key];
+edgesAssignmentValues.forEach(key => {
+	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
  * @description convert upper or lowercase edge assignments to lowercase.
  * Use this to make all assignment cases consistently lowercase.
  */
-const edges_assignment_to_lowercase = {};
-edges_assignment_values.forEach(key => {
-	edges_assignment_to_lowercase[key] = key.toLowerCase();
+const edgesAssignmentToLowercase = {};
+edgesAssignmentValues.forEach(key => {
+	edgesAssignmentToLowercase[key] = key.toLowerCase();
 });
 /**
  * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
  */
-const edges_assignment_degrees = {
+const edgesAssignmentDegrees = {
 	M: -180,
 	m: -180,
 	V: 180,
@@ -4513,22 +4545,22 @@ const edges_assignment_degrees = {
  * @param {string} one edge assignment letter, any case: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
  */
-const edge_assignment_to_foldAngle = assignment =>
-	edges_assignment_degrees[assignment] || 0;
+const edgeAssignmentToFoldAngle = assignment =>
+	edgesAssignmentDegrees[assignment] || 0;
 /**
  * @param {number} fold angle in degrees.
  * @returns {string} one edge assignment letter: M V or U, no boundary detection.
  *
  * todo: what should be the behavior for 0, undefined, null?
  */
-const edge_foldAngle_to_assignment = (a) => {
+const edgeFoldAngleToAssignment = (a) => {
 	if (a > 0) { return "V"; }
 	if (a < 0) { return "M"; }
 	// if (a === 0) { return "F"; }
 	return "U";
 };
 const flat_angles = { 0: true, "-0": true, 180: true, "-180": true };
-const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
+const edgeFoldAngleIsFlat = angle => flat_angles[angle] === true;
 /**
  * @description determine if an edges_foldAngle array contains only
  * flat-folded angles, strictly the set: 0, -180, or +180.
@@ -4536,7 +4568,7 @@ const edge_foldAngle_is_flat = angle => flat_angles[angle] === true;
  * are flat, and the method returns "true".
  * @returns {boolean} is the graph flat-foldable according to foldAngles.
  */
-const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
+const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
 	for (let i = 0; i < edges_foldAngle.length; i++) {
 		if (!flat_angles[edges_foldAngle[i]]) { return false; }
@@ -4548,7 +4580,7 @@ const edges_foldAngle_all_flat = ({ edges_foldAngle }) => {
  * @param {string} a suffix to match against the keys
  * @returns {string[]} array of keys that end with the string param
  */
-const filter_keys_with_suffix = (graph, suffix) => Object
+const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
 	.map(s => (s.substring(s.length - suffix.length, s.length) === suffix
 		? s : undefined))
@@ -4558,7 +4590,7 @@ const filter_keys_with_suffix = (graph, suffix) => Object
  * @param {string} a prefix to match against the keys
  * @returns {string[]} array of keys that start with the string param
  */
-const filter_keys_with_prefix = (graph, prefix) => Object
+const filterKeysWithPrefix = (graph, prefix) => Object
 	.keys(graph)
 	.map(str => (str.substring(0, prefix.length) === prefix
 		? str : undefined))
@@ -4571,8 +4603,8 @@ const filter_keys_with_prefix = (graph, prefix) => Object
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
  */
-const get_graph_keys_with_prefix = (graph, key) =>
-	filter_keys_with_prefix(graph, `${key}_`);
+const getGraphKeysWithPrefix = (graph, key) =>
+	filterKeysWithPrefix(graph, `${key}_`);
 /**
  * return a list of keys from a FOLD object that match a provided
  * string such that the key ENDS WITH this string, preceded by _.
@@ -4581,15 +4613,15 @@ const get_graph_keys_with_prefix = (graph, key) =>
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
  */
-const get_graph_keys_with_suffix = (graph, key) =>
-	filter_keys_with_suffix(graph, `_${key}`);
+const getGraphKeysWithSuffix = (graph, key) =>
+	filterKeysWithSuffix(graph, `_${key}`);
 
 /**
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
  */
-const transpose_graph_arrays = (graph, geometry_key) => {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+const transposeGraphArrays = (graph, geometry_key) => {
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return []; }
 	const len = Math.max(...matching_keys.map(arr => graph[arr].length));
 	const geometry = Array.from(Array(len))
@@ -4611,12 +4643,12 @@ const transpose_graph_arrays = (graph, geometry_key) => {
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
  */
-const transpose_graph_array_at_index = function (
+const transposeGraphArrayAtIndex = function (
 	graph,
 	geometry_key,
 	index
 ) {
-	const matching_keys = get_graph_keys_with_prefix(graph, geometry_key);
+	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return undefined; }
 	const geometry = {};
 	// matching_keys
@@ -4626,29 +4658,29 @@ const transpose_graph_array_at_index = function (
 	return geometry;
 };
 
-const fold_object_certainty = (object = {}) => (
+const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
-		: [].concat(keys, non_spec_keys)
+		: [].concat(keys, keysOutOfSpec)
 			.filter(key => object[key]).length / Object.keys(object).length);
 
 var fold_spec = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	singularize: singularize,
-	edges_assignment_names: edges_assignment_names,
-	edges_assignment_to_lowercase: edges_assignment_to_lowercase,
-	edges_assignment_degrees: edges_assignment_degrees,
-	edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
-	edge_foldAngle_to_assignment: edge_foldAngle_to_assignment,
-	edge_foldAngle_is_flat: edge_foldAngle_is_flat,
-	edges_foldAngle_all_flat: edges_foldAngle_all_flat,
-	filter_keys_with_suffix: filter_keys_with_suffix,
-	filter_keys_with_prefix: filter_keys_with_prefix,
-	get_graph_keys_with_prefix: get_graph_keys_with_prefix,
-	get_graph_keys_with_suffix: get_graph_keys_with_suffix,
-	transpose_graph_arrays: transpose_graph_arrays,
-	transpose_graph_array_at_index: transpose_graph_array_at_index,
-	fold_object_certainty: fold_object_certainty
+	edgesAssignmentNames: edgesAssignmentNames,
+	edgesAssignmentToLowercase: edgesAssignmentToLowercase,
+	edgesAssignmentDegrees: edgesAssignmentDegrees,
+	edgeAssignmentToFoldAngle: edgeAssignmentToFoldAngle,
+	edgeFoldAngleToAssignment: edgeFoldAngleToAssignment,
+	edgeFoldAngleIsFlat: edgeFoldAngleIsFlat,
+	edgesFoldAngleAreAllFlat: edgesFoldAngleAreAllFlat,
+	filterKeysWithSuffix: filterKeysWithSuffix,
+	filterKeysWithPrefix: filterKeysWithPrefix,
+	getGraphKeysWithPrefix: getGraphKeysWithPrefix,
+	getGraphKeysWithSuffix: getGraphKeysWithSuffix,
+	transposeGraphArrays: transposeGraphArrays,
+	transposeGraphArrayAtIndex: transposeGraphArrayAtIndex,
+	isFoldObject: isFoldObject
 });
 
 /**
@@ -4680,7 +4712,7 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
  */
 // clusters is an array of arrays of numbers
 // each entry in clusters is an array of vertex indices
-const get_vertices_clusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
+const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
 	// only top triangle is used
@@ -4759,7 +4791,7 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @param {string} the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
  */
-const count = (graph, key) => max_arrays_length(...get_graph_keys_with_prefix(graph, key).map(key => graph[key]));
+const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
 
 // standard graph components names
 count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
@@ -4778,7 +4810,7 @@ count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
  * @param {number[]} array of integers
  * @returns {number[]} set of sorted, unique integers
  */
-const unique_sorted_integers = (array) => {
+const uniqueSortedIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
 	return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
@@ -4790,7 +4822,7 @@ const unique_sorted_integers = (array) => {
  * @param {number[]} two numbers, indices that divide the array into 2 parts.
  * @returns {any[][]} the same array split into two portions, inside an array.
  */
-const split_circular_array = (array, indices) => {
+const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
 	return [
 		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
@@ -4803,7 +4835,7 @@ const split_circular_array = (array, indices) => {
  * @param {any[][]} this is an array of arrays.
  * @return {any[]} one of the arrays from the set
  */
-const get_longest_array = (arrays) => {
+const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
 	const lengths = arrays.map(arr => arr.length);
 	let max = 0;
@@ -4821,7 +4853,7 @@ const get_longest_array = (arrays) => {
  * the intended use case is an array of {number[]}.
  * @returns {any[]} input array, filtering out any items which only appear once.
  */
-const remove_single_instances = (array) => {
+const removeSingleInstances = (array) => {
 	const count = {};
 	array.forEach(n => {
 		if (count[n] === undefined) { count[n] = 0; }
@@ -4833,14 +4865,14 @@ const remove_single_instances = (array) => {
  * @description convert a non-sparse matrix of true/false/undefined
  * into arrays containing the index of the trues.
  */
-const boolean_matrix_to_indexed_array = matrix => matrix
+const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => value === true ? i : undefined)
 		.filter(a => a !== undefined));
 /**
  * triangle number, only visit half the indices. make unique pairs
  */
-const boolean_matrix_to_unique_index_pairs = matrix => {
+const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
@@ -4858,7 +4890,7 @@ const boolean_matrix_to_unique_index_pairs = matrix => {
  * where each item is included in a group if it points to another member
  * in that group.
  */
-const make_unique_sets_from_self_relational_arrays = (matrix) => {
+const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -4878,7 +4910,7 @@ const make_unique_sets_from_self_relational_arrays = (matrix) => {
  * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
  * (length * (length-1)) / 2
  */
-const make_triangle_pairs = (array) => {
+const makeTrianglePairs = (array) => {
 	const pairs = Array((array.length * (array.length - 1)) / 2);
 	let index = 0;
 	for (let i = 0; i < array.length - 1; i++) {
@@ -4896,7 +4928,7 @@ const make_triangle_pairs = (array) => {
  * will return two entries: [ [8, 1], [3, 5] ]
  * @param {any[]} the array, which possibly contains holes
  */
-const circular_array_valid_ranges = (array) => {
+const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
 	const not_undefineds = array.map(el => el !== undefined);
 	if (not_undefineds.reduce((a, b) => a && b, true)) {
@@ -4933,7 +4965,7 @@ const circular_array_valid_ranges = (array) => {
  * it's possible that the holes exist at the end of the array,
  * causing it to misreport the (intended) length.
  */
-// const circular_array_valid_range = (array, array_length) => {
+// const circularArrayValidRange = (array, array_length) => {
 //   let start, end;
 //   for (start = array_length - 1;
 //     start >= 0 && array[start] !== undefined;
@@ -4945,7 +4977,7 @@ const circular_array_valid_ranges = (array) => {
 //   return [start, end];
 // };
 
-// this is now "invert_simple_map" in maps.js
+// this is now "invertSimpleMap" in maps.js
 // export const invert_array = (a) => {
 // 	const b = [];
 // 	a.forEach((n, i) => { b[n] = i; });
@@ -4962,15 +4994,15 @@ const circular_array_valid_ranges = (array) => {
 
 var arrays = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	unique_sorted_integers: unique_sorted_integers,
-	split_circular_array: split_circular_array,
-	get_longest_array: get_longest_array,
-	remove_single_instances: remove_single_instances,
-	boolean_matrix_to_indexed_array: boolean_matrix_to_indexed_array,
-	boolean_matrix_to_unique_index_pairs: boolean_matrix_to_unique_index_pairs,
-	make_unique_sets_from_self_relational_arrays: make_unique_sets_from_self_relational_arrays,
-	make_triangle_pairs: make_triangle_pairs,
-	circular_array_valid_ranges: circular_array_valid_ranges
+	uniqueSortedIntegers: uniqueSortedIntegers,
+	splitCircularArray: splitCircularArray,
+	getLongestArray: getLongestArray,
+	removeSingleInstances: removeSingleInstances,
+	booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
+	booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
+	makeUniqueSetsFromSelfRelationalArrays: makeUniqueSetsFromSelfRelationalArrays,
+	makeTrianglePairs: makeTrianglePairs,
+	circularArrayValidRanges: circularArrayValidRanges
 });
 
 /**
@@ -4999,9 +5031,9 @@ var arrays = /*#__PURE__*/Object.freeze({
 // given removeIndices: [4, 6, 7];
 // given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 // map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
-const remove_geometry_indices = (graph, key, removeIndices) => {
+const removeGeometryIndices = (graph, key, removeIndices) => {
 	const geometry_array_size = count(graph, key);
-	const removes = unique_sorted_integers(removeIndices);
+	const removes = uniqueSortedIntegers(removeIndices);
 	const index_map = [];
 	let i, j, walk;
 	for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
@@ -5015,14 +5047,14 @@ const remove_geometry_indices = (graph, key, removeIndices) => {
 	}
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
-	get_graph_keys_with_suffix(graph, key)
+	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
 			.forEach((_, i) => graph[sKey][i]
 				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	removes.reverse();
-	get_graph_keys_with_prefix(graph, key)
+	getGraphKeysWithPrefix(graph, key)
 		.forEach((prefix_key) => removes
 			.forEach(index => graph[prefix_key]
 				.splice(index, 1)));
@@ -5053,10 +5085,10 @@ const remove_geometry_indices = (graph, key, removeIndices) => {
  * @example replace(foldObject, "vertices", [2,6,11,15]);
  */
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
-const replace_geometry_indices = (graph, key, replaceIndices) => {
+const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n));
-	const replaces = unique_sorted_integers(removes);
+	const replaces = uniqueSortedIntegers(removes);
 	const index_map = [];
 	let i, j, walk;
 	for (i = 0, j = 0, walk = 0; i < geometry_array_size; i += 1, j += 1) {
@@ -5074,14 +5106,14 @@ const replace_geometry_indices = (graph, key, replaceIndices) => {
 	// console.log("replace index_map", index_map);
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
-	get_graph_keys_with_suffix(graph, key)
+	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
 			.forEach((_, i) => graph[sKey][i]
 				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	replaces.reverse();
-	get_graph_keys_with_prefix(graph, key)
+	getGraphKeysWithPrefix(graph, key)
 		.forEach((prefix_key) => replaces
 			.forEach(index => graph[prefix_key]
 				.splice(index, 1)));
@@ -5092,12 +5124,12 @@ const replace_geometry_indices = (graph, key, replaceIndices) => {
  * Rabbit Ear (c) Kraft
  */
 
-const get_duplicate_vertices = (graph, epsilon) => {
-	return get_vertices_clusters(graph, epsilon)
+const getDuplicateVertices = (graph, epsilon) => {
+	return getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 };
 
-const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
+const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -5112,7 +5144,7 @@ const get_edge_isolated_vertices = ({ vertices_coords, edges_vertices }) => {
 		.filter(a => a !== undefined);
 };
 
-const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
+const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -5129,7 +5161,7 @@ const get_face_isolated_vertices = ({ vertices_coords, faces_vertices }) => {
 
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
-const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
+const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
 	let count = vertices_coords.length;
 	const seen = Array(count).fill(false);
@@ -5160,14 +5192,14 @@ const get_isolated_vertices = ({ vertices_coords, edges_vertices, faces_vertices
  * through all _vertices reference arrays and updates the index
  * references for the shifted vertices.
  * @param {object} a FOLD graph
- * @param {number[]} optional. the result of get_isolated_vertices. 
+ * @param {number[]} optional. the result of getIsolatedVertices. 
  */
-const remove_isolated_vertices = (graph, remove_indices) => {
+const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
-		remove_indices = get_isolated_vertices(graph);
+		remove_indices = getIsolatedVertices(graph);
 	}
 	return {
-		map: remove_geometry_indices(graph, _vertices, remove_indices),
+		map: removeGeometryIndices(graph, _vertices, remove_indices),
 		remove: remove_indices,
 	};
 };
@@ -5183,14 +5215,14 @@ const remove_isolated_vertices = (graph, remove_indices) => {
  * 
  * this has the potential to create circular and duplicate edges
  */
-const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
+const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,
 	// value is the index this element will be replaced by.
 	const replace_indices = [];
 	// "remove" is only needed for the return value summary.
 	const remove_indices = [];
 	// clusters is array of indices, for example: [ [4, 13, 7], [0, 9] ]
-	const clusters = get_vertices_clusters(graph, epsilon)
+	const clusters = getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 	// for each cluster of n, all indices from [1...n] will be replaced with [0]
 	clusters.forEach(cluster => {
@@ -5206,13 +5238,13 @@ const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
 		.map(arr => math.core.average(...arr))
 		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
 	return {
-		map: replace_geometry_indices(graph, _vertices, replace_indices),
+		map: replaceGeometryIndices(graph, _vertices, replace_indices),
 		remove: remove_indices,    
 	}
 };
 
-// export const remove_duplicate_vertices_first = (graph, epsilon = math.core.EPSILON) => {
-//   const clusters = get_vertices_clusters(graph, epsilon);
+// export const removeDuplicateVertices_first = (graph, epsilon = math.core.EPSILON) => {
+//   const clusters = getVerticesClusters(graph, epsilon);
 //   // map answers: what is the index of the old vertex in the new graph?
 //   // [0, 1, 2, 3, 1, 4, 5]  vertex 4 got merged, vertices after it shifted up
 //   const map = [];
@@ -5223,7 +5255,7 @@ const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
 //     .map(arr => math.core.average(...arr));
 //   // update all "..._vertices" arrays with each vertex's new index.
 //   // TODO: this was copied from remove.js
-//   get_graph_keys_with_suffix(graph, S._vertices)
+//   getGraphKeysWithSuffix(graph, S._vertices)
 //     .forEach(sKey => graph[sKey]
 //       .forEach((_, i) => graph[sKey][i]
 //         .forEach((v, j) => { graph[sKey][i][j] = map[v]; })));
@@ -5231,7 +5263,7 @@ const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
 //   // cannot carry them over, for example vertices_vertices are intended
 //   // to be sorted clockwise. it's possible to write this out one day
 //   // for all the special cases, but for now playing it safe.
-//   get_graph_keys_with_prefix(graph, S._vertices)
+//   getGraphKeysWithPrefix(graph, S._vertices)
 //     .filter(a => a !== S._vertices_coords)
 //     .forEach(key => delete graph[key]);
 //   // for a shared vertex: [3, 7, 9] we say 7 and 9 are removed.
@@ -5248,14 +5280,14 @@ const remove_duplicate_vertices = (graph, epsilon = math.core.EPSILON) => {
 //   };
 // };
 
-var vertices_violations = /*#__PURE__*/Object.freeze({
+var verticesViolations = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	get_duplicate_vertices: get_duplicate_vertices,
-	get_edge_isolated_vertices: get_edge_isolated_vertices,
-	get_face_isolated_vertices: get_face_isolated_vertices,
-	get_isolated_vertices: get_isolated_vertices,
-	remove_isolated_vertices: remove_isolated_vertices,
-	remove_duplicate_vertices: remove_duplicate_vertices
+	getDuplicateVertices: getDuplicateVertices,
+	getEdgeIsolatedVertices: getEdgeIsolatedVertices,
+	getFaceIsolatedVertices: getFaceIsolatedVertices,
+	getIsolatedVertices: getIsolatedVertices,
+	removeIsolatedVertices: removeIsolatedVertices,
+	removeDuplicateVertices: removeDuplicateVertices
 });
 
 /**
@@ -5304,11 +5336,11 @@ const ordersArrayNames = {
  * @param {string} the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
  */
-const implied_count = (graph, key) => Math.max(
+const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
 	// 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
 	array_in_array_max_number(
-		get_graph_keys_with_suffix(graph, key).map(str => graph[str])
+		getGraphKeysWithSuffix(graph, key).map(str => graph[str])
 	),
 	// 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
 	graph[ordersArrayNames[key]]
@@ -5317,9 +5349,9 @@ const implied_count = (graph, key) => Math.max(
 ) + 1;
 
 // standard graph components names
-implied_count.vertices = graph => implied_count(graph, _vertices);
-implied_count.edges = graph => implied_count(graph, _edges);
-implied_count.faces = graph => implied_count(graph, _faces);
+countImplied.vertices = graph => countImplied(graph, _vertices);
+countImplied.edges = graph => countImplied(graph, _edges);
+countImplied.faces = graph => countImplied(graph, _faces);
 
 /**
  * Rabbit Ear (c) Kraft
@@ -5332,7 +5364,7 @@ implied_count.faces = graph => implied_count(graph, _faces);
  * @param {object} to prevent walking down duplicate paths, or finding duplicate
  * faces, this dictionary will store and check against vertex pairs "i j".
  */
-const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
@@ -5376,12 +5408,12 @@ const counter_clockwise_walk = ({ vertices_vertices, vertices_sectors }, v0, v1,
 	}
 };
 
-const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
+const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
 	const walked_edges = {};
 	return vertices_vertices
 		.map((adj_verts, v) => adj_verts
-			.map(adj_vert => counter_clockwise_walk(graph, v, adj_vert, walked_edges))
+			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 			.filter(a => a !== undefined))
 		.reduce((a, b) => a.concat(b), [])
 };
@@ -5389,18 +5421,18 @@ const planar_vertex_walk = ({ vertices_vertices, vertices_sectors }) => {
  * @description 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object} walked_faces, the result from calling "planar_vertex_walk"
+ * @param {object} walked_faces, the result from calling "planarVertexWalk"
  */
-const filter_walked_boundary_face = walked_faces => walked_faces
+const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
 		.reduce((a,b) => a + b, 0) > 0);
 
 var walk = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	counter_clockwise_walk: counter_clockwise_walk,
-	planar_vertex_walk: planar_vertex_walk,
-	filter_walked_boundary_face: filter_walked_boundary_face
+	counterClockwiseWalk: counterClockwiseWalk,
+	planarVertexWalk: planarVertexWalk,
+	filterWalkedBoundaryFace: filterWalkedBoundaryFace
 });
 
 /**
@@ -5412,7 +5444,7 @@ var walk = /*#__PURE__*/Object.freeze({
  * @param {number} the origin vertex, around which the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
  */
-const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) =>
+const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
 	vertices
 		.map(v => vertices_coords[v])
 		.map(coord => math.core.subtract(coord, vertices_coords[vertex]))
@@ -5431,7 +5463,7 @@ const sort_vertices_counter_clockwise = ({ vertices_coords }, vertices, vertex) 
  * @param {number[]} a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
  */
-const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
+const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) =>
 	vertices
 		.map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
 		.sort((a, b) => a.d - b.d)
@@ -5439,8 +5471,8 @@ const sort_vertices_along_vector = ({ vertices_coords }, vertices, vector) =>
 
 var sort = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	sort_vertices_counter_clockwise: sort_vertices_counter_clockwise,
-	sort_vertices_along_vector: sort_vertices_along_vector
+	sortVerticesCounterClockwise: sortVerticesCounterClockwise,
+	sortVerticesAlongVector: sortVerticesAlongVector
 });
 
 /**
@@ -5453,7 +5485,7 @@ var sort = /*#__PURE__*/Object.freeze({
  *
  * if you want to modify the input graph, assign the property after making it
  *  var graph = {...};
- *  graph.faces_faces = make_faces_faces(graph);
+ *  graph.faces_faces = makeFacesFaces(graph);
  */
 /**
  *
@@ -5465,7 +5497,7 @@ var sort = /*#__PURE__*/Object.freeze({
  * @returns {number[][]} array of array of numbers. each index is a vertex with
  *   the content an array of numbers, edge indices this vertex is adjacent.
  */
-const make_vertices_edges_unsorted = ({ edges_vertices }) => {
+const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	const vertices_edges = [];
 	// iterate over edges_vertices and swap the index for each of the contents
 	// each edge (index 0: [3, 4]) will be converted into (index 3: [0], index 4: [0])
@@ -5486,8 +5518,8 @@ const make_vertices_edges_unsorted = ({ edges_vertices }) => {
  *
  * this one corresponds to vertices_vertices!
  */
-const make_vertices_edges = ({ edges_vertices, vertices_vertices }) => {
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	return vertices_vertices
 		.map((verts, i) => verts
 			.map(v => edge_map[`${i} ${v}`]));
@@ -5509,9 +5541,9 @@ const make_vertices_edges = ({ edges_vertices, vertices_vertices }) => {
  * note: it is possible to rewrite this method to use faces_vertices to
  * discover adjacent vertices, currently this is 
  */
-const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
+const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	// use adjacent edges to find adjacent vertices
 	const vertices_vertices = vertices_edges
@@ -5524,19 +5556,19 @@ const make_vertices_vertices = ({ vertices_coords, vertices_edges, edges_vertice
 	return vertices_coords === undefined
 		? vertices_vertices
 		: vertices_vertices
-			.map((verts, i) => sort_vertices_counter_clockwise({ vertices_coords }, verts, i));
+			.map((verts, i) => sortVerticesCounterClockwise({ vertices_coords }, verts, i));
 };
 /**
  * this DOES NOT arrange faces in counter-clockwise order, as the spec suggests
- * use make_vertices_faces for that, which requires vertices_vertices.
+ * use makeVerticesFaces for that, which requires vertices_vertices.
  */
-const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
+const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
 	// instead of initializing the array ahead of time (we would need to know
 	// the length of something like vertices_coords)
 	const vertices_faces = vertices_coords !== undefined
 		? vertices_coords.map(() => [])
-		: Array.from(Array(implied_count.vertices({ faces_vertices }))).map(() => []);
+		: Array.from(Array(countImplied.vertices({ faces_vertices }))).map(() => []);
 	// iterate over every face, then iterate over each of the face's vertices
 	faces_vertices.forEach((face, f) => {
 		// in the case that one face visits the same vertex multiple times,
@@ -5551,12 +5583,12 @@ const make_vertices_faces_unsorted = ({ vertices_coords, faces_vertices }) => {
 /**
  * this does arrange faces in counter-clockwise order, as the spec suggests
  */
-const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
+const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
 	if (!vertices_vertices) {
-		return make_vertices_faces_unsorted({ vertices_coords, faces_vertices });
+		return makeVerticesFacesUnsorted({ vertices_coords, faces_vertices });
 	}
-	const face_map = make_vertices_to_face({ faces_vertices });
+	const face_map = makeVerticesToFace({ faces_vertices });
 	return vertices_vertices
 		.map((verts, v) => verts
 			.map((vert, i, arr) => [arr[(i + 1) % arr.length], v, vert]
@@ -5577,7 +5609,7 @@ const make_vertices_faces = ({ vertices_coords, vertices_vertices, faces_vertice
  * value is the index of the edge.
  * example: "9 3" and "3 9" are both entries with a value of the edge's index.
  */
-const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
+const makeVerticesToEdgeBidirectional = ({ edges_vertices }) => {
 	const map = {};
 	edges_vertices
 		.map(ev => ev.join(" "))
@@ -5592,14 +5624,14 @@ const make_vertices_to_edge_bidirectional = ({ edges_vertices }) => {
  * only represents the edge in the direction it's stored. this is useful
  * for example for looking up the edge's vector, which is direction specific.
  */
-const make_vertices_to_edge = ({ edges_vertices }) => {
+const makeVerticesToEdge = ({ edges_vertices }) => {
 	const map = {};
 	edges_vertices
 		.map(ev => ev.join(" "))
 		.forEach((key, i) => { map[key] = i; });
 	return map;
 };
-const make_vertices_to_face = ({ faces_vertices }) => {
+const makeVerticesToFace = ({ faces_vertices }) => {
 	const map = {};
 	faces_vertices
 		.forEach((face, f) => face
@@ -5612,11 +5644,11 @@ const make_vertices_to_face = ({ faces_vertices }) => {
 };
 
 // this can someday be rewritten without edges_vertices
-const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
+const makeVerticesVerticesVector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const edge_map = make_vertices_to_edge({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	return vertices_vertices
 		.map((_, a) => vertices_vertices[a]
 			.map((b) => {
@@ -5632,8 +5664,8 @@ const make_vertices_vertices_vector = ({ vertices_coords, vertices_vertices, edg
  * this builds a list of sector angles in radians, index matched
  * to vertices_vertices.
  */
-const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
-	make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+const makeVerticesSectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
+	makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
 		.map(vectors => vectors.length === 1 // leaf node
 			? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
 			: math.core.counterClockwiseSectors2(vectors));
@@ -5648,9 +5680,9 @@ const make_vertices_sectors = ({ vertices_coords, vertices_vertices, edges_verti
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  *   of other edges that are vertex-adjacent.
  * @description edges_edges are vertex-adjacent edges. make sure to call
- *   make_vertices_edges_unsorted before calling this.
+ *   makeVerticesEdgesUnsorted before calling this.
  */
-const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
+const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 	edges_vertices.map((verts, i) => {
 		const side0 = vertices_edges[verts[0]].filter(e => e !== i);
 		const side1 = vertices_edges[verts[1]].filter(e => e !== i);
@@ -5658,12 +5690,12 @@ const make_edges_edges = ({ edges_vertices, vertices_edges }) =>
 	});
 	// if (!edges_vertices || !vertices_edges) { return undefined; }
 
-const make_edges_faces_unsorted = ({ edges_vertices, faces_edges }) => {
+const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	// instead of initializing the array ahead of time (we would need to know
 	// the length of something like edges_vertices)
 	const edges_faces = edges_vertices !== undefined
 		? edges_vertices.map(() => [])
-		: Array.from(Array(implied_count.edges({ faces_edges }))).map(() => []);
+		: Array.from(Array(countImplied.edges({ faces_edges }))).map(() => []);
 	// todo: does not arrange counter-clockwise
 	faces_edges.forEach((face, f) => {
 		const hash = [];
@@ -5675,16 +5707,16 @@ const make_edges_faces_unsorted = ({ edges_vertices, faces_edges }) => {
 	return edges_faces;
 };
 
-const make_edges_faces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
+const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
 	if (!edges_vertices) {
-		return make_edges_faces_unsorted({ faces_edges });
+		return makeEdgesFacesUnsorted({ faces_edges });
 	}
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(pair => vertices_coords[pair[0]]);
 	if (!faces_center) {
-		faces_center = make_faces_center({ vertices_coords, faces_vertices });
+		faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
 	}
 	const edges_faces = edges_vertices.map(ev => []);
 	faces_edges.forEach((face, f) => {
@@ -5708,32 +5740,32 @@ const make_edges_faces = ({ vertices_coords, edges_vertices, edges_vector, faces
 
 const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
 
-const make_edges_foldAngle = ({ edges_assignment }) => edges_assignment
+const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
 
-const make_edges_assignment = ({ edges_foldAngle }) => edges_foldAngle
+const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
 		// todo, consider finding the boundary
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
 
-const make_edges_coords = ({ vertices_coords, edges_vertices }) =>
+const makeEdgesCoords = ({ vertices_coords, edges_vertices }) =>
 	edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 /**
  * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
  * @returns {number[]} a vector beginning at vertex 0, ending at vertex 1
  */
-const make_edges_vector = ({ vertices_coords, edges_vertices }) =>
-	make_edges_coords({ vertices_coords, edges_vertices })
+const makeEdgesVector = ({ vertices_coords, edges_vertices }) =>
+	makeEdgesCoords({ vertices_coords, edges_vertices })
 		.map(verts => math.core.subtract(verts[1], verts[0]));
 /**
  * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
  * @returns {number[]} the Euclidean distance between each edge's vertices.
  */
-const make_edges_length = ({ vertices_coords, edges_vertices }) =>
-	make_edges_vector({ vertices_coords, edges_vertices })
+const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
+	makeEdgesVector({ vertices_coords, edges_vertices })
 		.map(vec => math.core.magnitude(vec));
 /**
  * @description for each edge, get the bounding box in n-dimensions.
@@ -5741,9 +5773,9 @@ const make_edges_length = ({ vertices_coords, edges_vertices }) =>
  *
  * @returns {object[]} an array of boxes matching length of edges.
  */
-const make_edges_bounding_box = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
+const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
 	if (!edges_coords) {
-		edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
+		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
 	return edges_coords.map(coords => math.core.boundingBox(coords, epsilon))
 };
@@ -5752,30 +5784,39 @@ const make_edges_bounding_box = ({ vertices_coords, edges_vertices, edges_coords
  *    FACES
  *
  */
-const make_planar_faces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
+const makePlanarFaces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = make_vertices_vertices({ vertices_coords, edges_vertices, vertices_edges });
+		vertices_vertices = makeVerticesVertices({ vertices_coords, edges_vertices, vertices_edges });
 	}
 	if (!vertices_sectors) {
-		vertices_sectors = make_vertices_sectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
+		vertices_sectors = makeVerticesSectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
 	}
-	const vertices_edges_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const vertices_edges_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	// removes the one face that outlines the piece with opposite winding.
-	// planar_vertex_walk stores edges as vertex pair strings, "4 9",
+	// planarVertexWalk stores edges as vertex pair strings, "4 9",
 	// convert these into edge indices
-	return filter_walked_boundary_face(
-			planar_vertex_walk({ vertices_vertices, vertices_sectors }))
+	return filterWalkedBoundaryFace(
+			planarVertexWalk({ vertices_vertices, vertices_sectors }))
 		.map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
 
 // without sector detection, this could be simplified so much that it only uses vertices_vertices.
-const make_planar_faces_vertices = graph => make_planar_faces(graph)
+const makePlanarFacesVertices = graph => makePlanarFaces(graph)
 	.map(face => face.vertices);
 
-const make_planar_faces_edges = graph => make_planar_faces(graph)
+const makePlanarFacesEdges = graph => makePlanarFaces(graph)
 	.map(face => face.edges);
+
+// const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
+// 	if (!edges_vertices) { return {}; }
+// 	const map = {};
+// 	edges_vertices
+// 		.map(ev => ev.sort((a, b) => a - b).join(" "))
+// 		.forEach((key, i) => { map[key] = i; });
+// 	return map;
+// };
 // todo: this needs to be tested
-const make_faces_vertices_from_edges = (graph) => {
+const makeFacesVerticesFromEdges = (graph) => {
 	return graph.faces_edges
 		.map(edges => edges
 			.map(edge => graph.edges_vertices[edge])
@@ -5786,8 +5827,8 @@ const make_faces_vertices_from_edges = (graph) => {
 					: pairs[0];
 			}));
 };
-const make_faces_edges_from_vertices = (graph) => {
-	const map = make_vertices_to_edge_bidirectional(graph);
+const makeFacesEdgesFromVertices = (graph) => {
+	const map = makeVerticesToEdgeBidirectional(graph);
 	return graph.faces_vertices
 		.map(face => face
 			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]].join(" ")))
@@ -5799,7 +5840,7 @@ const make_faces_edges_from_vertices = (graph) => {
  * of numbers, each number is an index of an edge-adjacent face to this face.
  * @description faces_faces is a list of edge-adjacent face indices for each face.
  */
-const make_faces_faces = ({ faces_vertices }) => {
+const makeFacesFaces = ({ faces_vertices }) => {
 	const faces_faces = faces_vertices.map(() => []);
 	const edgeMap = {};
 	faces_vertices
@@ -5820,7 +5861,7 @@ const make_faces_faces = ({ faces_vertices }) => {
 		});
 	return faces_faces;
 };
-// export const make_faces_faces = ({ faces_vertices }) => {
+// export const makeFacesFaces = ({ faces_vertices }) => {
 //   // if (!faces_vertices) { return undefined; }
 //   const faces_faces = faces_vertices.map(() => []);
 //   // create a map where each key is a string of the vertices of an edge,
@@ -5850,7 +5891,7 @@ const make_faces_faces = ({ faces_vertices }) => {
  * this can result in a polygon with fewer vertices than is contained
  * in that polygon's faces_vertices array.
  */
-const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
+const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =>
 	faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]))
 		.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
@@ -5858,13 +5899,13 @@ const make_faces_polygon = ({ vertices_coords, faces_vertices }, epsilon) =>
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points.
  */
-const make_faces_polygon_quick = ({ vertices_coords, faces_vertices }) =>
+const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) =>
 	faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
 /**
  * @description for every face, get one point that is the face's centroid.
  */
-const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertices
+const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
 	.map(coords => math.core.centroid(coords));
 /**
@@ -5872,7 +5913,7 @@ const make_faces_center = ({ vertices_coords, faces_vertices }) => faces_vertice
  * be convex, and again it's not precise, but in many use cases
  * this is often more than sufficient.
  */
-const make_faces_center_quick = ({ vertices_coords, faces_vertices }) =>
+const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) =>
 	faces_vertices
 		.map(vertices => vertices
 			.map(v => vertices_coords[v])
@@ -5881,35 +5922,35 @@ const make_faces_center_quick = ({ vertices_coords, faces_vertices }) =>
 
 var make = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_vertices_edges_unsorted: make_vertices_edges_unsorted,
-	make_vertices_edges: make_vertices_edges,
-	make_vertices_vertices: make_vertices_vertices,
-	make_vertices_faces_unsorted: make_vertices_faces_unsorted,
-	make_vertices_faces: make_vertices_faces,
-	make_vertices_to_edge_bidirectional: make_vertices_to_edge_bidirectional,
-	make_vertices_to_edge: make_vertices_to_edge,
-	make_vertices_to_face: make_vertices_to_face,
-	make_vertices_vertices_vector: make_vertices_vertices_vector,
-	make_vertices_sectors: make_vertices_sectors,
-	make_edges_edges: make_edges_edges,
-	make_edges_faces_unsorted: make_edges_faces_unsorted,
-	make_edges_faces: make_edges_faces,
-	make_edges_foldAngle: make_edges_foldAngle,
-	make_edges_assignment: make_edges_assignment,
-	make_edges_coords: make_edges_coords,
-	make_edges_vector: make_edges_vector,
-	make_edges_length: make_edges_length,
-	make_edges_bounding_box: make_edges_bounding_box,
-	make_planar_faces: make_planar_faces,
-	make_planar_faces_vertices: make_planar_faces_vertices,
-	make_planar_faces_edges: make_planar_faces_edges,
-	make_faces_vertices_from_edges: make_faces_vertices_from_edges,
-	make_faces_edges_from_vertices: make_faces_edges_from_vertices,
-	make_faces_faces: make_faces_faces,
-	make_faces_polygon: make_faces_polygon,
-	make_faces_polygon_quick: make_faces_polygon_quick,
-	make_faces_center: make_faces_center,
-	make_faces_center_quick: make_faces_center_quick
+	makeVerticesEdgesUnsorted: makeVerticesEdgesUnsorted,
+	makeVerticesEdges: makeVerticesEdges,
+	makeVerticesVertices: makeVerticesVertices,
+	makeVerticesFacesUnsorted: makeVerticesFacesUnsorted,
+	makeVerticesFaces: makeVerticesFaces,
+	makeVerticesToEdgeBidirectional: makeVerticesToEdgeBidirectional,
+	makeVerticesToEdge: makeVerticesToEdge,
+	makeVerticesToFace: makeVerticesToFace,
+	makeVerticesVerticesVector: makeVerticesVerticesVector,
+	makeVerticesSectors: makeVerticesSectors,
+	makeEdgesEdges: makeEdgesEdges,
+	makeEdgesFacesUnsorted: makeEdgesFacesUnsorted,
+	makeEdgesFaces: makeEdgesFaces,
+	makeEdgesFoldAngle: makeEdgesFoldAngle,
+	makeEdgesAssignment: makeEdgesAssignment,
+	makeEdgesCoords: makeEdgesCoords,
+	makeEdgesVector: makeEdgesVector,
+	makeEdgesLength: makeEdgesLength,
+	makeEdgesBoundingBox: makeEdgesBoundingBox,
+	makePlanarFaces: makePlanarFaces,
+	makePlanarFacesVertices: makePlanarFacesVertices,
+	makePlanarFacesEdges: makePlanarFacesEdges,
+	makeFacesVerticesFromEdges: makeFacesVerticesFromEdges,
+	makeFacesEdgesFromVertices: makeFacesEdgesFromVertices,
+	makeFacesFaces: makeFacesFaces,
+	makeFacesPolygon: makeFacesPolygon,
+	makeFacesPolygonQuick: makeFacesPolygonQuick,
+	makeFacesCenter: makeFacesCenter,
+	makeFacesCenterQuick: makeFacesCenterQuick
 });
 
 /**
@@ -5934,7 +5975,7 @@ var make = /*#__PURE__*/Object.freeze({
  * @param {object} a FOLD graph
  * @returns {number[]} array of indices of circular edges. empty array if none.
  */
-const get_circular_edges = ({ edges_vertices }) => {
+const getCircularEdges = ({ edges_vertices }) => {
 	const circular = [];
 	for (let i = 0; i < edges_vertices.length; i += 1) {
 		if (edges_vertices[i][0] === edges_vertices[i][1]) {
@@ -5957,7 +5998,7 @@ const get_circular_edges = ({ edges_vertices }) => {
  * @example {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
  */
-const get_duplicate_edges = ({ edges_vertices }) => {
+const getDuplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
 	const duplicates = [];
 	const map = {};
@@ -5984,10 +6025,10 @@ const get_duplicate_edges = ({ edges_vertices }) => {
  * @example removing indices [4, 7] from "edges", then a faces_edges entry
  * which was [15, 13, 4, 9, 2] will become [15, 13, 9, 2].
  */
-const splice_remove_values_from_suffixes = (graph, suffix, remove_indices) => {
+const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 	const remove_map = {};
 	remove_indices.forEach(n => { remove_map[n] = true; });
-	get_graph_keys_with_suffix(graph, suffix)
+	getGraphKeysWithSuffix(graph, suffix)
 		.forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
 			.forEach((elem, i) => { // faces_edges[0], faces_edges[1], ...
 				// reverse iterate through array, remove elements with splice
@@ -5998,20 +6039,20 @@ const splice_remove_values_from_suffixes = (graph, suffix, remove_indices) => {
 				}
 			}));
 };
-const remove_circular_edges = (graph, remove_indices) => {
+const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
-		remove_indices = get_circular_edges(graph);
+		remove_indices = getCircularEdges(graph);
 	}
 	if (remove_indices.length) {
 		// remove every instance of a circular edge in every _edge array.
 		// assumption is we can simply remove them because a face that includes
 		// a circular edge is still the same face when you just remove the edge
-		splice_remove_values_from_suffixes(graph, _edges, remove_indices);
+		spliceRemoveValuesFromSuffixes(graph, _edges, remove_indices);
 		// console.warn("circular edge found. please rebuild");
 		// todo: figure out which arrays need to be rebuilt, if it exists.
 	}
 	return {
-		map: remove_geometry_indices(graph, _edges, remove_indices),
+		map: removeGeometryIndices(graph, _edges, remove_indices),
 		remove: remove_indices,
 	};
 };
@@ -6020,13 +6061,13 @@ const remove_circular_edges = (graph, remove_indices) => {
  * data, so all of the vertices_ arrays will be rebuilt if this
  * method successfully found and removed a duplicate edge.
  */
-const remove_duplicate_edges = (graph, replace_indices) => {
+const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.
 	if (!replace_indices) {
-		replace_indices = get_duplicate_edges(graph);
+		replace_indices = getDuplicateEdges(graph);
 	}
 	const remove = Object.keys(replace_indices).map(n => parseInt(n));
-	const map = replace_geometry_indices(graph, _edges, replace_indices);
+	const map = replaceGeometryIndices(graph, _edges, replace_indices);
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then
 	// vertices_faces since that was built from vertices_vertices.
@@ -6037,35 +6078,35 @@ const remove_duplicate_edges = (graph, replace_indices) => {
 		//   .map(edge => graph.edges_vertices[edge])
 		//   .reduce((a, b) => a.concat(b), []);
 		if (graph.vertices_edges || graph.vertices_vertices || graph.vertices_faces) {
-			graph.vertices_edges = make_vertices_edges_unsorted(graph);
-			graph.vertices_vertices = make_vertices_vertices(graph);
-			graph.vertices_edges = make_vertices_edges(graph);
-			graph.vertices_faces = make_vertices_faces(graph);
+			graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
+			graph.vertices_vertices = makeVerticesVertices(graph);
+			graph.vertices_edges = makeVerticesEdges(graph);
+			graph.vertices_faces = makeVerticesFaces(graph);
 		}
 	}
 	return { map, remove };
 };
 
-var edges_violations = /*#__PURE__*/Object.freeze({
+var edgesViolations = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	get_circular_edges: get_circular_edges,
-	get_duplicate_edges: get_duplicate_edges,
-	remove_circular_edges: remove_circular_edges,
-	remove_duplicate_edges: remove_duplicate_edges
+	getCircularEdges: getCircularEdges,
+	getDuplicateEdges: getDuplicateEdges,
+	removeCircularEdges: removeCircularEdges,
+	removeDuplicateEdges: removeDuplicateEdges
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const merge_simple_nextmaps = (...maps) => {
+const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
 
-const merge_nextmaps = (...maps) => {
+const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
@@ -6079,7 +6120,7 @@ const merge_nextmaps = (...maps) => {
 	return solution;
 };
 
-const merge_simple_backmaps = (...maps) => {
+const mergeSimpleBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].map((_, i) => i);
 	maps.forEach((map, i) => {
@@ -6089,7 +6130,7 @@ const merge_simple_backmaps = (...maps) => {
 	return solution;
 };
 
-const merge_backmaps = (...maps) => {
+const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
 	maps.forEach((map, i) => {
@@ -6103,7 +6144,7 @@ const merge_backmaps = (...maps) => {
 	return solution;
 };
 
-const invert_map = (map) => {
+const invertMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
 		if (n == null) { return; }
@@ -6122,7 +6163,7 @@ const invert_map = (map) => {
 	return inv;
 };
 
-const invert_simple_map = (map) => {
+const invertSimpleMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => { inv[n] = i; });
 	return inv;
@@ -6130,12 +6171,12 @@ const invert_simple_map = (map) => {
 
 var maps = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	merge_simple_nextmaps: merge_simple_nextmaps,
-	merge_nextmaps: merge_nextmaps,
-	merge_simple_backmaps: merge_simple_backmaps,
-	merge_backmaps: merge_backmaps,
-	invert_map: invert_map,
-	invert_simple_map: invert_simple_map
+	mergeSimpleNextmaps: mergeSimpleNextmaps,
+	mergeNextmaps: mergeNextmaps,
+	mergeSimpleBackmaps: mergeSimpleBackmaps,
+	mergeBackmaps: mergeBackmaps,
+	invertMap: invertMap,
+	invertSimpleMap: invertSimpleMap
 });
 
 /**
@@ -6151,28 +6192,28 @@ var maps = /*#__PURE__*/Object.freeze({
 const clean = (graph, epsilon) => {
 	// duplicate vertices has to be done first as it's possible that
 	// this will create circular/duplicate edges.
-	const change_v1 = remove_duplicate_vertices(graph, epsilon);
-	const change_e1 = remove_circular_edges(graph);
-	const change_e2 = remove_duplicate_edges(graph);
+	const change_v1 = removeDuplicateVertices(graph, epsilon);
+	const change_e1 = removeCircularEdges(graph);
+	const change_e2 = removeDuplicateEdges(graph);
 	// isolated vertices is last. removing edges can create isolated vertices
-	const change_v2 = remove_isolated_vertices(graph);
+	const change_v2 = removeIsolatedVertices(graph);
 	// todo: it's possible that an edges_vertices now contains undefineds,
 	// like [4, undefined]. but this should not be happening
 
 	// return a summary of changes.
 	// use the maps to update the removed indices from the second step
 	// to their previous index before change 1 occurred.
-	const change_v1_backmap = invert_simple_map(change_v1.map);
+	const change_v1_backmap = invertSimpleMap(change_v1.map);
 	const change_v2_remove = change_v2.remove.map(e => change_v1_backmap[e]);
-	const change_e1_backmap = invert_simple_map(change_e1.map);
+	const change_e1_backmap = invertSimpleMap(change_e1.map);
 	const change_e2_remove = change_e2.remove.map(e => change_e1_backmap[e]);
 	return {
 		vertices: {
-			map: merge_simple_nextmaps(change_v1.map, change_v2.map),
+			map: mergeSimpleNextmaps(change_v1.map, change_v2.map),
 			remove: change_v1.remove.concat(change_v2_remove),
 		},
 		edges: {
-			map: merge_simple_nextmaps(change_e1.map, change_e2.map),
+			map: mergeSimpleNextmaps(change_e1.map, change_e2.map),
 			remove: change_e1.remove.concat(change_e2_remove),
 		},
 	}
@@ -6182,7 +6223,7 @@ const clean = (graph, epsilon) => {
  * Rabbit Ear (c) Kraft
  */
 
-// import get_vertices_edges_overlap from "./vertices_edges_overlap";
+// import getVerticesEdgesOverlap from "./vertices_edges_overlap";
 
 /**
  * @description iterate over all graph cross-references between vertices,
@@ -6198,9 +6239,9 @@ const validate_references = (graph) => {
 		faces: count.faces(graph),
 	};
 	const implied = {
-		vertices: implied_count.vertices(graph),
-		edges: implied_count.edges(graph),
-		faces: implied_count.faces(graph),
+		vertices: countImplied.vertices(graph),
+		edges: countImplied.edges(graph),
+		faces: countImplied.faces(graph),
 	};
 	return {
 		vertices: counts.vertices >= implied.vertices,
@@ -6210,10 +6251,10 @@ const validate_references = (graph) => {
 };
 
 const validate = (graph, epsilon) => {
-	const duplicate_edges = get_duplicate_edges(graph);
-	const circular_edges = get_circular_edges(graph);
-	const isolated_vertices = get_isolated_vertices(graph);
-	const duplicate_vertices = get_duplicate_vertices(graph, epsilon);
+	const duplicate_edges = getDuplicateEdges(graph);
+	const circular_edges = getCircularEdges(graph);
+	const isolated_vertices = getIsolatedVertices(graph);
+	const duplicate_vertices = getDuplicateVertices(graph, epsilon);
 	const references = validate_references(graph);
 	const is_perfect = duplicate_edges.length === 0
 		&& circular_edges.length === 0
@@ -6248,7 +6289,7 @@ const validate = (graph, epsilon) => {
  * function it serves in the greater library.
  * Currently, it is run once when a user imports their crease pattern
  * for the first time, preparing it for use with methods like
- * "split_face" or "flat_fold", which expect a well-populated graph.
+ * "splitFace" or "flatFold", which expect a well-populated graph.
  */
 //
 // big todo: populate assumes the graph is planar and rebuilds planar faces
@@ -6263,12 +6304,12 @@ const build_assignments_if_needed = (graph) => {
 	// complete the shorter array to match the longer one
 	if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
 		for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
-			graph.edges_foldAngle[i] = edge_assignment_to_foldAngle(graph.edges_assignment[i]);
+			graph.edges_foldAngle[i] = edgeAssignmentToFoldAngle(graph.edges_assignment[i]);
 		}
 	}
 	if (graph.edges_foldAngle.length > graph.edges_assignment.length) {
 		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-			graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
+			graph.edges_assignment[i] = edgeFoldAngleToAssignment(graph.edges_foldAngle[i]);
 		}
 	}
 	// two arrays should be at the same length now. even if they are not complete
@@ -6293,7 +6334,7 @@ const build_faces_if_needed = (graph, reface) => {
 	// todo: this is making a big assumption that the faces are even planar
 	// to begin with.
 	if (reface && graph.vertices_coords) {
-		const faces = make_planar_faces(graph);
+		const faces = makePlanarFaces(graph);
 		graph.faces_vertices = faces.map(face => face.vertices);
 		graph.faces_edges = faces.map(face => face.edges);
 		// graph.faces_sectors = faces.map(face => face.angles);
@@ -6304,9 +6345,9 @@ const build_faces_if_needed = (graph, reface) => {
 	// between the two: faces_vertices and faces_edges,
 	// if only one exists, build the other.
 	if (graph.faces_vertices && !graph.faces_edges) {
-		graph.faces_edges = make_faces_edges_from_vertices(graph);
+		graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	} else if (graph.faces_edges && !graph.faces_vertices) {
-		graph.faces_vertices = make_faces_vertices_from_edges(graph);
+		graph.faces_vertices = makeFacesVerticesFromEdges(graph);
 	} else {
 		// neither array exists, set placeholder empty arrays.
 		graph.faces_vertices = [];
@@ -6329,14 +6370,14 @@ const build_faces_if_needed = (graph, reface) => {
 const populate = (graph, reface) => {
 	if (typeof graph !== "object") { return graph; }
 	if (!graph.edges_vertices) { return graph; }
-	graph.vertices_edges = make_vertices_edges_unsorted(graph);
-	graph.vertices_vertices = make_vertices_vertices(graph);
-	graph.vertices_edges = make_vertices_edges(graph);
+	graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
+	graph.vertices_vertices = makeVerticesVertices(graph);
+	graph.vertices_edges = makeVerticesEdges(graph);
 	// todo consider adding vertices_sectors, these are used for
 	// planar graphs (crease patterns) for walking faces
 	// todo, what is the reason to have edges_vector?
 	// if (graph.vertices_coords) {
-	//   graph.edges_vector = make_edges_vector(graph);
+	//   graph.edges_vector = makeEdgesVector(graph);
 	// }
 	// make sure "edges_foldAngle" and "edges_assignment" are done.
 	build_assignments_if_needed(graph);
@@ -6344,9 +6385,9 @@ const populate = (graph, reface) => {
 	build_faces_if_needed(graph, reface);
 	// depending on the presence of vertices_vertices, this will
 	// run the simple algorithm (no radial sorting) or the proper one.
-	graph.vertices_faces = make_vertices_faces(graph);
-	graph.edges_faces = make_edges_faces_unsorted(graph);
-	graph.faces_faces = make_faces_faces(graph);
+	graph.vertices_faces = makeVerticesFaces(graph);
+	graph.edges_faces = makeEdgesFacesUnsorted(graph);
+	graph.faces_faces = makeFacesFaces(graph);
 	return graph;
 };
 
@@ -6361,8 +6402,8 @@ const populate = (graph, reface) => {
  * an array matching vertices_ length, containing true/false, answering
  * the question "does this vertex sit inside the edge's bounding rectangle?"
  */
-const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
-	make_edges_bounding_box(graph, epsilon)
+const getEdgesVerticesSpan = (graph, epsilon = math.core.EPSILON) =>
+	makeEdgesBoundingBox(graph, epsilon)
 		.map((min_max, e) => graph.vertices_coords
 			.map((vert, v) => (
 				vert[0] > min_max.min[0] - epsilon &&
@@ -6383,8 +6424,8 @@ const get_edges_vertices_span = (graph, epsilon = math.core.EPSILON) =>
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
  */
-const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
-	const min_max = make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon);
+const getEdgesEdgesSpan = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 	const span_overlaps = edges_vertices.map(() => []);
 	// span_overlaps will be false if no overlap possible, true if overlap is possible.
 	for (let e0 = 0; e0 < edges_vertices.length - 1; e0 += 1) {
@@ -6407,19 +6448,19 @@ const get_edges_edges_span = ({ vertices_coords, edges_vertices, edges_coords },
 
 var span = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	get_edges_vertices_span: get_edges_vertices_span,
-	get_edges_edges_span: get_edges_edges_span
+	getEdgesVerticesSpan: getEdgesVerticesSpan,
+	getEdgesEdgesSpan: getEdgesEdgesSpan
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const get_opposite_vertices$1 = (graph, vertex, edges) => {
+const getOppositeVertices$1 = (graph, vertex, edges) => {
 	edges.forEach(edge => {
 		if (graph.edges_vertices[edge][0] === vertex
 			&& graph.edges_vertices[edge][1] === vertex) {
-			console.warn("remove_planar_vertex circular edge");
+			console.warn("removePlanarVertex circular edge");
 		}
 	});
 	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
@@ -6431,14 +6472,14 @@ const get_opposite_vertices$1 = (graph, vertex, edges) => {
  * @description determine if a vertex is between only two edges and
  * those edges are parallel, rendering the vertex potentially unnecessary.
  */
-const is_vertex_collinear = (graph, vertex) => {
+const isVertexCollinear = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
 	if (edges === undefined || edges.length !== 2) { return false; }
 	// don't just check if they are parallel, use the direction of the vertex
 	// to make sure the center vertex is inbetween, instead of the odd
 	// case where the two edges are on top of one another with
 	// a leaf-like vertex.
-	const vertices = get_opposite_vertices$1(graph, vertex, edges);
+	const vertices = getOppositeVertices$1(graph, vertex, edges);
 	const vectors = [[vertices[0], vertex], [vertex, vertices[1]]]
 		.map(verts => verts.map(v => graph.vertices_coords[v]))
 		.map(segment => math.core.subtract(segment[1], segment[0]))
@@ -6467,11 +6508,11 @@ const is_vertex_collinear = (graph, vertex) => {
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
  */
-const get_vertices_edges_overlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+const getVerticesEdgesOverlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 	}
-	const edges_span_vertices = get_edges_vertices_span({
+	const edges_span_vertices = getEdgesVerticesSpan({
 		vertices_coords, edges_vertices, edges_coords
 	}, epsilon);
 	// todo, consider pushing values into a results array instead of modifying,
@@ -6496,8 +6537,8 @@ const get_vertices_edges_overlap = ({ vertices_coords, edges_vertices, edges_coo
 
 var vertices_collinear = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	is_vertex_collinear: is_vertex_collinear,
-	get_vertices_edges_overlap: get_vertices_edges_overlap
+	isVertexCollinear: isVertexCollinear,
+	getVerticesEdgesOverlap: getVerticesEdgesOverlap
 });
 
 /**
@@ -6509,7 +6550,7 @@ var vertices_collinear = /*#__PURE__*/Object.freeze({
  * @param {number[]} vector. a line defined by a vector crossing a point
  * @param {number[]} point. a line defined by a vector crossing a point
  */
-const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
 	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	const edges_vector = edges_vertices
@@ -6538,16 +6579,16 @@ const make_edges_line_parallel_overlap = ({ vertices_coords, edges_vertices }, v
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array of edge indices which overlap the segment
  */
-const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
+const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
-		edges_coords = make_edges_coords({ vertices_coords, edges_vertices });
+		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
 	const segment_box = math.core.boundingBox([point1, point2], epsilon);
 	const segment_vector = math.core.subtract2(point2, point1);
 	// convert each edge into a bounding box, do bounding-box intersection
 	// with the segment, filter these results, then run actual intersection
 	// algorithm on this subset.
-	return make_edges_bounding_box({ vertices_coords, edges_vertices, edges_coords }, epsilon)
+	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
 		.map(box => math.core.overlapBoundingBoxes(segment_box, box))
 		.map((overlap, i) => overlap ? (math.core.intersectLineLine(
 			segment_vector,
@@ -6578,17 +6619,17 @@ const make_edges_segment_intersection = ({ vertices_coords, edges_vertices, edge
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
  */
-const make_edges_edges_intersection = function ({
+const makeEdgesEdgesIntersection = function ({
 	vertices_coords, edges_vertices, edges_vector, edges_origin
 }, epsilon = math.core.EPSILON) {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	if (!edges_origin) {
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
 	const edges_intersections = edges_vector.map(() => []);
-	const span = get_edges_edges_span({ vertices_coords, edges_vertices }, epsilon);
+	const span = getEdgesEdgesSpan({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
 			if (span[i][j] !== true) {
@@ -6629,7 +6670,7 @@ const make_edges_edges_intersection = function ({
  * @returns {object | undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
  */
-const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
+const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array
 	// we can count on these being sorted (important later)
 	const face_vertices_indices = faces_vertices[face]
@@ -6688,10 +6729,10 @@ const intersect_convex_face_line = ({ vertices_coords, edges_vertices, faces_ver
 
 var intersect = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_edges_line_parallel_overlap: make_edges_line_parallel_overlap,
-	make_edges_segment_intersection: make_edges_segment_intersection,
-	make_edges_edges_intersection: make_edges_edges_intersection,
-	intersect_convex_face_line: intersect_convex_face_line
+	makeEdgesLineParallelOverlap: makeEdgesLineParallelOverlap,
+	makeEdgesSegmentIntersection: makeEdgesSegmentIntersection,
+	makeEdgesEdgesIntersection: makeEdgesEdgesIntersection,
+	intersectConvexFaceLine: intersectConvexFaceLine
 });
 
 /**
@@ -6730,7 +6771,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	// points (an [x,y] array), with an important detail, because each edge
 	// intersects with another edge, this [x,y] point is a shallow pointer
 	// to the same one in the other edge's intersection array.
-	const edges_intersections = make_edges_edges_intersection({
+	const edges_intersections = makeEdgesEdgesIntersection({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
@@ -6738,7 +6779,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	}, 1e-6);
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
-	const edges_collinear_vertices = get_vertices_edges_overlap({
+	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_coords
@@ -6788,7 +6829,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		// .push(...edges_intersections_flat[i]));
 
 	graph.edges_vertices.forEach((edge, i) => {
-		graph.edges_vertices[i] = sort_vertices_along_vector({
+		graph.edges_vertices[i] = sortVerticesAlongVector({
 			vertices_coords: graph.vertices_coords
 		}, edge, edges_vector[i]);
 	});
@@ -6808,7 +6849,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	if (graph.edges_assignment && graph.edges_foldAngle
 		&& graph.edges_foldAngle.length > graph.edges_assignment.length) {
 		for (let i = graph.edges_assignment.length; i < graph.edges_foldAngle.length; i += 1) {
-			graph.edges_assignment[i] = edge_foldAngle_to_assignment(graph.edges_foldAngle[i]);
+			graph.edges_assignment[i] = edgeFoldAngleToAssignment(graph.edges_foldAngle[i]);
 		}
 	}
 	// copy over assignments and fold angle and base fold angle off assigments if it's shorter
@@ -6819,7 +6860,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		graph.edges_foldAngle = edge_map
 			.map(i => graph.edges_foldAngle[i])
 			.map((a, i) => a === undefined
-				? edge_assignment_to_foldAngle(graph.edges_assignment[i])
+				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
 				: a);
 	}
 	return {
@@ -6846,7 +6887,7 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 	graph.vertices_coords = graph.vertices_coords.map(coord => coord.slice(0, 2));
 
 	[_vertices, _edges, _faces]
-		.map(key => get_graph_keys_with_prefix(graph, key))
+		.map(key => getGraphKeysWithPrefix(graph, key))
 		.flat()
 		.filter(key => !(fragment_keep_keys.includes(key)))
 		.forEach(key => delete graph[key]);
@@ -6857,29 +6898,29 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 	};
 	let i;
 	for (i = 0; i < 20; i++) {
-		const resVert = remove_duplicate_vertices(graph, epsilon / 2);
-		const resEdgeDup = remove_duplicate_edges(graph);
+		const resVert = removeDuplicateVertices(graph, epsilon / 2);
+		const resEdgeDup = removeDuplicateEdges(graph);
 		// console.log("before", JSON.parse(JSON.stringify(graph)));
-		const resEdgeCirc = remove_circular_edges(graph);
+		const resEdgeCirc = removeCircularEdges(graph);
 		// console.log("circular", resEdgeCirc);
 		const resFrag = fragment_graph(graph, epsilon);
 		if (resFrag === undefined) { 
 			change.vertices.map = (change.vertices.map === undefined
 				? resVert.map
-				: merge_nextmaps(change.vertices.map, resVert.map));
+				: mergeNextmaps(change.vertices.map, resVert.map));
 			change.edges.map = (change.edges.map === undefined
-				? merge_nextmaps(resEdgeDup.map, resEdgeCirc.map)
-				: merge_nextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
+				? mergeNextmaps(resEdgeDup.map, resEdgeCirc.map)
+				: mergeNextmaps(change.edges.map, resEdgeDup.map, resEdgeCirc.map));
 			break;
 		}
-		const invert_frag = invert_map(resFrag.edges.backmap);
-		const edgemap = merge_nextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
+		const invert_frag = invertMap(resFrag.edges.backmap);
+		const edgemap = mergeNextmaps(resEdgeDup.map, resEdgeCirc.map, invert_frag);
 		change.vertices.map = (change.vertices.map === undefined
 			? resVert.map
-			: merge_nextmaps(change.vertices.map, resVert.map));
+			: mergeNextmaps(change.vertices.map, resVert.map));
 		change.edges.map = (change.edges.map === undefined
 			? edgemap
-			: merge_nextmaps(change.edges.map, edgemap));
+			: mergeNextmaps(change.edges.map, edgemap));
 	}
 
 	if (i === 20) {
@@ -6900,14 +6941,14 @@ const subgraph = (graph, components) => {
 	const sorted_components = {};
 	[_faces, _edges, _vertices].forEach(key => {
 		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-		sorted_components[key] = unique_sorted_integers(components[key] || []).reverse();
+		sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
 	});
 	Object.keys(sorted_components)
 		.forEach(key => sorted_components[key]
 			.forEach(i => remove_indices[key].splice(i, 1)));
 	// const subgraph = clone(graph);
 	Object.keys(remove_indices)
-		.forEach(key => remove_geometry_indices(graph, key, remove_indices[key]));
+		.forEach(key => removeGeometryIndices(graph, key, remove_indices[key]));
 	return graph;
 };
 
@@ -6917,7 +6958,7 @@ const subgraph = (graph, components) => {
 /**
  * @description true false is a vertex on a boundary
  */
-const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
+const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
 	const vertices = {};
 	edges_vertices.forEach((v, i) => {
 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
@@ -6927,7 +6968,7 @@ const get_boundary_vertices = ({ edges_vertices, edges_assignment }) => {
 	});
 	return Object.keys(vertices).map(str => parseInt(str));
 };
-const empty_get_boundary = () => ({ vertices: [], edges: [] });
+const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
  * @description get the boundary as two arrays of vertices and edges
  * by walking the boundary edges as defined by edges_assignment.
@@ -6935,10 +6976,10 @@ const empty_get_boundary = () => ({ vertices: [], edges: [] });
  * @param {object} a FOLD graph
  * @returns {object} "vertices" and "edges" with arrays of indices.
  */
-const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
-	if (edges_assignment === undefined) { return empty_get_boundary(); }
+const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edges_vertices_b = edges_assignment
 		.map(a => a === "B" || a === "b");
@@ -6948,7 +6989,7 @@ const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	for (let i = 0; i < edges_vertices_b.length; i += 1) {
 		if (edges_vertices_b[i]) { edgeIndex = i; break; }
 	}
-	if (edgeIndex === -1) { return empty_get_boundary(); }
+	if (edgeIndex === -1) { return emptyBoundaryObject(); }
 	edges_vertices_b[edgeIndex] = false;
 	edge_walk.push(edgeIndex);
 	vertex_walk.push(edges_vertices[edgeIndex][0]);
@@ -6958,7 +6999,7 @@ const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 		edgeIndex = vertices_edges[nextVertex]
 			.filter(v => edges_vertices_b[v])
 			.shift();
-		if (edgeIndex === undefined) { return empty_get_boundary(); }
+		if (edgeIndex === undefined) { return emptyBoundaryObject(); }
 		if (edges_vertices[edgeIndex][0] === nextVertex) {
 			[, nextVertex] = edges_vertices[edgeIndex];
 		} else {
@@ -6983,11 +7024,11 @@ const get_boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
  */
-const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });    
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });    
 	}
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
 	const vertex_walk = [];
 	const walk = {
@@ -7059,9 +7100,9 @@ const get_planar_boundary = ({ vertices_coords, vertices_edges, vertices_vertice
 
 var boundary = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	get_boundary_vertices: get_boundary_vertices,
-	get_boundary: get_boundary,
-	get_planar_boundary: get_planar_boundary
+	getBoundaryVertices: getBoundaryVertices,
+	getBoundary: getBoundary,
+	getPlanarBoundary: getPlanarBoundary
 });
 
 /**
@@ -7077,14 +7118,14 @@ var boundary = /*#__PURE__*/Object.freeze({
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
-	filter_keys_with_suffix(graph, "coords").forEach((key) => {
+	filterKeysWithSuffix(graph, "coords").forEach((key) => {
 		graph[key] = graph[key]
 			.map(v => math.core.resize(3, v))
 			.map(v => math.core.multiplyMatrix3Vector3(matrix, v));
 	});
 	// update all matrix types
 	// todo, are these being multiplied in the right order?
-	filter_keys_with_suffix(graph, "matrix").forEach((key) => {
+	filterKeysWithSuffix(graph, "matrix").forEach((key) => {
 		graph[key] = graph[key]
 			.map(m => math.core.multiplyMatrices3(m, matrix));
 	});
@@ -7145,7 +7186,7 @@ var transform = {
  * Rabbit Ear (c) Kraft
  */
 
-// const get_face_face_shared_vertices = (graph, face0, face1) => graph
+// const getFaceFaceSharedVertices = (graph, face0, face1) => graph
 //   .faces_vertices[face0]
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
@@ -7158,7 +7199,7 @@ var transform = {
 // todo: this was throwing errors in the case of weird nonconvex faces with
 // single edges poking in. the "already_added" was added to fix this.
 // tbd if this fix covers all cases of weird polygons in a planar graph.
-const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
+const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 	// build a quick lookup table: T/F is a vertex in face B
 	const hash = {};
 	face_b_vertices.forEach((v) => { hash[v] = true; });
@@ -7189,9 +7230,9 @@ const get_face_face_shared_vertices = (face_a_vertices, face_b_vertices) => {
 // except for the first level. the root level has no reference to the
 // parent face, or the edge_vertices shared between them
 // root_face will become the root node
-const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0) => {
+const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) => {
 	if (!faces_faces) {
-		faces_faces = make_faces_faces({ faces_vertices });
+		faces_faces = makeFacesFaces({ faces_vertices });
 	}
 	if (faces_faces.length === 0) { return []; }
 
@@ -7218,7 +7259,7 @@ const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0)
 		// set next_level's edge_vertices
 		// we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
 		next_level
-			.map(el => get_face_face_shared_vertices(
+			.map(el => getFaceFaceSharedVertices(
 				faces_vertices[el.face],
 				faces_vertices[el.parent]
 			)).forEach((ev, i) => {
@@ -7236,10 +7277,10 @@ const make_face_spanning_tree = ({ faces_vertices, faces_faces }, root_face = 0)
 	return tree;
 };
 
-var face_spanning_tree = /*#__PURE__*/Object.freeze({
+var faceSpanningTree = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	get_face_face_shared_vertices: get_face_face_shared_vertices,
-	make_face_spanning_tree: make_face_spanning_tree
+	getFaceFaceSharedVertices: getFaceFaceSharedVertices,
+	makeFaceSpanningTree: makeFaceSpanningTree
 });
 
 /**
@@ -7253,9 +7294,9 @@ var face_spanning_tree = /*#__PURE__*/Object.freeze({
  * @param {number[][]} an array of 2x3 matrices. one per face.
  * @returns {number[][]} a new set of vertices_coords, transformed.
  */
-const multiply_vertices_faces_matrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
+const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
 	if (!vertices_faces) {
-		vertices_faces = make_vertices_faces({ faces_vertices });
+		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
 	const vertices_matrix = vertices_faces
 		.map(faces => faces
@@ -7278,21 +7319,21 @@ const unassigned_angle = { U: true, u: true };
  * a mark crease is the identity matrix.
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
-const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
 	if (!edges_assignment && edges_foldAngle) {
-		edges_assignment = make_edges_assignment({ edges_foldAngle });
+		edges_assignment = makeEdgesAssignment({ edges_foldAngle });
 	}
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
-			edges_foldAngle = make_edges_foldAngle({ edges_assignment });
+			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
 		} else {
 			// if no edges_foldAngle data exists, everyone gets identity matrix
 			edges_foldAngle = Array(edges_vertices.length).fill(0);
 		}
 	}
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => math.core.identity3x4);
-	make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
 		.forEach(level => level
 			.forEach((entry) => {
@@ -7328,14 +7369,14 @@ const make_faces_matrix = ({ vertices_coords, edges_vertices, edges_foldAngle, e
  * counted as folded edges (true).
  * 
  * For this reason, treating "unassigned" as a folded edge, this method's
- * functionality is better considered to be specific to make_faces_matrix2,
+ * functionality is better considered to be specific to makeFacesMatrix2,
  * instead of a generalized method. 
  */
 const assignment_is_folded = {
 	M: true, m: true, V: true, v: true, U: true, u: true,
 	F: false, f: false, B: false, b: false,
 };
-const make_edges_is_flat_folded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+const makeEdgesIsFlatFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
 	if (edges_assignment === undefined) {
 		return edges_foldAngle === undefined
 			? edges_vertices.map(_ => true)
@@ -7346,19 +7387,19 @@ const make_edges_is_flat_folded = ({ edges_vertices, edges_foldAngle, edges_assi
 /**
  * @description 2D matrices, for flat-folded origami
  */
-const make_faces_matrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
-			edges_foldAngle = make_edges_foldAngle({ edges_assignment });
+			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
 		} else {
 			// if no edges_foldAngle data exists, everyone gets identity matrix
 			edges_foldAngle = Array(edges_vertices.length).fill(0);
 		}
 	}
-	const edges_is_folded = make_edges_is_flat_folded({ edges_vertices, edges_foldAngle, edges_assignment });
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => math.core.identity2x3);
-	make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
 		.forEach(level => level
 			.forEach((entry) => {
@@ -7378,12 +7419,12 @@ const make_faces_matrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, 
 	return faces_matrix;
 };
 
-var faces_matrix = /*#__PURE__*/Object.freeze({
+var facesMatrix = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	multiply_vertices_faces_matrix2: multiply_vertices_faces_matrix2,
-	make_faces_matrix: make_faces_matrix,
-	make_edges_is_flat_folded: make_edges_is_flat_folded,
-	make_faces_matrix2: make_faces_matrix2
+	multiplyVerticesFacesMatrix2: multiplyVerticesFacesMatrix2,
+	makeFacesMatrix: makeFacesMatrix,
+	makeEdgesIsFlatFolded: makeEdgesIsFlatFolded,
+	makeFacesMatrix2: makeFacesMatrix2
 });
 
 /**
@@ -7395,10 +7436,10 @@ var faces_matrix = /*#__PURE__*/Object.freeze({
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
  */
-const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
-	faces_matrix = make_faces_matrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
+const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
+	faces_matrix = makeFacesMatrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
 	if (!vertices_faces) {
-		vertices_faces = make_vertices_faces({ faces_vertices });
+		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
 	// assign one matrix to every vertex from faces, identity matrix if none exist
 	const vertices_matrix = vertices_faces
@@ -7417,16 +7458,16 @@ const make_vertices_coords_folded = ({ vertices_coords, vertices_faces, edges_ve
  * if a edges_assignment is "U", assumed to be folded ("V" or "M").
  * also, if no edge foldAngle or assignments exist, assume all edges are folded.
  */
-// export const make_vertices_coords_flat_folded = make_vertices_coords_folded;
-const make_vertices_coords_flat_folded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
-	const edges_is_folded = make_edges_is_flat_folded({ edges_vertices, edges_foldAngle, edges_assignment });
+// export const makeVerticesCoordsFlatFolded = makeVerticesCoordsFolded;
+const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+	const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
 	faces_vertices[root_face]
 		.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
 	const faces_flipped = [];
 	faces_flipped[root_face] = false;
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
-	make_face_spanning_tree({ faces_vertices, faces_faces }, root_face)
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
 		.forEach((level, l) => level
 			.forEach(entry => {
@@ -7468,10 +7509,10 @@ const make_vertices_coords_flat_folded = ({ vertices_coords, edges_vertices, edg
 	return vertices_coords_folded;
 };
 
-var vertices_coords_folded = /*#__PURE__*/Object.freeze({
+var verticesCoordsFolded = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_vertices_coords_folded: make_vertices_coords_folded,
-	make_vertices_coords_flat_folded: make_vertices_coords_flat_folded
+	makeVerticesCoordsFolded: makeVerticesCoordsFolded,
+	makeVerticesCoordsFlatFolded: makeVerticesCoordsFlatFolded
 });
 
 /**
@@ -7484,11 +7525,11 @@ var vertices_coords_folded = /*#__PURE__*/Object.freeze({
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
  */
-const make_faces_winding_from_matrix = faces_matrix => faces_matrix
+const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
 	.map(m => m[0] * m[4] - m[1] * m[3])
 	.map(c => c >= 0);
 // the 2D matrix
-const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
+const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
 	.map(m => m[0] * m[3] - m[1] * m[2])
 	.map(c => c >= 0);
 
@@ -7497,7 +7538,7 @@ const make_faces_winding_from_matrix2 = faces_matrix => faces_matrix
  * @returns {boolean[]} true if a face is counter-clockwise. this should also
  * mean a true face is upright, false face is flipped.
  */
-const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
+const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
 	return faces_vertices
 		.map(vertices => vertices
 			.map(v => vertices_coords[v])
@@ -7507,11 +7548,11 @@ const make_faces_winding = ({ vertices_coords, faces_vertices }) => {
 		.map(face => face < 0);
 };
 
-var faces_winding = /*#__PURE__*/Object.freeze({
+var facesWinding = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_faces_winding_from_matrix: make_faces_winding_from_matrix,
-	make_faces_winding_from_matrix2: make_faces_winding_from_matrix2,
-	make_faces_winding: make_faces_winding
+	makeFacesWindingFromMatrix: makeFacesWindingFromMatrix,
+	makeFacesWindingFromMatrix2: makeFacesWindingFromMatrix2,
+	makeFacesWinding: makeFacesWinding
 });
 
 /**
@@ -7519,7 +7560,7 @@ var faces_winding = /*#__PURE__*/Object.freeze({
  */
 
 // todo, expand this to include edges, edges_faces, etc..
-const explode_faces = (graph) => {
+const explodeFaces = (graph) => {
 	const vertices_coords = graph.faces_vertices
 		.map(face => face.map(v => graph.vertices_coords[v]))
 		.reduce((a, b) => a.concat(b), []);
@@ -7533,13 +7574,13 @@ const explode_faces = (graph) => {
 	};
 };
 
-const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
-	const graph = explode_faces({ vertices_coords, faces_vertices });
-	const faces_winding = make_faces_winding(graph);
+const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
+	const graph = explodeFaces({ vertices_coords, faces_vertices });
+	const faces_winding = makeFacesWinding(graph);
 	const faces_vectors = graph.faces_vertices
 		.map(vertices => vertices.map(v => graph.vertices_coords[v]))
 		.map(points => points.map((p, i, arr) => math.core.subtract2(p, arr[(i+1) % arr.length])));
-	const faces_centers = make_faces_center_quick({ vertices_coords, faces_vertices });
+	const faces_centers = makeFacesCenterQuick({ vertices_coords, faces_vertices });
 	const faces_point_distances = faces_vertices
 		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map((points, f) => points
@@ -7566,10 +7607,10 @@ const explode_shrink_faces = ({ vertices_coords, faces_vertices }, shrink = 0.33
 	return graph;
 };
 
-var explode_faces_methods = /*#__PURE__*/Object.freeze({
+var explodeFacesMethods = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	explode_faces: explode_faces,
-	explode_shrink_faces: explode_shrink_faces
+	explodeFaces: explodeFaces,
+	explodeShrinkFaces: explodeShrinkFaces
 });
 
 /**
@@ -7581,7 +7622,7 @@ var explode_faces_methods = /*#__PURE__*/Object.freeze({
  *
  * todo: improve with space partitioning
  */
-const nearest_vertex = ({ vertices_coords }, point) => {
+const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
 	// resize our point to be the same dimension as the first vertex
 	const p = math.core.resize(vertices_coords[0].length, point);
@@ -7597,7 +7638,7 @@ const nearest_vertex = ({ vertices_coords }, point) => {
  * returns index of nearest edge in edges_ arrays or
  *  undefined if there are no vertices_coords or edges_vertices
  */
-const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
+const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
 	const nearest_points = edges_vertices
 		.map(e => e.map(ev => vertices_coords[ev]))
@@ -7611,7 +7652,7 @@ const nearest_edge = ({ vertices_coords, edges_vertices }, point) => {
 /**
  * from a planar perspective, ignoring z components
  */
-const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
+const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
 	const face = faces_vertices
 		.map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
@@ -7620,15 +7661,15 @@ const face_containing_point = ({ vertices_coords, faces_vertices }, point) => {
 	return (face === undefined ? undefined : face.i);
 };
 
-const nearest_face = (graph, point) => {
-	const face = face_containing_point(graph, point);
+const nearestFace = (graph, point) => {
+	const face = faceContainingPoint(graph, point);
 	if (face !== undefined) { return face; }
 	if (graph.edges_faces) {
-		const edge = nearest_edge(graph, point);
+		const edge = nearestEdge(graph, point);
 		const faces = graph.edges_faces[edge];
 		if (faces.length === 1) { return faces[0]; }
 		if (faces.length > 1) {
-			const faces_center = make_faces_center_quick({
+			const faces_center = makeFacesCenterQuick({
 				vertices_coords: graph.vertices_coords,
 				faces_vertices: faces.map(f => graph.faces_vertices[f])
 			});
@@ -7645,10 +7686,10 @@ const nearest_face = (graph, point) => {
 
 var nearest = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	nearest_vertex: nearest_vertex,
-	nearest_edge: nearest_edge,
-	face_containing_point: face_containing_point,
-	nearest_face: nearest_face
+	nearestVertex: nearestVertex,
+	nearestEdge: nearestEdge,
+	faceContainingPoint: faceContainingPoint,
+	nearestFace: nearestFace
 });
 
 /**
@@ -7704,7 +7745,7 @@ const clone = function (o) {
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
  */
-const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
+const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
 	// the user messed up the input and only provided one vertex
 	// it's easy to fix for them
@@ -7739,7 +7780,7 @@ const add_vertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
  * {number[]} indices of the two vertices making up the edge
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
  */
-const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
+const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
 	// easiest case, if edges_faces already exists.
 	if (edges_faces && edges_faces[edge]) {
 		return edges_faces[edge];
@@ -7772,7 +7813,7 @@ const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_fac
 		return faces;
 	}
 	if (faces_vertices) {
-		console.warn("todo: find_adjacent_faces_to_edge");
+		console.warn("todo: findAdjacentFacesToEdge");
 		// let faces = [];
 		// for (let i = 0; i < faces_vertices.length; i += 1) {
 		//   for (let v = 0; v < faces_vertices[i].length; v += 1) {
@@ -7794,7 +7835,7 @@ const find_adjacent_faces_to_edge = ({ vertices_faces, edges_vertices, edges_fac
  * @param {number} new_vertex the index of the new vertex
  * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
  */
-const split_edge_into_two = (graph, edge_index, new_vertex) => {
+const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
 	const edge_vertices = graph.edges_vertices[edge_index];
 	const new_edges = [
 		{ edges_vertices: [edge_vertices[0], new_vertex] },
@@ -7930,7 +7971,7 @@ const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_vertices
 			.forEach(i => face.splice(i, 0, new_vertex)));
 };
 const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, faces_edges }, faces) => {
-	const edge_map = make_vertices_to_edge_bidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	faces
 		.map(f => faces_vertices[f]
 			.map((vertex, i, arr) => [vertex, arr[(i + 1) % arr.length]])
@@ -8057,7 +8098,7 @@ const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, face
 //           .reduce((a, b) => a && b, true);
 //         if (in0) { return new_edges[0]; }
 //         if (in1) { return new_edges[1]; }
-//         throw new Error("split_edge() bad faces_edges");
+//         throw new Error("splitEdge() bad faces_edges");
 //       });
 //       if (edgeIndex === face.length - 1) {
 //         // replacing the edge at the end of the array, we have to be careful
@@ -8095,7 +8136,7 @@ const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, face
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove"
  */
-const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
+const splitEdge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// make sure old_edge is a valid index
 	if (graph.edges_vertices.length < old_edge) { return {}; }
 	const incident_vertices = graph.edges_vertices[old_edge];
@@ -8114,7 +8155,7 @@ const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// indices of new edges
 	const new_edges = [0, 1].map(i => i + graph.edges_vertices.length);
 	// create 2 new edges, add them to the graph
-	split_edge_into_two(graph, old_edge, vertex)
+	splitEdgeIntoTwo(graph, old_edge, vertex)
 		.forEach((edge, i) => Object.keys(edge)
 			.forEach((key) => { graph[key][new_edges[i]] = edge[key]; }));
 	// done with: vertices_coords, edges_vertices, edges_assignment, edges_foldAngle
@@ -8123,7 +8164,7 @@ const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	update_vertices_edges$2(graph, old_edge, vertex, incident_vertices, new_edges);
 	// done with: vertices_edges, vertices_vertices, and
 	// vertices_sectors if it exists.
-	const incident_faces = find_adjacent_faces_to_edge(graph, old_edge);
+	const incident_faces = findAdjacentFacesToEdge(graph, old_edge);
 	if (incident_faces) {
 		update_vertices_faces$1(graph, vertex, incident_faces);
 		update_edges_faces$1(graph, new_edges, incident_faces);
@@ -8135,7 +8176,7 @@ const split_edge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// and we don't need to bother with faces_faces and faceOrders.
 	// todo: edgeOrders. the only spec key remaining.
 	// remove old data
-	const edge_map = remove_geometry_indices(graph, _edges, [ old_edge ]);
+	const edge_map = removeGeometryIndices(graph, _edges, [ old_edge ]);
 	// shift our new edge indices since these relate to the graph before remove().
 	new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
 	// we had to run "remove" with the new edges added. to return the change info,
@@ -8213,11 +8254,11 @@ const make_faces = ({ edges_vertices, faces_vertices, faces_edges, faces_faces }
 	// the indices of the two vertices inside the face_vertices array.
 	// this is where we will split the face into two.
 	const indices = vertices.map(el => faces_vertices[face].indexOf(el));
-	const faces = split_circular_array(faces_vertices[face], indices)
+	const faces = splitCircularArray(faces_vertices[face], indices)
 		.map(fv => ({ faces_vertices: fv }));
 	if (faces_edges) {
 		// table to build faces_edges
-		const vertices_to_edge = make_vertices_to_edge_bidirectional({ edges_vertices });
+		const vertices_to_edge = makeVerticesToEdgeBidirectional({ edges_vertices });
 		faces.map(face => face.faces_vertices
 				.map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
 				.map(key => vertices_to_edge[key]))
@@ -8244,10 +8285,10 @@ const build_faces = (graph, face, vertices) => {
  */
 /**
  * @description this is a highly specific method, it takes in the output
- * from intersect_convex_face_line and applies it to a graph by splitting
+ * from intersectConvexFaceLine and applies it to a graph by splitting
  * the edges (in the case of edge, not vertex intersection),
  * @param {object} a FOLD object. modified in place.
- * @param {object} the result from calling "intersect_convex_face_line".
+ * @param {object} the result from calling "intersectConvexFaceLine".
  * each value must be an array. these will be modified in place.
  * @returns {object} with "vertices" and "edges" keys where
  * - vertices is an array of indices (the new vertices)
@@ -8264,8 +8305,8 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 	// split the edge (modifying the graph), and store the changes so that during
 	// the next loop the second edge to split will be updated to the new index
 	const split_results = edges.map((el) => {
-		const res = split_edge(graph, map ? map[el.edge] : el.edge, el.coords);
-		map = map ? merge_nextmaps(map, res.edges.map) : res.edges.map;
+		const res = splitEdge(graph, map ? map[el.edge] : el.edge, el.coords);
+		map = map ? mergeNextmaps(map, res.edges.map) : res.edges.map;
 		return res;
 	});
 	vertices.push(...split_results.map(res => res.vertex));
@@ -8279,8 +8320,8 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 	// more than 2 intersections
 	split_results.forEach(res => {
 		res.edges.remove = bkmap ? bkmap[res.edges.remove] : res.edges.remove;
-		const inverted = invert_simple_map(res.edges.map);
-		bkmap = bkmap ? merge_backmaps(bkmap, inverted) : inverted;
+		const inverted = invertSimpleMap(res.edges.map);
+		bkmap = bkmap ? mergeBackmaps(bkmap, inverted) : inverted;
 	});
 	return {
 		vertices,
@@ -8294,7 +8335,7 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 /**
  * Rabbit Ear (c) Kraft
  */
-const warning = "split_face potentially given a non-convex face";
+const warning = "splitFace potentially given a non-convex face";
 /**
  * @description a newly-added edge needs to update its two endpoints'
  * vertices_vertices. each vertices_vertices gains one additional
@@ -8305,8 +8346,8 @@ const warning = "split_face potentially given a non-convex face";
 const update_vertices_vertices$1 = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
 	const v0 = edges_vertices[edge][0];
 	const v1 = edges_vertices[edge][1];
-	vertices_vertices[v0] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
-	vertices_vertices[v1] = sort_vertices_counter_clockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
+	vertices_vertices[v0] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
+	vertices_vertices[v1] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
 };
 /**
  * vertices_vertices was just run before this method. use it.
@@ -8315,7 +8356,7 @@ const update_vertices_vertices$1 = ({ vertices_coords, vertices_vertices, edges_
  */
 const update_vertices_edges$1 = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
 	// the expensive way, rebuild all arrays
-	// graph.vertices_edges = make_vertices_edges(graph);
+	// graph.vertices_edges = makeVerticesEdges(graph);
 	if (!vertices_edges || !vertices_vertices) { return; }
 	const vertices = edges_vertices[edge];
 	// for each of the two vertices, check its vertices_vertices for the
@@ -8465,9 +8506,9 @@ const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
  */
-const split_convex_face = (graph, face, vector, point, epsilon) => {
+const splitConvexFace = (graph, face, vector, point, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
-	const intersect = intersect_convex_face_line(graph, face, vector, point, epsilon);
+	const intersect = intersectConvexFaceLine(graph, face, vector, point, epsilon);
 	// if no intersection exists, return undefined.
 	if (intersect === undefined) { return undefined; }
 	// this result will be appended to (vertices, edges) and returned by this method.
@@ -8487,7 +8528,7 @@ const split_convex_face = (graph, face, vector, point, epsilon) => {
 	update_edges_faces(graph, face, result.edges.new, faces);
 	update_faces_faces(graph, face, faces);
 	// remove old data
-	const faces_map = remove_geometry_indices(graph, _faces, [face]);
+	const faces_map = removeGeometryIndices(graph, _faces, [face]);
 	// the graph is now complete, however our return object needs updating.
 	// shift our new face indices since these relate to the graph before remove().
 	faces.forEach((_, i) => { faces[i] = faces_map[faces[i]]; });
@@ -8528,11 +8569,11 @@ const graphMethods = Object.assign({
 	subgraph,
 	// assign,
 	// convert snake_case to camelCase
-	addVertices: add_vertices,
-	splitEdge: split_edge,
-	faceSpanningTree: make_face_spanning_tree,
-	explodeFaces: explode_faces,
-	explodeShrinkFaces: explode_shrink_faces,
+	addVertices: addVertices,
+	splitEdge: splitEdge,
+	faceSpanningTree: makeFaceSpanningTree,
+	explodeFaces: explodeFaces,
+	explodeShrinkFaces: explodeShrinkFaces,
 },
 	transform,
 );
@@ -8546,7 +8587,7 @@ Object.keys(graphMethods).forEach(key => {
  */
 Graph.prototype.splitFace = function (face, ...args) {
 	const line = math.core.getLine(...args);
-	return split_convex_face(this, face, line.vector, line.origin);
+	return splitConvexFace(this, face, line.vector, line.origin);
 };
 /**
  * @returns {this} a deep copy of this object
@@ -8575,8 +8616,8 @@ Graph.prototype.copy = function () {
  * keys untouched.
  */
 Graph.prototype.clear = function () {
-	fold_keys.graph.forEach(key => delete this[key]);
-	fold_keys.orders.forEach(key => delete this[key]);
+	foldKeys.graph.forEach(key => delete this[key]);
+	foldKeys.orders.forEach(key => delete this[key]);
 	// the code above just avoided deleting all "file_" keys,
 	// however, file_frames needs to be removed as it contains geometry.
 	delete this.file_frames;
@@ -8617,11 +8658,11 @@ Graph.prototype.unitize = function () {
  */
 Graph.prototype.folded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
-		: make_vertices_coords_folded(this, ...arguments);
+		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		: makeVerticesCoordsFolded(this, ...arguments);
 	// const faces_layer = this["faces_re:layer"]
 	//   ? this["faces_re:layer"]
-	//   : make_faces_layer(this, arguments[0], 0.001);
+	//   : makeFacesLayer(this, arguments[0], 0.001);
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
@@ -8645,8 +8686,8 @@ Graph.prototype.folded = function () {
  */
 Graph.prototype.flatFolded = function () {
 	const vertices_coords = this.faces_matrix2
-		? multiply_vertices_faces_matrix2(this, this.faces_matrix2)
-		: make_vertices_coords_flat_folded(this, ...arguments);
+		? multiplyVerticesFacesMatrix2(this, this.faces_matrix2)
+		: makeVerticesCoordsFlatFolded(this, ...arguments);
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
@@ -8670,7 +8711,7 @@ const shortenKeys = function (el, i, arr) {
 };
 // bind the FOLD graph to "this"
 const getComponent = function (key) {
-	return transpose_graph_arrays(this, key)
+	return transposeGraphArrays(this, key)
 		.map(shortenKeys.bind(key))
 		.map(setup[key].bind(this));
 };
@@ -8686,7 +8727,7 @@ const getComponent = function (key) {
 Object.defineProperty(Graph.prototype, _boundary, {
 	enumerable: true,
 	get: function () {
-		const boundary = get_boundary(this);
+		const boundary = getBoundary(this);
 		const poly = math.polygon(boundary.vertices.map(v => this.vertices_coords[v]));
 		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
 		return Object.assign(poly, boundary);
@@ -8696,9 +8737,9 @@ Object.defineProperty(Graph.prototype, _boundary, {
  * graph components based on Euclidean distance
  */
 const nearestMethods = {
-	vertices: nearest_vertex,
-	edges: nearest_edge,
-	faces: nearest_face,
+	vertices: nearestVertex,
+	edges: nearestEdge,
+	faces: nearestFace,
 };
 /**
  * @description given a point, this will return the nearest vertex, edge,
@@ -8718,7 +8759,7 @@ Graph.prototype.nearest = function () {
 				return cache[key];
 			}
 		});
-		filter_keys_with_prefix(this, key).forEach(fold_key =>
+		filterKeysWithPrefix(this, key).forEach(fold_key =>
 			Object.defineProperty(nears, fold_key, {
 				enumerable: true,
 				get: () => this[fold_key][nears[singularize[key]]]
@@ -8738,7 +8779,7 @@ const clip = function (
 	{vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices},
 	line) {
 	if (!boundaries_vertices) {
-		boundaries_vertices = get_boundary({
+		boundaries_vertices = getBoundary({
 			vertices_edges, edges_vertices, edges_assignment
 		}).vertices;
 	}
@@ -8752,17 +8793,17 @@ const clip = function (
 // this method is meant to add edges between EXISTING vertices.
 // this should split and rebuild faces.
 
-// todo: we need to make a remove_duplicate_edges that returns merge info
+// todo: we need to make a removeDuplicateEdges that returns merge info
 
-// const edges = ear.graph.add_edges(graph, [[0, vertex], [1, vertex], [2, 3], [2, vertex]]);
-const add_edges = (graph, edges_vertices) => {
+// const edges = ear.graph.addEdges(graph, [[0, vertex], [1, vertex], [2, 3], [2, vertex]]);
+const addEdges = (graph, edges_vertices) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }
 	// the user messed up the input and only provided one edge
 	// it's easy to fix for them
 	if (typeof edges_vertices[0] === "number") { edges_vertices = [edges_vertices]; }
 	const indices = edges_vertices.map((_, i) => graph.edges_vertices.length + i);
 	graph.edges_vertices.push(...edges_vertices);
-	const index_map = remove_duplicate_edges(graph).map;
+	const index_map = removeDuplicateEdges(graph).map;
 	return indices.map(i => index_map[i]);
 };
 
@@ -8828,11 +8869,11 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 			? graph.vertices_vertices[vertex] : [];
 		const unsorted_vertices_vertices = previous_vertices_vertices
 			.concat(new_adjacent_vertices);
-		graph.vertices_vertices[vertex] = sort_vertices_counter_clockwise(
+		graph.vertices_vertices[vertex] = sortVerticesCounterClockwise(
 			graph, unsorted_vertices_vertices, segment_vertices[i]);
 	}
 	// build vertices_edges from vertices_vertices
-	const edge_map = make_vertices_to_edge_bidirectional(graph);
+	const edge_map = makeVerticesToEdgeBidirectional(graph);
 	for (let i = 0; i < segment_vertices.length; i++) {
 		const vertex = segment_vertices[i];
 		graph.vertices_edges[vertex] = graph.vertices_vertices[vertex]
@@ -8861,12 +8902,12 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
  * @returns {number[]} the indices of the new edge(s) composing the segment.
  */
-const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
+const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.
 	// this is needed for when we walk faces. we need to be able to
 	// identify the one face that winds around the outside enclosing Infinity.
 	if (!graph.vertices_sectors) {
-		graph.vertices_sectors = make_vertices_sectors(graph);
+		graph.vertices_sectors = makeVerticesSectors(graph);
 	}
 	// flatten input points to the Z=0 plane
 	const segment = [point1, point2].map(p => [p[0], p[1]]);
@@ -8875,7 +8916,7 @@ const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) 
 	// graph.vertices_coords = graph.vertices_coords
 	//   .map(coord => coord.slice(0, 2));
 	// get all edges which intersect the segment.
-	const intersections = make_edges_segment_intersection(
+	const intersections = makeEdgesSegmentIntersection(
 		graph, segment[0], segment[1], epsilon);
 	// get the indices of the edges, sorted.
 	const intersected_edges = intersections
@@ -8892,37 +8933,37 @@ const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) 
 		.sort((a, b) => a - b);
 	// split all intersected edges into two edges, in reverse order
 	// so that the "remove()" call only ever removes the last from the
-	// set of edges. each split_edge call also rebuilds all graph data,
+	// set of edges. each splitEdge call also rebuilds all graph data,
 	// vertices, faces, adjacent of each, etc..
-	const split_edge_results = intersected_edges
+	const splitEdge_results = intersected_edges
 		.reverse()
-		.map(edge => split_edge(graph, edge, intersections[edge], epsilon));
-	const split_edge_vertices = split_edge_results.map(el => el.vertex);
+		.map(edge => splitEdge(graph, edge, intersections[edge], epsilon));
+	const splitEdge_vertices = splitEdge_results.map(el => el.vertex);
 	// do we need this? changelog for edges? maybe it will be useful someday.
 	// todo, should this list be reversed?
 	// if the segment crosses at the intersection of some edges,
 	// this algorithm produces maps with a bunch of undefineds.
-	// const split_edge_maps = split_edge_results.map(el => el.edges.map);
-	// console.log("split_edge_maps", split_edge_maps);
-	// const split_edge_map = split_edge_maps
+	// const splitEdge_maps = splitEdge_results.map(el => el.edges.map);
+	// console.log("splitEdge_maps", splitEdge_maps);
+	// const splitEdge_map = splitEdge_maps
 	//   .splice(1)
-	//   .reduce((a, b) => merge_nextmaps(a, b), split_edge_maps[0]);
+	//   .reduce((a, b) => mergeNextmaps(a, b), splitEdge_maps[0]);
 	// now that all edges have been split their new vertices have been
 	// added to the graph, add the original segment's two endpoints.
 	// we waited until here because this method will search all existing
 	// vertices, and avoid adding a duplicate, which will happen in the
 	// case of an endpoint lies collinear along a split edge.
-	const endpoint_vertices = add_vertices(graph, segment, epsilon);
+	const endpoint_vertices = addVertices(graph, segment, epsilon);
 	// use a hash as an intermediary, make sure new vertices are unique.
 	// duplicate vertices will occur in the case of a collinear endpoint.
 	const new_vertex_hash = {};
-	split_edge_vertices.forEach(v => { new_vertex_hash[v] = true; });
+	splitEdge_vertices.forEach(v => { new_vertex_hash[v] = true; });
 	endpoint_vertices.forEach(v => { new_vertex_hash[v] = true; });
 	const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n));
 	// these vertices are sorted in the direction of the segment
-	const segment_vertices = sort_vertices_along_vector(graph, new_vertices, segment_vector);
+	const segment_vertices = sortVerticesAlongVector(graph, new_vertices, segment_vector);
 
-	const edge_map = make_vertices_to_edge_bidirectional(graph);
+	const edge_map = makeVerticesToEdgeBidirectional(graph);
 	// this method returns the indices of the edges that compose the segment.
 	// this array is this method's return value.
 	const segment_edges = add_segment_edges(graph, segment_vertices, edge_map);
@@ -8954,21 +8995,21 @@ const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) 
 			.map(adj_v => [[adj_v, v], [v, adj_v]]))
 		.reduce((a, b) => a.concat(b), [])
 		.reduce((a, b) => a.concat(b), []);
-	// graph.vertices_sectors = make_vertices_sectors(graph);
+	// graph.vertices_sectors = makeVerticesSectors(graph);
 	// memo to prevent duplicate faces. this one object should be
 	// applied globally to all calls to the method.
 	const walked_edges = {};
 	// build faces by begin walking from the set of vertex pairs.
 	// this includes the one boundary face in the wrong winding direction
 	const all_walked_faces = face_walk_start_pairs
-		.map(pair => counter_clockwise_walk(graph, pair[0], pair[1], walked_edges))
+		.map(pair => counterClockwiseWalk(graph, pair[0], pair[1], walked_edges))
 		.filter(a => a !== undefined);
 	// filter out the one boundary face with wrong winding (if it exists)
-	const walked_faces = filter_walked_boundary_face(all_walked_faces);
+	const walked_faces = filterWalkedBoundaryFace(all_walked_faces);
 	// const walked_faces = all_walked_faces;
 	// this method could be called before or after the walk. but
 	// for simplicity we're calling it before adding the new faces.
-	remove_geometry_indices(graph, "faces", intersected_faces);
+	removeGeometryIndices(graph, "faces", intersected_faces);
 	// todo: this assumes faces_vertices exists.
 	const new_faces = walked_faces
 		.map((_, i) => graph.faces_vertices.length + i);
@@ -8994,13 +9035,13 @@ const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) 
 	// update all the arrays which reference face arrays, this includes
 	// vertices_faces, edges_faces, faces_faces (all that end with _faces)
 	if (graph.vertices_faces) {
-		graph.vertices_faces = make_vertices_faces(graph);
+		graph.vertices_faces = makeVerticesFaces(graph);
 	}
 	if (graph.edges_faces) {
-		graph.edges_faces = make_edges_faces_unsorted(graph);
+		graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	}
 	if (graph.faces_faces) {
-		graph.faces_faces = make_faces_faces(graph);
+		graph.faces_faces = makeFacesFaces(graph);
 	}
 	// todo, get rid of this after testing.
 	if (graph.vertices_coords.length !== graph.vertices_vertices.length
@@ -9018,10 +9059,10 @@ const add_planar_segment = (graph, point1, point2, epsilon = math.core.EPSILON) 
 	}
 	// console.log("intersected_edges", intersected_edges);
 	// console.log("intersected_faces", intersected_faces);
-	// console.log("split_edge_results", split_edge_results);
-	// console.log("split_edge_map", split_edge_map);
-	// console.log("split_edge_vertices", split_edge_vertices);
-	// console.log("vertices_vertices", split_edge_vertices
+	// console.log("splitEdge_results", splitEdge_results);
+	// console.log("splitEdge_map", splitEdge_map);
+	// console.log("splitEdge_vertices", splitEdge_vertices);
+	// console.log("vertices_vertices", splitEdge_vertices
 	//   .map(v => graph.vertices_vertices[v]));
 	// console.log("endpoint_vertices", endpoint_vertices);
 	// console.log("new_vertices", new_vertices);
@@ -9071,7 +9112,7 @@ const join_faces = (graph, faces, edge, vertices) => {
 				faces_vertices_index[f] = i;
 			}
 		}));
-	if (faces_vertices_index[0] === undefined || faces_vertices_index[1] === undefined) { console.warn("remove_planar_edge error joining faces"); }
+	if (faces_vertices_index[0] === undefined || faces_vertices_index[1] === undefined) { console.warn("removePlanarEdge error joining faces"); }
 
 	// get the length of each face, before and after changes
 	const edges_len_before = faces
@@ -9115,7 +9156,7 @@ const join_faces = (graph, faces, edge, vertices) => {
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
  */
-const remove_planar_edge = (graph, edge) => {
+const removePlanarEdge = (graph, edge) => {
 	// the edge's vertices, sorted large to small.
 	// if they are isolated, we want to remove them.
 	const vertices = [...graph.edges_vertices[edge]]
@@ -9174,7 +9215,7 @@ const remove_planar_edge = (graph, edge) => {
 		}));
 		// again, only if the edge separated two unique faces, then
 		// remove the old faces
-		remove_geometry_indices(graph, "faces", faces);
+		removeGeometryIndices(graph, "faces", faces);
 	}
 	// this edge is a part of a face where the edge pokes in, winds back
 	// out, definitely not convex.
@@ -9193,19 +9234,19 @@ const remove_planar_edge = (graph, edge) => {
 	// remove edge, shrink edges_vertices, edges_faces, ... by 1
 	// this also replaces any edge occurence in _edge arrays including:
 	// vertices_edges, faces_edges.
-	remove_geometry_indices(graph, "edges", [edge]);
-	remove_geometry_indices(graph, "vertices", remove_vertices);
+	removeGeometryIndices(graph, "edges", [edge]);
+	removeGeometryIndices(graph, "vertices", remove_vertices);
 };
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const get_opposite_vertices = (graph, vertex, edges) => {
+const getOppositeVertices = (graph, vertex, edges) => {
 	edges.forEach(edge => {
 		if (graph.edges_vertices[edge][0] === vertex
 			&& graph.edges_vertices[edge][1] === vertex) {
-			console.warn("remove_planar_vertex circular edge");
+			console.warn("removePlanarVertex circular edge");
 		}
 	});
 	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
@@ -9219,15 +9260,15 @@ const get_opposite_vertices = (graph, vertex, edges) => {
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
  */
-const remove_planar_vertex = (graph, vertex) => {
+const removePlanarVertex = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
-	const faces = unique_sorted_integers(graph.vertices_faces[vertex]
+	const faces = uniqueSortedIntegers(graph.vertices_faces[vertex]
 		.filter(a => a != null));
 	if (edges.length !== 2 || faces.length > 2) {
 		console.warn("cannot remove non 2-degree vertex yet (e,f)", edges, faces);
 		return;
 	}
-	const vertices = get_opposite_vertices(graph, vertex, edges);
+	const vertices = getOppositeVertices(graph, vertex, edges);
 	const vertices_reverse = vertices.slice().reverse();
 	// sort edges so the smallest index is first
 	// edges[0] is the keep edge. edges[1] will be the removed edge.
@@ -9246,7 +9287,7 @@ const remove_planar_vertex = (graph, vertex) => {
 	vertices.forEach((v, i) => {
 		const index = graph.vertices_vertices[v].indexOf(vertex);
 		if (index === -1) {
-			console.warn("remove_planar_vertex unknown vertex issue");
+			console.warn("removePlanarVertex unknown vertex issue");
 			return;
 		}
 		graph.vertices_vertices[v][index] = vertices_reverse[i];
@@ -9257,7 +9298,7 @@ const remove_planar_vertex = (graph, vertex) => {
 	faces.forEach(face => {
 		const index = graph.faces_vertices[face].indexOf(vertex);
 		if (index === -1) {
-			console.warn("remove_planar_vertex unknown face_vertex issue");
+			console.warn("removePlanarVertex unknown face_vertex issue");
 			return;
 		}
 		graph.faces_vertices[face].splice(index, 1);
@@ -9266,15 +9307,15 @@ const remove_planar_vertex = (graph, vertex) => {
 	faces.forEach(face => {
 		const index = graph.faces_edges[face].indexOf(edges[1]);
 		if (index === -1) {
-			console.warn("remove_planar_vertex unknown face_edge issue");
+			console.warn("removePlanarVertex unknown face_edge issue");
 			return;
 		}
 		graph.faces_edges[face].splice(index, 1);
 	});
 	// no changes to: vertices_faces, edges_faces, faces_faces,
 	// edges_assignment/foldAngle
-	remove_geometry_indices(graph, "vertices", [vertex]);
-	remove_geometry_indices(graph, "edges", [edges[1]]);
+	removeGeometryIndices(graph, "vertices", [vertex]);
+	removeGeometryIndices(graph, "edges", [edges[1]]);
 };
 
 /**
@@ -9380,7 +9421,7 @@ const maekawa_signs = { M:-1, m:-1, V:1, v:1};
  */
 const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const is_valid = vertices_edges
 		.map(edges => edges
@@ -9389,7 +9430,7 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
 			.reduce((a, b) => a + b, 0))
 		.map(sum => sum === 2 || sum === -2);
 	// overwrite any false values to true for all boundary vertices
-	get_boundary_vertices({ edges_vertices, edges_assignment })
+	getBoundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
@@ -9406,9 +9447,9 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
  */
 const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {
-		vertices_vertices = make_vertices_vertices({ vertices_coords, vertices_edges, edges_vertices });
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
-	const is_valid = make_vertices_vertices_vector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+	const is_valid = makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
 		.map(vectors => vectors.length > 1
@@ -9418,7 +9459,7 @@ const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, 
 		.map((pair, v) => Math.abs(pair[0] - pair[1]) < epsilon);
 
 	// overwrite any false values to true for all boundary vertices
-	get_boundary_vertices({ edges_vertices, edges_assignment })
+	getBoundaryVertices({ edges_vertices, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
@@ -9481,8 +9522,8 @@ const make_edges_array = function (array) {
 //     if (!primitive) { return; }
 //     const segment = clip(this, primitive);
 //     if (!segment) { return; }
-//     const vertices = add_vertices(this, segment);
-//     const edges = add_edges(this, vertices);
+//     const vertices = addVertices(this, segment);
+//     const edges = addEdges(this, vertices);
 //     const map = fragment(this).edges.map;
 //     populate(this);
 //     return make_edges_array.call(this, edges.map(e => map[e])
@@ -9496,7 +9537,7 @@ const make_edges_array = function (array) {
 		if (!primitive) { return; }
 		const segment = clip(this, primitive);
 		if (!segment) { return; }
-		const edges = add_planar_segment(this, segment[0], segment[1]);
+		const edges = addPlanarSegment(this, segment[0], segment[1]);
 		return make_edges_array.call(this, edges);
 	};
 });
@@ -9513,9 +9554,9 @@ const make_edges_array = function (array) {
 		const vertices = [];
 		const edges = [];
 		segments.forEach(segment => {
-			const verts = add_vertices(this, segment);
+			const verts = addVertices(this, segment);
 			vertices.push(...verts);
-			edges.push(...add_edges(this, verts));
+			edges.push(...addEdges(this, verts));
 		});
 		const map = fragment(this).edges.map;
 		populate(this);
@@ -9537,7 +9578,7 @@ const make_edges_array = function (array) {
 //     const vertices = [];
 //     // const edges = [];
 //     const edges = segments.map(segment => {
-//       return add_planar_segment(this, segment[0], segment[1]);
+//       return addPlanarSegment(this, segment[0], segment[1]);
 //     });
 //     console.log("verts, edges", vertices, edges);
 //     // return make_edges_array.call(this, edges
@@ -9548,13 +9589,13 @@ const make_edges_array = function (array) {
 
 CreasePattern.prototype.removeEdge = function (edge) {
 	const vertices = this.edges_vertices[edge];
-	remove_planar_edge(this, edge);
+	removePlanarEdge(this, edge);
 	vertices
-		.map(v => is_vertex_collinear(this, v))
+		.map(v => isVertexCollinear(this, v))
 		.map((collinear, i) => collinear ? vertices[i] : undefined)
 		.filter(a => a !== undefined)
 		.sort((a, b) => b - a)
-		.forEach(v => remove_planar_vertex(this, v));
+		.forEach(v => removePlanarVertex(this, v));
 	return true;
 };
 
@@ -9564,7 +9605,7 @@ CreasePattern.prototype.validate = function (epsilon) {
 	valid.vertices.maekawa = validateMaekawa(this);
 	if (this.edges_foldAngle) {
 		valid.edges.not_flat = this.edges_foldAngle
-			.map((angle, i) => edge_foldAngle_is_flat(angle) ? undefined : i)
+			.map((angle, i) => edgeFoldAngleIsFlat(angle) ? undefined : i)
 			.filter(a => a !== undefined);
 	}
 	if (valid.summary === "valid") {
@@ -9592,7 +9633,7 @@ var CreasePatternProto = CreasePattern.prototype;
  * @param {boolean[]} each index is a face, T/F will the face be folded over?
  * @returns {number[]} each index is a face, each value is the z-layer order.
  */
-const fold_faces_layer = (faces_layer, faces_folding) => {
+const foldFacesLayer = (faces_layer, faces_folding) => {
 	const new_faces_layer = [];
 	// filter face indices into two arrays, those folding and not folding
 	const arr = faces_layer.map((_, i) => i);
@@ -9680,7 +9721,7 @@ const face_snapshot = (graph, face) => ({
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
  */
-const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
+const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
 	// make sure the input graph contains the necessary data.
 	// this takes care of all standard FOLD-spec arrays.
@@ -9693,7 +9734,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 		graph.faces_layer = Array(graph.faces_vertices.length).fill(0);
 	}
 	// these will be properties on the graph. as we iterate through faces,
-	// splitting (removing 1 face, adding 2) inside "split_face", the remove
+	// splitting (removing 1 face, adding 2) inside "splitFace", the remove
 	// method will automatically shift indices for arrays starting with "faces_".
 	// we will remove these arrays at the end of this method.
 	graph.faces_center = graph.faces_vertices
@@ -9701,9 +9742,9 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 	// faces_matrix is built from the crease pattern, but reflects
 	// the faces in their folded state.
 	if (!graph.faces_matrix2) {
-		graph.faces_matrix2 = make_faces_matrix2(graph, 0);
+		graph.faces_matrix2 = makeFacesMatrix2(graph, 0);
 	}
-	graph.faces_winding = make_faces_winding_from_matrix2(graph.faces_matrix2);
+	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
 	graph.faces_crease = graph.faces_matrix2
 		.map(math.core.invertMatrix2)
 		.map(matrix => math.core.multiplyMatrix2Line2(matrix, vector, origin));
@@ -9716,14 +9757,14 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 		));
 	// before we start splitting faces, we have to handle the case where
 	// a flat crease already exists along the fold crease, already splitting
-	// two faces (assignment "F" or "U" only), the split_face method
+	// two faces (assignment "F" or "U" only), the splitFace method
 	// will not catch these. we need to find these edges before we modify
 	// the graph, find the face they are attached to and whether the face
 	// is flipped, and set the edge to the proper "V" or "M" (and foldAngle).
-	const vertices_coords_folded = multiply_vertices_faces_matrix2(graph,
+	const vertices_coords_folded = multiplyVerticesFacesMatrix2(graph,
 		graph.faces_matrix2);
 	// get all (folded) edges which lie parallel and overlap the crease line
-	const collinear_edges = make_edges_line_parallel_overlap({
+	const collinear_edges = makeEdgesLineParallelOverlap({
 		vertices_coords: vertices_coords_folded,
 		edges_vertices: graph.edges_vertices,
 	}, vector, origin, epsilon)
@@ -9738,7 +9779,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 		.map(winding => winding ? assignment : opposite_assignment)
 		.forEach((assignment, e) => {
 			graph.edges_assignment[collinear_edges[e]] = assignment;
-			graph.edges_foldAngle[collinear_edges[e]] = edge_assignment_to_foldAngle(
+			graph.edges_foldAngle[collinear_edges[e]] = edgeAssignmentToFoldAngle(
 				assignment);
 		});
 	// before we start splitting, capture the state of face 0. we will use
@@ -9755,7 +9796,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 			// values from it to complete the 2 new faces which replace it.
 			const face = face_snapshot(graph, i);
 			// split the polygon (if possible), get back a summary of changes.
-			const change = split_convex_face(
+			const change = splitConvexFace(
 				graph,
 				i,
 				face.crease.vector,
@@ -9769,7 +9810,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 			graph.edges_assignment[change.edges.new] = face.winding
 				? assignment
 				: opposite_assignment;
-			graph.edges_foldAngle[change.edges.new] = edge_assignment_to_foldAngle(
+			graph.edges_foldAngle[change.edges.new] = edgeAssignmentToFoldAngle(
 				graph.edges_assignment[change.edges.new]);
 			// these are the two faces that replaced the removed face after the split
 			const new_faces = change.faces.map[change.faces.remove];
@@ -9788,15 +9829,15 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 		.filter(a => a !== undefined);
 	// all faces have been split. get a summary of changes to the graph.
 	// "faces_map" is actually needed. the others are just included in the return
-	const faces_map = merge_nextmaps(...split_changes.map(el => el.faces.map));
-	const edges_map = merge_nextmaps(...split_changes.map(el => el.edges.map)
+	const faces_map = mergeNextmaps(...split_changes.map(el => el.faces.map));
+	const edges_map = mergeNextmaps(...split_changes.map(el => el.edges.map)
 		.filter(a => a !== undefined));
 	const faces_remove = split_changes.map(el => el.faces.remove).reverse();
 	// const vert_dict = {};
 	// split_changes.forEach(el => el.vertices.forEach(v => { vert_dict[v] = true; }));
 	// const new_vertices = Object.keys(vert_dict).map(s => parseInt(s));
 	// build a new face layer ordering
-	graph.faces_layer = fold_faces_layer(
+	graph.faces_layer = foldFacesLayer(
 		graph.faces_layer,
 		graph.faces_side,
 	);
@@ -9828,7 +9869,7 @@ const flat_fold = (graph, vector, origin, assignment = "V", epsilon = math.core.
 	// build our new faces_matrices using face 0 as the starting point,
 	// setting face 0 as the identity matrix, then multiply every
 	// face's matrix by face 0's actual starting matrix
-	graph.faces_matrix2 = make_faces_matrix2(graph, face0_newIndex)
+	graph.faces_matrix2 = makeFacesMatrix2(graph, face0_newIndex)
 		.map(matrix => math.core.multiplyMatrices2(face0_preMatrix, matrix));
 	// these are no longer needed. some of them haven't even been fully rebuilt.
 	delete graph.faces_center;
@@ -9856,7 +9897,7 @@ Origami.prototype.constructor = Origami;
 
 Origami.prototype.flatFold = function () {
 	const line = math.core.getLine(arguments);
-	flat_fold(this, line.vector, line.origin);
+	flatFold(this, line.vector, line.origin);
 	return this;
 };
 
@@ -9865,7 +9906,7 @@ var OrigamiProto = Origami.prototype;
 /**
  * Rabbit Ear (c) Kraft
  */
-const is_folded_form = (graph) => {
+const isFoldedForm = (graph) => {
 	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
 		|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
 };
@@ -9876,18 +9917,18 @@ const is_folded_form = (graph) => {
 
 var query = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	is_folded_form: is_folded_form
+	isFoldedForm: isFoldedForm
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
-	const faces_winding = make_faces_winding({ vertices_coords, faces_vertices });
+	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
 	// use graph vertices_coords for edges vertices
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// convert parallel into NOT parallel.
@@ -9930,10 +9971,10 @@ const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vecto
 	return matrix;
 };
 
-// const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+// const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 //   const matrix = Array.from(Array(faces_vertices.length))
 //     .map(() => Array.from(Array(faces_vertices.length)));
-//   const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+//   const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
 //   for (let i = 0; i < faces_vertices.length - 1; i++) {
 //     for (let j = i + 1; j < faces_vertices.length; j++) {
 //       const intersection = math.core.intersect_polygon_polygon(
@@ -9955,10 +9996,10 @@ const make_edges_faces_overlap = ({ vertices_coords, edges_vertices, edges_vecto
  * of booleans, where both halves of the matrix are filled,
  * matrix[i][j] === matrix[j][i].
  */
-const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
 		.map(() => Array.from(Array(faces_vertices.length)));
-	const faces_polygon = make_faces_polygon({ vertices_coords, faces_vertices }, epsilon);
+	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
 	for (let i = 0; i < faces_vertices.length - 1; i++) {
 		for (let j = i + 1; j < faces_vertices.length; j++) {
 			const overlap = math.core.overlapConvexPolygons(
@@ -9972,8 +10013,8 @@ const make_faces_faces_overlap = ({ vertices_coords, faces_vertices }, epsilon =
 
 var overlap = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_edges_faces_overlap: make_edges_faces_overlap,
-	make_faces_faces_overlap: make_faces_faces_overlap
+	makeEdgesFacesOverlap: makeEdgesFacesOverlap,
+	makeFacesFacesOverlap: makeFacesFacesOverlap
 });
 
 /**
@@ -9990,7 +10031,7 @@ var overlap = /*#__PURE__*/Object.freeze({
  * "both", "left", "right" where the values are an array of pairs of faces,
  * the pairs of adjacent faces around the taco edge. "left": [ [2,3] [6,0] ]
  */
-const make_folded_strip_tacos = (folded_faces, is_circular, epsilon) => {
+const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
 	// center of each face, will be used to see if a taco faces left or right
 	const faces_center = folded_faces
 		.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
@@ -10060,14 +10101,14 @@ const between = (arr, i, j) => (i < j)
  * but currently it isn't.
  * 
  * @params {[number, number][]} for every sector, "start" and "end" of each sector
- * this is the output of having run "fold_strip_with_assignments"
+ * this is the output of having run "foldStripWithAssignments"
  * @param {number[]} layers_face, index is z-layer, value is the sector/face.
  * @param {boolean} do assignments contain a boundary? (to test for loop around)
  * @returns {boolean} does a violation occur. "false" means all good.
  */
-const validate_taco_tortilla_strip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
 	// for every sector/face, the value is its index in the layers_face array
-	const faces_layer = invert_map(layers_face);
+	const faces_layer = invertMap(layers_face);
 	// for every sector, the location of the end of the sector after folding
 	// (the far end, the second end visited by the walk)
 	const fold_location = faces_folded
@@ -10130,12 +10171,12 @@ const validate_taco_tortilla_strip = (faces_folded, layers_face, is_circular = t
  * encoded as its pair number identifier.
  * @returns {boolean} true if the taco stack passes this test. false if fails.
  */
-const validate_taco_taco_face_pairs = (face_pair_stack) => {
+const validateTacoTacoFacePairs = (face_pair_stack) => {
 	// create a copy of "stack" that removes single faces currently missing
 	// their other pair partner. this removes boundary faces (with no adj. face)
 	// as well as stacks which are in the process of being constructed but not
 	// yet final
-	const pair_stack = remove_single_instances(face_pair_stack);
+	const pair_stack = removeSingleInstances(face_pair_stack);
 	const pairs = {};
 	let count = 0;
 	for (let i = 0; i < pair_stack.length; i++) {
@@ -10168,7 +10209,7 @@ const build_layers = (layers_face, faces_pair) => layers_face
 	.map(f => faces_pair[f])
 	.filter(a => a !== undefined);
 
-const validate_layer_solver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
+const validateLayerSolver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
 	// if the strip contains "F" assignments, layers_face will contain
 	// a mix of numbers and arrays of numbers, like: [1, 0, 5, [3, 4], 2]
 	// as [3,4] are on the same "layer".
@@ -10180,13 +10221,13 @@ const validate_layer_solver = (faces_folded, layers_face, taco_face_pairs, circ_
 	// strip faces can exist in one taco stack location.
 	const flat_layers_face = math.core.flattenArrays(layers_face);
 	// taco-tortilla intersections
-	if (!validate_taco_tortilla_strip(
+	if (!validateTacoTortillaStrip(
 		faces_folded, layers_face, circ_and_done, epsilon
 	)) { return false; }
 	// taco-taco intersections
 	for (let i = 0; i < taco_face_pairs.length; i++) {
 		const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
-		if (!validate_taco_taco_face_pairs(pair_stack)) { return false; }
+		if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
 	}
 	return true;
 };
@@ -10211,7 +10252,7 @@ const change_map = { V: true, v: true, M: true, m: true };
  * another way of saying this is if a face is "false", the face is
  * moving to the right, if "true" moving to the left.
  */
-const assignments_to_faces_flip = (assignments) => {
+const assignmentsToFacesFlip = (assignments) => {
 	let counter = 0;
 	// because fencepost, and we are hard-coding the first face to be false,
 	// we don't need to append the first post back to the end of this slice.
@@ -10244,7 +10285,7 @@ const upOrDown = (mv, i) => i % 2 === 0
  * index [0] indicates how face [1] is above/below face[0].
  * @returns {number[]} unit directionality. +1 for up, -1 down
  */
-const assignments_to_faces_vertical = (assignments) => {
+const assignmentsToFacesVertical = (assignments) => {
 	let iterator = 0;
 	// because fencepost, we are relating assignments[1] to face[0]
 	return assignments
@@ -10270,9 +10311,9 @@ const assignments_to_faces_vertical = (assignments) => {
  * @returns array of sector positions. any sectors caught between
  * multiple boundaries will be undefined.
  */
-const fold_strip_with_assignments = (faces, assignments) => {
+const foldStripWithAssignments = (faces, assignments) => {
 	// one number for each sector, locally, the movement away from 0.
-	const faces_end = assignments_to_faces_flip(assignments)
+	const faces_end = assignmentsToFacesFlip(assignments)
 		.map((flip, i) => faces[i] * (flip ? -1 : 1));
 	// the cumulative position for each sector, stored as an array of 2:
 	// [ the start of the sector, the end of the sector ]
@@ -10287,11 +10328,11 @@ const fold_strip_with_assignments = (faces, assignments) => {
 	return cumulative;
 };
 
-var fold_assignments = /*#__PURE__*/Object.freeze({
+var foldAssignments = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	assignments_to_faces_flip: assignments_to_faces_flip,
-	assignments_to_faces_vertical: assignments_to_faces_vertical,
-	fold_strip_with_assignments: fold_strip_with_assignments
+	assignmentsToFacesFlip: assignmentsToFacesFlip,
+	assignmentsToFacesVertical: assignmentsToFacesVertical,
+	foldStripWithAssignments: foldStripWithAssignments
 });
 
 /**
@@ -10302,7 +10343,6 @@ var fold_assignments = /*#__PURE__*/Object.freeze({
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
  * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  */
-
 const is_boundary = { "B": true, "b": true };
 /**
  * @description given an ordered set of faces and crease assignments
@@ -10315,9 +10355,9 @@ const is_boundary = { "B": true, "b": true };
  * each solution is an ordering of faces_order, where each index is a
  * face and each value is the layer the face occupies.
  */
-const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
-	const faces_folded = fold_strip_with_assignments(ordered_scalars, assignments);
-	const faces_updown = assignments_to_faces_vertical(assignments);
+const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
+	const faces_updown = assignmentsToFacesVertical(assignments);
 	// todo: we only really need to check index [0] and [length-1]
 	const is_circular = assignments
 		.map(a => !(is_boundary[a]))
@@ -10332,9 +10372,9 @@ const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.
 	// only grab the left and right tacos. return their adjacent faces in the
 	// form of which pair they are a part of, as an inverted array.
 	// taco-tortilla testing will happen using a different data structure.
-	const taco_face_pairs = make_folded_strip_tacos(faces_folded, is_circular, epsilon)
+	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
 		.map(taco => [taco.left, taco.right]
-			.map(invert_map)
+			.map(invertMap)
 			.filter(arr => arr.length > 1))
 		.reduce((a, b) => a.concat(b), []);
 	/**
@@ -10360,7 +10400,7 @@ const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.
 		// is circular AND is done (just added the final face)
 		const circ_and_done = is_circular && is_done;
 		// test for any self-intersections throughout the entire layering
-		if (!validate_layer_solver(
+		if (!validateLayerSolver(
 			faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
 		)) {
 			return [];
@@ -10370,7 +10410,7 @@ const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.
 		if (circ_and_done) {
 			// next_dir is now indicating the direction from the final face to the
 			// first face, test if this also matches the orientation of the faces.
-			const faces_layer = invert_map(layers_face);
+			const faces_layer = invertMap(layers_face);
 			const first_face_layer = faces_layer[0];
 			const last_face_layer = faces_layer[face];
 			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
@@ -10417,21 +10457,21 @@ const single_vertex_solver = (ordered_scalars, assignments, epsilon = math.core.
 			.reduce((a, b) => a.concat(b), []);
 	};
 	// after collecting all layers_face solutions, convert them into faces_layer
-	return recurse().map(invert_map);
+	return recurse().map(invertMap);
 };
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const make_vertex_faces_layer = ({
+const makeVertexFacesLayer = ({
 	vertices_faces, vertices_sectors, vertices_edges, edges_assignment
 }, vertex, epsilon) => {
 	// vertices_faces will contain "undefined" for sectors outside the boundary
 	const faces = vertices_faces[vertex];
 	// valid ranges might return multiple occurences, assume the longest
 	// is the one we want. get that one.
-	const range = get_longest_array(circular_array_valid_ranges(faces));
+	const range = getLongestArray(circularArrayValidRanges(faces));
 	if (range === undefined) { return; }
 	// convert a range [start, end] into an array of indices, for example:
 	// [4,1] into [4,5,6,7,0,1]
@@ -10445,19 +10485,19 @@ const make_vertex_faces_layer = ({
 	const assignments = indices
 		.map(i => vertices_edges[vertex][i])
 		.map(edge => edges_assignment[edge]);
-	const sectors_layer = single_vertex_solver(sectors, assignments, epsilon);
+	const sectors_layer = singleVertexSolver(sectors, assignments, epsilon);
 	// sectors_layer gives us solutions relating the sectors to indices 0...n
 	// relate these to the original faces, in 2 steps:
 	// 1. map back to vertices_faces, due to valid_array (avoiding undefineds)
 	// 2. map back to the faces in vertices_faces, instead of [0...n], a vertex's
 	// faces will be anywhere in the graph. like [25, 56, 43, 19...]
 	const faces_layer = sectors_layer
-		.map(invert_map)
+		.map(invertMap)
 		.map(arr => arr
 			.map(face => typeof face !== "object"
 				? faces[indices[face]]
 				: face.map(f => faces[indices[f]])))
-		.map(invert_map);
+		.map(invertMap);
 	// send along the starting, this face is positioned with its normal upwards.
 	faces_layer.face = faces[indices[0]];
 	return faces_layer;
@@ -10471,9 +10511,9 @@ const make_vertex_faces_layer = ({
 const flip_solutions = solutions => {
 	const face = solutions.face;
 	const flipped = solutions
-		.map(invert_map)
+		.map(invertMap)
 		.map(list => list.reverse())
-		.map(invert_map);
+		.map(invertMap);
 	flipped.face = face;
 	return flipped;
 };
@@ -10487,15 +10527,15 @@ const flip_solutions = solutions => {
  * @param {number} this face will remain fixed
  * @param {number} epsilon, HIGHLY recommended, like: 0.001
  */
-const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
+const makeVerticesFacesLayer = (graph, start_face = 0, epsilon) => {
 	if (!graph.vertices_sectors) {
-		graph.vertices_sectors = make_vertices_sectors(graph);
+		graph.vertices_sectors = makeVerticesSectors(graph);
 	}
 	// root face, and all faces with the same color, will be false
-	const faces_coloring = make_faces_winding(graph).map(c => !c);
+	const faces_coloring = makeFacesWinding(graph).map(c => !c);
 	// the faces_layer solutions for every vertex and its adjacent faces
 	const vertices_faces_layer = graph.vertices_sectors
-		.map((_, vertex) => make_vertex_faces_layer(graph, vertex, epsilon));
+		.map((_, vertex) => makeVertexFacesLayer(graph, vertex, epsilon));
 	// is each face flipped or not? (should the result be flipped too.)
 	// if this face is flipped in the graph, flip the solution too.
 	const vertices_solutions_flip = vertices_faces_layer
@@ -10506,10 +10546,10 @@ const make_vertices_faces_layer = (graph, start_face = 0, epsilon) => {
 			: solutions);
 };
 
-var faces_layer = /*#__PURE__*/Object.freeze({
+var facesLayer = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_vertex_faces_layer: make_vertex_faces_layer,
-	make_vertices_faces_layer: make_vertices_faces_layer
+	makeVertexFacesLayer: makeVertexFacesLayer,
+	makeVerticesFacesLayer: makeVerticesFacesLayer
 });
 
 /**
@@ -10522,9 +10562,9 @@ var faces_layer = /*#__PURE__*/Object.freeze({
  * @returns {boolean[][]} a boolean matrix containing true/false for all,
  * except the diagonal [i][i] which contains undefined.
  */
-const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
+const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edge_count = edges_vector.length;
 	const edges_edges_parallel = Array
@@ -10577,7 +10617,7 @@ const make_edges_edges_parallel = ({ vertices_coords, edges_vertices, edges_vect
  * compute the overlapLineLine method for each edge-pairs.
  * provide a comparison function (func) to specify inclusive/exclusivity.
  */
-const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
+const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
 	// relationship between i and j is non-directional.
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
@@ -10600,14 +10640,14 @@ const overwrite_edges_overlaps = (matrix, vectors, origins, func, epsilon) => {
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns todo something todo
  */
-const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	// use graph vertices_coords for edges vertices
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// convert parallel into NOT parallel.
-	const matrix = make_edges_edges_parallel({
+	const matrix = makeEdgesEdgesParallel({
 		vertices_coords, edges_vertices, edges_vector
 	}, epsilon)
 		.map(row => row.map(b => !b));
@@ -10615,7 +10655,7 @@ const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vect
 		matrix[i][i] = undefined;
 	}
 	// if edges are parallel (not this value), skip.
-	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
+	overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	return matrix;
 };
 // todo, improvement suggestion:
@@ -10630,17 +10670,17 @@ const make_edges_edges_crossing = ({ vertices_coords, edges_vertices, edges_vect
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns todo something todo
  */
-const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
-		edges_vector = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// start with edges-edges parallel matrix
-	const matrix = make_edges_edges_parallel({
+	const matrix = makeEdgesEdgesParallel({
 		vertices_coords, edges_vertices, edges_vector
 	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
-	overwrite_edges_overlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
+	overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
 	return matrix;
 };
 /**
@@ -10661,16 +10701,16 @@ const make_edges_edges_parallel_overlap = ({ vertices_coords, edges_vertices, ed
 const make_groups_edges = (graph, epsilon) => {
 	// gather together all edges which lie on top of one another in the
 	// folded state. take each edge's two adjacent faces, 
-	const overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon)
-	const overlapping_edges = boolean_matrix_to_indexed_array(overlap_matrix);
+	const overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon)
+	const overlapping_edges = booleanMatrixToIndexedArray(overlap_matrix);
 	// each index will be an edge, each value is a group, starting with 0,
 	// incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
 	// if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
-	const edges_group = make_unique_sets_from_self_relational_arrays(overlapping_edges);
+	const edges_group = makeUniqueSetsFromSelfRelationalArrays(overlapping_edges);
 	// gather groups, but remove groups with only one edge, and from the
 	// remaining sets, remove any edges which lie on the boundary.
 	// finally, remove sets with only one edge (after removing).
-	return invert_map(edges_group)
+	return invertMap(edges_group)
 		.filter(el => typeof el === "object")
 		.map(edges => edges
 			.filter(edge => graph.edges_faces[edge].length === 2))
@@ -10678,39 +10718,39 @@ const make_groups_edges = (graph, epsilon) => {
 };
 */
 
-var edges_edges = /*#__PURE__*/Object.freeze({
+var edgesEdges = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_edges_edges_parallel: make_edges_edges_parallel,
-	make_edges_edges_crossing: make_edges_edges_crossing,
-	make_edges_edges_parallel_overlap: make_edges_edges_parallel_overlap
+	makeEdgesEdgesParallel: makeEdgesEdgesParallel,
+	makeEdgesEdgesCrossing: makeEdgesEdgesCrossing,
+	makeEdgesEdgesParallelOverlap: makeEdgesEdgesParallelOverlap
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
-// import add_vertices_split_edges from "./add/add_vertices_split_edges";
+// import addVertices_splitEdges from "./add/addVertices_splitEdges";
 
 var graph_methods = Object.assign(Object.create(null), {
 	count,
-	implied: implied_count,
+	implied: countImplied,
 	validate,
 	clean,
 	populate,
-	remove: remove_geometry_indices,
-	replace: replace_geometry_indices,
-	remove_planar_vertex,
-	remove_planar_edge,
-	add_vertices,
-	add_edges,
-	split_edge,
-	split_face: split_convex_face,
-	flat_fold,
-	add_planar_segment,
+	remove: removeGeometryIndices,
+	replace: replaceGeometryIndices,
+	removePlanarVertex,
+	removePlanarEdge,
+	addVertices,
+	addEdges,
+	splitEdge,
+	splitFace: splitConvexFace,
+	flatFold,
+	addPlanarSegment,
 	// assign,
 	subgraph,
 	clip,
 	fragment,
-	get_vertices_clusters,
+	getVerticesClusters,
 	clone,
 },
 	make,
@@ -10725,16 +10765,16 @@ var graph_methods = Object.assign(Object.create(null), {
 	intersect,
 	overlap,
 	transform,
-	vertices_violations,
-	edges_violations,
+	verticesViolations,
+	edgesViolations,
 	vertices_collinear,
-	faces_layer,
-	edges_edges,
-	vertices_coords_folded,
-	face_spanning_tree,
-	faces_matrix,
-	faces_winding,
-	explode_faces_methods,
+	facesLayer,
+	edgesEdges,
+	verticesCoordsFolded,
+	faceSpanningTree,
+	facesMatrix,
+	facesWinding,
+	explodeFacesMethods,
 	arrays,
 );
 
@@ -10846,7 +10886,7 @@ const default_graph = {
 Object.keys(ConstructorPrototypes).forEach(name => {
 	ObjectConstructors[name] = function () {
 		const argFolds = Array.from(arguments)
-			.filter(a => fold_object_certainty(a))
+			.filter(a => isFoldObject(a))
 			 // deep copy input graph
 			.map(obj => JSON.parse(JSON.stringify(obj)));
 		return populate(Object.assign(
@@ -10864,7 +10904,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	// tried to improve it. broke it.
 	// ObjectConstructors[name] = function () {
 	//   const certain = Array.from(arguments)
-	//     .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//     .map(arg => ({ arg, certainty: isFoldObject(arg) }))
 	//     .sort((a, b) => a.certainty - b.certainty);
 	//   const fold = certain.length && certain[0].certainty > 0.1
 	//     ? JSON.parse(JSON.stringify(certain.shift().arg))
@@ -10873,7 +10913,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 	//   // const otherArguments = certain
 	//   //   .map(el => el.arg);
 	//   // const argFold = Array.from(arguments)
-	//   //   .map(arg => ({ arg, certainty: fold_object_certainty(arg) }))
+	//   //   .map(arg => ({ arg, certainty: isFoldObject(arg) }))
 	//   //   .sort((a, b) => a.certainty - b.certainty)
 	//   //   .shift();
 	//   // const start = argFold
@@ -10921,7 +10961,7 @@ Object.assign(ObjectConstructors.graph, graph_methods);
  * @property {number} d - the shortest distance from the origin to the line
  */
 
-const intersection_ud = (line1, line2) => {
+const intersectionUD = (line1, line2) => {
 	const det = math.core.cross2(line1.u, line2.u);
 	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
 	const x = line1.d * line2.u[1] - line2.d * line1.u[1];
@@ -10957,7 +10997,7 @@ const axiom2ud = (point1, point2) => {
  */
 const axiom3ud = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
-	const intersect = intersection_ud(line1, line2);
+	const intersect = intersectionUD(line1, line2);
 	return intersect === undefined
 		? [{ u: line1.u, d: (line1.d + line2.d * math.core.dot2(line1.u, line2.u)) / 2.0 }]
 		: [math.core.add2, math.core.subtract2]
@@ -11279,9 +11319,9 @@ var AxiomsVO = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 
-const reflect_point = (foldLine, point) => {
-	const matrix = math.core.make_matrix2_reflect(foldLine.vector, foldLine.origin);
-	return math.core.multiply_matrix2_vector2(matrix, point);
+const reflectPoint = (foldLine, point) => {
+	const matrix = math.core.makeMatrix2Reflect(foldLine.vector, foldLine.origin);
+	return math.core.multiplyMatrix2Vector2(matrix, point);
 };
 /**
  * All test methods follow the same format
@@ -11298,12 +11338,12 @@ const reflect_point = (foldLine, point) => {
  * inside the boundary polygon, the solution is valid.
  */
 const validateAxiom1_2 = (params, boundary) => [params.points
-	.map(p => math.core.overlap_convex_polygon_point(boundary, p, math.core.include))
+	.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
 	.reduce((a, b) => a && b, true)];
 
 const validateAxiom3 = (params, boundary, results) => {
 	const segments = params.lines.map(line => math.core
-		.clip_line_in_convex_polygon(boundary,
+		.clipLineInConvexPolygon(boundary,
 			line.vector,
 			line.origin,
 			math.core.include,
@@ -11320,7 +11360,7 @@ const validateAxiom3 = (params, boundary, results) => {
 	// exclusive! an exterior line collinear to polygon's point is excluded
 	// const results_clip = results
 	//   .map(line => line === undefined ? undefined : math.core
-	//     .intersect_convex_polygon_line(
+	//     .intersectConvexPolygonLine(
 	//       boundary,
 	//       line.vector,
 	//       line.origin,
@@ -11328,7 +11368,7 @@ const validateAxiom3 = (params, boundary, results) => {
 	//       math.core.excludeL));
 	const results_clip = results
 		.map(line => line === undefined ? undefined : math.core
-		.clip_line_in_convex_polygon(
+		.clipLineInConvexPolygon(
 			boundary,
 			line.vector,
 			line.origin,
@@ -11341,21 +11381,21 @@ const validateAxiom3 = (params, boundary, results) => {
 	// (both fold solutions) and make sure there is overlap with segment 1
 	const seg0Reflect = results
 		.map((foldLine, i) => foldLine === undefined ? undefined : [
-			reflect_point(foldLine, segments[0][0]),
-			reflect_point(foldLine, segments[0][1])
+			reflectPoint(foldLine, segments[0][0]),
+			reflectPoint(foldLine, segments[0][1])
 		]);
 	const reflectMatch = seg0Reflect
 		.map((seg, i) => seg === undefined ? false : (
-			math.core.overlap_line_point(math.core
+			math.core.overlapLinePoint(math.core
 				.subtract(segments[1][1], segments[1][0]),
 				segments[1][0], seg[0], math.core.includeS) ||
-			math.core.overlap_line_point(math.core
+			math.core.overlapLinePoint(math.core
 				.subtract(segments[1][1], segments[1][0]),
 				segments[1][0], seg[1], math.core.includeS) ||
-			math.core.overlap_line_point(math.core
+			math.core.overlapLinePoint(math.core
 				.subtract(seg[1], seg[0]), seg[0],
 				segments[1][0], math.core.includeS) ||
-			math.core.overlap_line_point(math.core
+			math.core.overlapLinePoint(math.core
 				.subtract(seg[1], seg[0]), seg[0],
 				segments[1][1], math.core.includeS)
 		));
@@ -11371,7 +11411,7 @@ const validateAxiom4 = (params, boundary) => {
 	return [
 		[params.points[0], intersect]
 			.filter(a => a !== undefined)
-			.map(p => math.core.overlap_convex_polygon_point(boundary, p, math.core.include))
+			.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
 			.reduce((a, b) => a && b, true)
 	];
 };
@@ -11382,11 +11422,11 @@ const validateAxiom5 = (params, boundary, results) => {
 	}
 	if (results.length === 0) { return []; }
 	const testParamPoints = params.points
-		.map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
+		.map(point => math.core.overlapConvexPolygonPoint(boundary, point, math.core.include))
 		.reduce((a, b) => a && b, true);
 	const testReflections = results
-		.map(foldLine => reflect_point(foldLine, params.points[1]))
-		.map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+		.map(foldLine => reflectPoint(foldLine, params.points[1]))
+		.map(point => math.core.overlapConvexPolygonPoint(boundary, point, math.core.include));
 	return testReflections.map(ref => ref && testParamPoints);
 };
 
@@ -11398,31 +11438,31 @@ const validateAxiom6 = function (params, boundary, results) {
 	}
 	if (results.length === 0) { return []; }
 	const testParamPoints = params.points
-		.map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include))
+		.map(point => math.core.overlapConvexPolygonPoint(boundary, point, math.core.include))
 		.reduce((a, b) => a && b, true);
 	if (!testParamPoints) { return results.map(() => false); }
 	const testReflect0 = results
-		.map(foldLine => reflect_point(foldLine, params.points[0]))
-		.map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+		.map(foldLine => reflectPoint(foldLine, params.points[0]))
+		.map(point => math.core.overlapConvexPolygonPoint(boundary, point, math.core.include));
 	const testReflect1 = results
-		.map(foldLine => reflect_point(foldLine, params.points[1]))
-		.map(point => math.core.overlap_convex_polygon_point(boundary, point, math.core.include));
+		.map(foldLine => reflectPoint(foldLine, params.points[1]))
+		.map(point => math.core.overlapConvexPolygonPoint(boundary, point, math.core.include));
 	return results.map((_, i) => testReflect0[i] && testReflect1[i]);
 };
 
 const validateAxiom7 = (params, boundary, result) => {
 	// check if the point parameter is inside the polygon
 	const paramPointTest = math.core
-		.overlap_convex_polygon_point(boundary, params.points[0], math.core.include);
+		.overlapConvexPolygonPoint(boundary, params.points[0], math.core.include);
 	// check if the reflected point on the fold line is inside the polygon
 	if (!result) {
 		result = axiom7(params.lines[1], params.lines[0], params.points[0]);
 	}
 	if (result === undefined) { return [false]; }
-	const reflected = reflect_point(result, params.points[0]);
-	const reflectTest = math.core.overlap_convex_polygon_point(boundary, reflected, math.core.include);
+	const reflected = reflectPoint(result, params.points[0]);
+	const reflectTest = math.core.overlapConvexPolygonPoint(boundary, reflected, math.core.include);
 	// check if the line to fold onto itself is somewhere inside the polygon
-	const paramLineTest = (math.core.intersect_convex_polygon_line(boundary,
+	const paramLineTest = (math.core.intersectConvexPolygonLine(boundary,
 		params.lines[1].vector,
 		params.lines[1].origin,
 		math.core.includeS,
@@ -11444,7 +11484,7 @@ delete validateAxiomFuncs[0];
 // todo: get boundary needs support for multiple boundaries
 const validateAxiom = (number, params, obj, solutions) => {
 	const boundary = (typeof obj === "object" && obj.vertices_coords)
-		? get_boundary(obj).vertices.map(v => obj.vertices_coords[v])
+		? getBoundary(obj).vertices.map(v => obj.vertices_coords[v])
 		: obj;
 	return validateAxiomFuncs[number](params, boundary, solutions);
 };
@@ -11801,13 +11841,13 @@ var diagram = Object.assign(Object.create(null),
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description make_tortilla_tortilla_edges_crossing
+ * @description makeTortillaTortillaEdgesCrossing
  * @param {object} graph a FOLD object graph
  * @param {todo} todo todo
  * @param {number} [epsilon=1e-6] optional epsilon value
  * @returns todo
  */
-const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon) => {
+const makeTortillaTortillaEdgesCrossing = (graph, edges_faces_side, epsilon) => {
 	// get all tortilla edges. could also be done by searching
 	// "edges_assignment" for all instances of F/f. perhaps this way is better.
 	const tortilla_edge_indices = edges_faces_side
@@ -11816,8 +11856,8 @@ const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon)
 		.filter(a => a !== undefined);
 	// get all edges which cross these tortilla edges. these edges can even be
 	// boundary edges, it doesn't matter how many adjacent faces they have.
-	const edges_crossing_matrix = make_edges_edges_crossing(graph, epsilon);
-	const edges_crossing = boolean_matrix_to_indexed_array(edges_crossing_matrix);
+	const edges_crossing_matrix = makeEdgesEdgesCrossing(graph, epsilon);
+	const edges_crossing = booleanMatrixToIndexedArray(edges_crossing_matrix);
 	// parallel arrays. tortilla_edge_indices contains the edge index.
 	// tortilla_edges_crossing contains an array of the crossing edge indices.
 	const tortilla_edges_crossing = tortilla_edge_indices
@@ -11830,9 +11870,9 @@ const make_tortilla_tortilla_edges_crossing = (graph, edges_faces_side, epsilon)
 	})).filter(el => el.crossing_edges.length);
 };
 
-const make_tortillas_faces_crossing = (graph, edges_faces_side, epsilon) => {
-	const faces_winding = make_faces_winding(graph);
-	const faces_polygon = make_faces_polygon(graph, epsilon);
+const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
+	const faces_winding = makeFacesWinding(graph);
+	const faces_polygon = makeFacesPolygon(graph, epsilon);
 	for (let i = 0; i < faces_polygon.length; i++) {
 		if (!faces_winding[i]) { faces_polygon[i].reverse(); }
 	}
@@ -11892,10 +11932,10 @@ const make_tortillas_faces_crossing = (graph, edges_faces_side, epsilon) => {
 	return matrix;
 };
 
-const make_tortilla_tortilla_faces_crossing = (graph, edges_faces_side, epsilon) => {
-	make_tortilla_tortilla_edges_crossing(graph, edges_faces_side, epsilon);
+const makeTortillaTortillaFacesCrossing = (graph, edges_faces_side, epsilon) => {
+	makeTortillaTortillaEdgesCrossing(graph, edges_faces_side, epsilon);
 	// console.log("tortilla_tortilla_edges", tortilla_tortilla_edges);
-	const tortillas_faces_crossing = make_tortillas_faces_crossing(graph, edges_faces_side, epsilon);
+	const tortillas_faces_crossing = makeTortillasFacesCrossing(graph, edges_faces_side, epsilon);
 	const tortilla_faces_results = tortillas_faces_crossing
 		.map((faces, e) => faces.map(face => [graph.edges_faces[e], [face, face]]))
 		.reduce((a, b) => a.concat(b), []);
@@ -11919,18 +11959,18 @@ const make_tortilla_tortilla_faces_crossing = (graph, edges_faces_side, epsilon)
 	return tortilla_faces_results;
 };
 
-var tortilla_tortilla = /*#__PURE__*/Object.freeze({
+var tortillaTortilla = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	make_tortilla_tortilla_edges_crossing: make_tortilla_tortilla_edges_crossing,
-	make_tortillas_faces_crossing: make_tortillas_faces_crossing,
-	make_tortilla_tortilla_faces_crossing: make_tortilla_tortilla_faces_crossing
+	makeTortillaTortillaEdgesCrossing: makeTortillaTortillaEdgesCrossing,
+	makeTortillasFacesCrossing: makeTortillasFacesCrossing,
+	makeTortillaTortillaFacesCrossing: makeTortillaTortillaFacesCrossing
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const make_edges_faces_side = (graph, faces_center) => {
+const makeEdgesFacesSide = (graph, faces_center) => {
 	const edges_origin = graph.edges_vertices
 		.map(vertices => graph.vertices_coords[vertices[0]]);
 	const edges_vector = graph.edges_vertices
@@ -11953,7 +11993,7 @@ const make_edges_faces_side = (graph, faces_center) => {
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector.
  */
-const make_tacos_faces_side = (graph, faces_center, tacos_edges, tacos_faces) => {
+const makeTacosFacesSide = (graph, faces_center, tacos_edges, tacos_faces) => {
 	// there are two edges involved in a taco, grab the first one.
 	// we have to use the same origin/vector so that the face-sidedness is
 	// consistent globally, not local to its edge.
@@ -12049,18 +12089,18 @@ const make_tortilla_tortilla = (face_pairs, tortillas_sides) => {
  * due to the face_center calculation to determine face-edge sidedness, this
  * is currently hardcoded to only work with convex polygons.
  */
-const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
+const makeTacosTortillas = (graph, epsilon = math.core.EPSILON) => {
 	// given a graph which is already in its folded state,
 	// find which edges are tacos, or in other words, find out which
 	// edges overlap with another edge.
-	const faces_center = make_faces_center(graph);
-	const edges_faces_side = make_edges_faces_side(graph, faces_center);
+	const faces_center = makeFacesCenter(graph);
+	const edges_faces_side = makeEdgesFacesSide(graph, faces_center);
 	// for every edge, find all other edges which are parallel to this edge and
 	// overlap the edge, excluding the epsilon space around the endpoints.
-	const edge_edge_overlap_matrix = make_edges_edges_parallel_overlap(graph, epsilon);
+	const edge_edge_overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon);
 	// convert this matrix into unique pairs ([4, 9] but not [9, 4])
 	// thse pairs are also sorted such that the smaller index is first.
-	const tacos_edges = boolean_matrix_to_unique_index_pairs(edge_edge_overlap_matrix)
+	const tacos_edges = booleanMatrixToUniqueIndexPairs(edge_edge_overlap_matrix)
 		.filter(pair => pair
 			.map(edge => graph.edges_faces[edge].length > 1)
 			.reduce((a, b) => a && b, true));
@@ -12070,7 +12110,7 @@ const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
 	// convert every face into a +1 or -1 based on which side of the edge is it on.
 	// ie: tacos will have similar numbers, tortillas will have one of either.
 	// the +1/-1 is determined by the cross product to the vector of the edge.
-	const tacos_faces_side = make_tacos_faces_side(graph, faces_center, tacos_edges, tacos_faces);
+	const tacos_faces_side = makeTacosFacesSide(graph, faces_center, tacos_edges, tacos_faces);
 	// each pair of faces is either a "left" or "right" (taco) or "both" (tortilla).
 	const tacos_types = tacos_faces_side
 		.map((faces, i) => faces
@@ -12095,7 +12135,7 @@ const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
 		.map((pair, i) => is_tortilla_tortilla(pair) ? tacos_faces[i] : undefined)
 		.map((pair, i) => make_tortilla_tortilla(pair, tacos_faces_side[i]))
 		.filter(a => a !== undefined);
-	const tortilla_tortilla_crossing = make_tortilla_tortilla_faces_crossing(graph, edges_faces_side, epsilon);
+	const tortilla_tortilla_crossing = makeTortillaTortillaFacesCrossing(graph, edges_faces_side, epsilon);
 	// console.log("tortilla_tortilla_aligned", tortilla_tortilla_aligned);
 	// console.log("tortilla_tortilla_crossing", tortilla_tortilla_crossing);
 	const tortilla_tortilla = tortilla_tortilla_aligned
@@ -12107,8 +12147,8 @@ const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
 			: undefined)
 		.filter(a => a !== undefined);
 	// taco-tortilla (2), the second of two cases, when a taco overlaps a face.
-	const edges_faces_overlap = make_edges_faces_overlap(graph, epsilon);
-	const edges_overlap_faces = boolean_matrix_to_indexed_array(edges_faces_overlap)
+	const edges_faces_overlap = makeEdgesFacesOverlap(graph, epsilon);
+	const edges_overlap_faces = booleanMatrixToIndexedArray(edges_faces_overlap)
 		.map((faces, e) => edges_faces_side[e].length > 1
 			&& edges_faces_side[e][0] === edges_faces_side[e][1]
 				? faces
@@ -12146,12 +12186,12 @@ const make_tacos_tortillas = (graph, epsilon = math.core.EPSILON) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} list of arrays containing three face indices.
  */
-const make_transitivity_trios = (graph, overlap_matrix, faces_winding, epsilon = math.core.EPSILON) => {
+const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = math.core.EPSILON) => {
 	if (!overlap_matrix) {
-		overlap_matrix = make_faces_faces_overlap(graph, epsilon);
+		overlap_matrix = makeFacesFacesOverlap(graph, epsilon);
 	}
 	if (!faces_winding) {
-		faces_winding = make_faces_winding(graph);
+		faces_winding = makeFacesWinding(graph);
 	}
 	// prepare a list of all faces in the graph as lists of vertices
 	// also, make sure they all have the same winding (reverse if necessary)
@@ -12193,7 +12233,7 @@ const make_transitivity_trios = (graph, overlap_matrix, faces_winding, epsilon =
  * taco-tortilla events, remove any transitivity condition where the three
  * faces are already covered in a taco-taco case.
  */
-const filter_transitivity = (transitivity_trios, tacos_tortillas) => {
+const filterTransitivity = (transitivity_trios, tacos_tortillas) => {
 	// will contain taco-taco and taco-tortilla events encoded as all
 	// permutations of 3 faces involved in each event.
 	const tacos_trios = {};
@@ -12237,24 +12277,24 @@ const to_unsigned_layer_convert = { 0:0, 1:1, "-1":2 };
  * @param {object} values are either 0, 1, 2.
  * @returns {object} values are either 0, 1, -1.
  */
-const unsigned_to_signed_conditions = (conditions) => {
+const unsignedToSignedConditions = (conditions) => {
 	Object.keys(conditions).forEach(key => {
 		conditions[key] = to_signed_layer_convert[conditions[key]];
 	});
 	return conditions;
 };
 
-const signed_to_unsigned_conditions = (conditions) => {
+const signedToUnsignedConditions = (conditions) => {
 	Object.keys(conditions).forEach(key => {
 		conditions[key] = to_unsigned_layer_convert[conditions[key]];
 	});
 	return conditions;
 };
 
-var general_global_solver = /*#__PURE__*/Object.freeze({
+var globalSolverGeneral = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	unsigned_to_signed_conditions: unsigned_to_signed_conditions,
-	signed_to_unsigned_conditions: signed_to_unsigned_conditions
+	unsignedToSignedConditions: unsignedToSignedConditions,
+	signedToUnsignedConditions: signedToUnsignedConditions
 });
 
 /**
@@ -12330,7 +12370,7 @@ const make_maps = tacos_face_pairs => tacos_face_pairs
 		return { face_keys, keys_ordered };
 	});
 
-const make_taco_maps = (tacos_tortillas, transitivity_trios) => {
+const makeTacoMaps = (tacos_tortillas, transitivity_trios) => {
 	const pairs = refactor_pairs(tacos_tortillas, transitivity_trios);
 	// console.log("pairs", pairs);
 	// keys_ordered answers "is the first face < than second face?" regarding
@@ -12354,18 +12394,18 @@ const make_taco_maps = (tacos_tortillas, transitivity_trios) => {
  * @returns {object} keys are space-separated face pairs, like "3 17".
  * values are layer orientations, 0 (unknown) 1 (a above b) 2 (b above a).
  */
-const make_conditions = (graph, overlap_matrix, faces_winding) => {
+const makeConditions = (graph, overlap_matrix, faces_winding) => {
 	if (!faces_winding) {
-		faces_winding = make_faces_winding(graph);
+		faces_winding = makeFacesWinding(graph);
 	}
 	if (!overlap_matrix) {
-		overlap_matrix = make_faces_faces_overlap(graph);
+		overlap_matrix = makeFacesFacesOverlap(graph);
 	}
 	const conditions = {};
 	// flip 1 and 2 to be the other, leaving 0 to be 0.
 	const flip_condition = { 0:0, 1:2, 2:1 };
 	// set all conditions (every pair of overlapping faces) initially to 0
-	boolean_matrix_to_unique_index_pairs(overlap_matrix)
+	booleanMatrixToUniqueIndexPairs(overlap_matrix)
 		.map(pair => pair.join(" "))
 		.forEach(key => { conditions[key] = 0; });
 	// neighbor faces determined by crease between them
@@ -12698,9 +12738,9 @@ const infer_next_steps = (layers, maps, lookup_table, changed_indices) => {
 };
 
 /**
- * @description complete_suggestions_loop
+ * @description completeSuggestionsLoop
  */
-const complete_suggestions_loop = (layers, maps, conditions, pair_layer_map) => {
+const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
 	// given the current set of conditions, complete them as much as possible
 	// only adding the determined results certain from the current state.
 	// let time_one = 0;
@@ -12794,11 +12834,11 @@ const duplicate_unsolved_layers$1 = (layers) => {
 /**
  * @description find only one layer solution to a folded graph.
  * @param {object} graph a FOLD graph
- * @param {object[]} maps the result of calling make_taco_maps
- * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling make_conditions
+ * @param {object[]} maps the result of calling makeTacoMaps
+ * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling makeConditions
  * @returns {object} solution where keys are space-separated face pairs and values are +1 or -1 describing if the second face is above or below the first.
  */
-const solver_single = (graph, maps, conditions) => {
+const singleSolver = (graph, maps, conditions) => {
 	const startDate = new Date();
 	let recurse_count = 0;
 	let inner_loop_count = 0;
@@ -12828,7 +12868,7 @@ const solver_single = (graph, maps, conditions) => {
 
 
 
-	if (!complete_suggestions_loop(layers, maps, conditions, pair_layer_map)) {
+	if (!completeSuggestionsLoop(layers, maps, conditions, pair_layer_map)) {
 		return undefined;
 	}
 
@@ -12866,7 +12906,7 @@ const solver_single = (graph, maps, conditions) => {
 					const clone_layers = duplicate_unsolved_layers$1(layers);
 					clone_conditions[key] = dir;
 					inner_loop_count++;
-					if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
+					if (!completeSuggestionsLoop(clone_layers, maps, clone_conditions, pair_layer_map)) {
 						return undefined;
 					}
 					Object.keys(clone_conditions)
@@ -12910,7 +12950,7 @@ const solver_single = (graph, maps, conditions) => {
 	} while (solution === undefined);
 
 	// convert solutions from (1,2) to (+1,-1)
-	unsigned_to_signed_conditions(solution);
+	unsignedToSignedConditions(solution);
 
 	// console.log("solutions", solutions);
 	// console.log("successes_hash", successes_hash);
@@ -12950,11 +12990,11 @@ const duplicate_unsolved_layers = (layers) => {
 /**
  * @description recursively find all solutions to a folded graph.
  * @param {object} graph a FOLD graph
- * @param {object[]} maps the result of calling make_taco_maps
- * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling make_conditions
+ * @param {object[]} maps the result of calling makeTacoMaps
+ * @param {object} conditions space-separated face-pairs as keys, values are initially all 0, the result of calling makeConditions
  * @returns {object[]} array of solutions where keys are space-separated face pairs and values are +1 or -1 describing if the second face is above or below the first.
  */
-const recursive_solver = (graph, maps, conditions_start) => {
+const recursiveSolver = (graph, maps, conditions_start) => {
 	const startDate = new Date();
 	let recurse_count = 0;
 	let inner_loop_count = 0;
@@ -13032,7 +13072,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
 					clone_conditions[key] = dir;
 					inner_loop_count++;
 					const solve_start = new Date();
-					if (!complete_suggestions_loop(clone_layers, maps, clone_conditions, pair_layer_map)) {
+					if (!completeSuggestionsLoop(clone_layers, maps, clone_conditions, pair_layer_map)) {
 						failguesscount++;
 						solve_time += (Date.now() - solve_start);
 						return;
@@ -13084,7 +13124,7 @@ const recursive_solver = (graph, maps, conditions_start) => {
 	// this could be left out and simply starting the recursion. however,
 	// we want to capture the "certain" relationships, the ones decided
 	// after consulting the table before any guessing or recursion is done.
-	if (!complete_suggestions_loop(layers_start, maps, conditions_start, pair_layer_map)) {
+	if (!completeSuggestionsLoop(layers_start, maps, conditions_start, pair_layer_map)) {
 		// failure. do not proceed.
 		// console.log("failure. do not proceed");
 		return [];
@@ -13113,9 +13153,9 @@ const recursive_solver = (graph, maps, conditions_start) => {
 	// algorithm is done!
 	// convert solutions from (1,2) to (+1,-1)
 	for (let i = 0; i < solutions.length; i++) {
-		unsigned_to_signed_conditions(solutions[i]);
+		unsignedToSignedConditions(solutions[i]);
 	}
-	// unsigned_to_signed_conditions(solutions.certain);
+	// unsignedToSignedConditions(solutions.certain);
 	// console.log("solutions", solutions);
 	// console.log("successes_hash", successes_hash);
 	// console.log("avoid", avoid);
@@ -13133,8 +13173,8 @@ const recursive_solver = (graph, maps, conditions_start) => {
  * @description {object} unlike most methods in the layer solver, "graph"
  * here refers to the crease pattern, not the folded form
  */
-const dividing_axis = (graph, line, conditions) => {
-	const faces_side = make_faces_center_quick(graph)
+const dividingAxis = (graph, line, conditions) => {
+	const faces_side = makeFacesCenterQuick(graph)
 		.map(center => math.core.subtract2(center, line.origin))
 		.map(vector => math.core.cross2(line.vector, vector))
 		.map(cross => Math.sign(cross));
@@ -13175,22 +13215,22 @@ const dividing_axis = (graph, line, conditions) => {
  * Rabbit Ear (c) Kraft
  */
 
-const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
-	const overlap_matrix = make_faces_faces_overlap(graph, epsilon);
-	const faces_winding = make_faces_winding(graph);
+const makeMapsAndConditions = (graph, epsilon = 1e-6) => {
+	const overlap_matrix = makeFacesFacesOverlap(graph, epsilon);
+	const facesWinding = makeFacesWinding(graph);
 	// conditions encodes every pair of overlapping faces as a space-separated
 	// string, low index first, as the keys of an object.
 	// initialize all values to 0, but set neighbor faces to either 1 or 2.
-	const conditions = make_conditions(graph, overlap_matrix, faces_winding);
+	const conditions = makeConditions(graph, overlap_matrix, facesWinding);
 	// get all taco/tortilla/transitivity events.
-	const tacos_tortillas = make_tacos_tortillas(graph, epsilon);
-	const unfiltered_trios = make_transitivity_trios(graph, overlap_matrix, faces_winding, epsilon);
-	const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+	const tacos_tortillas = makeTacosTortillas(graph, epsilon);
+	const unfiltered_trios = makeTransitivityTrios(graph, overlap_matrix, facesWinding, epsilon);
+	const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
 	// format the tacos and transitivity data into maps that relate to the
 	// lookup table at the heart of the algorithm, located at "table.js"
-	const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+	const maps = makeTacoMaps(tacos_tortillas, transitivity_trios);
 	// console.log("overlap_matrix", overlap_matrix);
-	// console.log("faces_winding", faces_winding);
+	// console.log("facesWinding", facesWinding);
 	// console.log("tacos_tortillas", tacos_tortillas);
 	// console.log("unfiltered_trios", unfiltered_trios);
 	// console.log("transitivity_trios", transitivity_trios);
@@ -13204,9 +13244,9 @@ const make_maps_and_conditions = (graph, epsilon = 1e-6) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
  */
-const one_layer_conditions = (graph, epsilon = 1e-6) => {
-	const data = make_maps_and_conditions(graph, epsilon);
-	const solution = solver_single(graph, data.maps, data.conditions);
+const oneLayerConditions = (graph, epsilon = 1e-6) => {
+	const data = makeMapsAndConditions(graph, epsilon);
+	const solution = singleSolver(graph, data.maps, data.conditions);
 	return solution;
 };
 /**
@@ -13215,25 +13255,25 @@ const one_layer_conditions = (graph, epsilon = 1e-6) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
  */
-const all_layer_conditions = (graph, epsilon = 1e-6) => {
-	const data = make_maps_and_conditions(graph, epsilon);
-	const solutions = recursive_solver(graph, data.maps, data.conditions);
-	solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+const allLayerConditions = (graph, epsilon = 1e-6) => {
+	const data = makeMapsAndConditions(graph, epsilon);
+	const solutions = recursiveSolver(graph, data.maps, data.conditions);
+	solutions.certain = unsignedToSignedConditions(JSON.parse(JSON.stringify(data.conditions)));
 	return solutions;
 };
 
-const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6) => {
-	const overlap_matrix = make_faces_faces_overlap(folded, epsilon);
-	const faces_winding = make_faces_winding(folded);
-	const conditions = make_conditions(folded, overlap_matrix, faces_winding);
-	dividing_axis(cp, line, conditions);
+const makeMapsAndConditionsDividingAxis = (folded, cp, line, epsilon = 1e-6) => {
+	const overlap_matrix = makeFacesFacesOverlap(folded, epsilon);
+	const faces_winding = makeFacesWinding(folded);
+	const conditions = makeConditions(folded, overlap_matrix, faces_winding);
+	dividingAxis(cp, line, conditions);
 	// get all taco/tortilla/transitivity events.
-	const tacos_tortillas = make_tacos_tortillas(folded, epsilon);
-	const unfiltered_trios = make_transitivity_trios(folded, overlap_matrix, faces_winding, epsilon);
-	const transitivity_trios = filter_transitivity(unfiltered_trios, tacos_tortillas);
+	const tacos_tortillas = makeTacosTortillas(folded, epsilon);
+	const unfiltered_trios = makeTransitivityTrios(folded, overlap_matrix, faces_winding, epsilon);
+	const transitivity_trios = filterTransitivity(unfiltered_trios, tacos_tortillas);
 	// format the tacos and transitivity data into maps that relate to the
 	// lookup table at the heart of the algorithm, located at "table.js"
-	const maps = make_taco_maps(tacos_tortillas, transitivity_trios);
+	const maps = makeTacoMaps(tacos_tortillas, transitivity_trios);
 	return { maps, conditions };
 };
 /**
@@ -13242,9 +13282,9 @@ const make_maps_and_conditions_dividing_axis = (folded, cp, line, epsilon = 1e-6
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
  */
-const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
-	const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-	const solution = solver_single(folded, data.maps, data.conditions);
+const oneLayerConditionsWithAxis = (folded, cp, line, epsilon = 1e-6) => {
+	const data = makeMapsAndConditionsDividingAxis(folded, cp, line, epsilon);
+	const solution = singleSolver(folded, data.maps, data.conditions);
 	return solution;
 };
 /**
@@ -13253,19 +13293,19 @@ const one_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a set of solutions where keys are face pairs and values are +1 or -1, the relationship of the two faces.
  */
-const all_layer_conditions_with_axis = (folded, cp, line, epsilon = 1e-6) => {
-	const data = make_maps_and_conditions_dividing_axis(folded, cp, line, epsilon);
-	const solutions = recursive_solver(folded, data.maps, data.conditions);
-	solutions.certain = unsigned_to_signed_conditions(JSON.parse(JSON.stringify(data.conditions)));
+const allLayerConditionsWithAxis = (folded, cp, line, epsilon = 1e-6) => {
+	const data = makeMapsAndConditionsDividingAxis(folded, cp, line, epsilon);
+	const solutions = recursiveSolver(folded, data.maps, data.conditions);
+	solutions.certain = unsignedToSignedConditions(JSON.parse(JSON.stringify(data.conditions)));
 	return solutions;
 };
 
-var global_layer_solvers = /*#__PURE__*/Object.freeze({
+var globalSolvers = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	one_layer_conditions: one_layer_conditions,
-	all_layer_conditions: all_layer_conditions,
-	one_layer_conditions_with_axis: one_layer_conditions_with_axis,
-	all_layer_conditions_with_axis: all_layer_conditions_with_axis
+	oneLayerConditions: oneLayerConditions,
+	allLayerConditions: allLayerConditions,
+	oneLayerConditionsWithAxis: oneLayerConditionsWithAxis,
+	allLayerConditionsWithAxis: allLayerConditionsWithAxis
 });
 
 /**
@@ -13277,7 +13317,7 @@ var global_layer_solvers = /*#__PURE__*/Object.freeze({
  * @param {object} graph a FOLD graph
  * @returns {number[]} layers_face, for every layer (key) which face (value) inhabits it.
  */
-const topological_order = (conditions, graph) => {
+const topologicalOrder = (conditions, graph) => {
 	if (!conditions) { return []; }
 	const faces_children = [];
 	// use the conditions face pair relationships to fill an array where
@@ -13344,9 +13384,9 @@ const topological_order = (conditions, graph) => {
  * @param {number} [epsilon=1e-6] an optional epsilon value
  * @returns {number[]} a faces_layer object, describing, for each face (key) which layer the face inhabits (value)
  */
-const make_faces_layer = (graph, epsilon) => {
-	const conditions = one_layer_conditions(graph, epsilon);
-	return invert_map(topological_order(conditions, graph));
+const makeFacesLayer = (graph, epsilon) => {
+	const conditions = oneLayerConditions(graph, epsilon);
+	return invertMap(topologicalOrder(conditions, graph));
 };
 
 /**
@@ -13362,10 +13402,10 @@ const make_faces_layer = (graph, epsilon) => {
  * @param {number} [epsilon=1e-6] an optional epsilon value
  * @returns {number[][]} an array of faces_layer objects, describing, for each face (key) which layer the face inhabits (value)
  */
-const make_faces_layers = (graph, epsilon) => {
-	return all_layer_conditions(graph, epsilon)
-		.map(conditions => topological_order(conditions, graph))
-		.map(invert_map);
+const makeFacesLayers = (graph, epsilon) => {
+	return allLayerConditions(graph, epsilon)
+		.map(conditions => topologicalOrder(conditions, graph))
+		.map(invertMap);
 };
 
 /**
@@ -13376,21 +13416,21 @@ const make_faces_layers = (graph, epsilon) => {
  * @param {object} faces_layer a faces_layer array
  * @returns {object} a new faces_layer array
  */
-const flip_faces_layer = faces_layer => invert_map(
-	invert_map(faces_layer).reverse()
+const flipFacesLayer = faces_layer => invertMap(
+	invertMap(faces_layer).reverse()
 );
 
 /**
  * Rabbit Ear (c) Kraft
  */
 
-const faces_layer_to_edges_assignments = (graph, faces_layer) => {
+const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 	const edges_assignment = [];
-	const faces_winding = make_faces_winding(graph);
+	const faces_winding = makeFacesWinding(graph);
 	// set boundary creases
 	const edges_faces = graph.edges_faces
 		? graph.edges_faces
-		: make_edges_faces(graph);
+		: makeEdgesFaces(graph);
 	edges_faces.forEach((faces, e) => {
 		if (faces.length === 1) { edges_assignment[e] = "B"; }
 		if (faces.length === 2) {
@@ -13408,25 +13448,25 @@ const faces_layer_to_edges_assignments = (graph, faces_layer) => {
 
 // export const layer_conditions_to_edges_assignments = (graph, conditions) => {
 //   const edges_assignment = [];
-//   const faces_winding = make_faces_winding(graph);
+//   const faces_winding = makeFacesWinding(graph);
 //   // set boundary creases
 //   const edges_faces = graph.edges_faces
 //     ? graph.edges_faces
-//     : make_edges_faces(graph);
+//     : makeEdgesFaces(graph);
 //  
 //   return edges_assignment;
 // };
 
-var edges_assignments = /*#__PURE__*/Object.freeze({
+var edgesAssignments = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	faces_layer_to_edges_assignments: faces_layer_to_edges_assignments
+	facesLayerToEdgesAssignments: facesLayerToEdgesAssignments
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
 // todo: is it okay to remove the filter?
-const conditions_to_matrix = (conditions) => {
+const conditionsToMatrix = (conditions) => {
 	const condition_keys = Object.keys(conditions);
 	const face_pairs = condition_keys
 		.map(key => key.split(" ").map(n => parseInt(n)));
@@ -13490,14 +13530,14 @@ const maekawaAssignments = (vertices_edges_assignments) => {
  *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
  * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
  */
-const assignment_solver = (faces, assignments, epsilon) => {
+const assignmentSolver = (faces, assignments, epsilon) => {
 	if (assignments == null) {
 		assignments = faces.map(() => "U");
 	}
 	// enumerate all possible assignments by replacing "U" with both "M" and "V"
 	const all_assignments = maekawaAssignments(assignments);
 	const layers = all_assignments
-		.map(assigns => single_vertex_solver(faces, assigns, epsilon));
+		.map(assigns => singleVertexSolver(faces, assigns, epsilon));
 	return all_assignments
 		.map((_, i) => i)
 		.filter(i => layers[i].length > 0)
@@ -13519,34 +13559,34 @@ const assignment_solver = (faces, assignments, epsilon) => {
  * of the faces of an origami in its folded state.
  */
 var layer = Object.assign(Object.create(null), {
-	make_faces_layer,
-	make_faces_layers,
-	flip_faces_layer,
+	makeFacesLayer,
+	makeFacesLayers,
+	flipFacesLayer,
 
-	assignment_solver,
-	single_vertex_solver,
-	validate_layer_solver,
-	validate_taco_taco_face_pairs,
-	validate_taco_tortilla_strip,
+	assignmentSolver,
+	singleVertexSolver,
+	validateLayerSolver,
+	validateTacoTacoFacePairs,
+	validateTacoTortillaStrip,
 
 	table: slow_lookup,
-	make_conditions,
-	make_taco_maps,
-	recursive_solver,
-	single_solver: solver_single,
-	dividing_axis,
-	topological_order,
-	conditions_to_matrix,
+	makeConditions,
+	makeTacoMaps,
+	recursiveSolver,
+	singleSolver,
+	dividingAxis,
+	topologicalOrder,
+	conditionsToMatrix,
 
-	make_tacos_tortillas,
-	make_folded_strip_tacos,
-	make_transitivity_trios,
+	makeTacosTortillas,
+	makeFoldedStripTacos,
+	makeTransitivityTrios,
 },
-	global_layer_solvers,
-	general_global_solver,
-	edges_assignments,
-	tortilla_tortilla,
-	fold_assignments,
+	globalSolvers,
+	globalSolverGeneral,
+	edgesAssignments,
+	tortillaTortilla,
+	foldAssignments,
 );
 
 /**
@@ -13608,10 +13648,10 @@ const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_vertices, ed
 	// to calculate Kawasaki's theorem, we need the 3 edges
 	// as vectors, and we need them sorted radially.
 	if (!edges_vectors) {
-		edges_vectors = make_edges_vector({ vertices_coords, edges_vertices });
+		edges_vectors = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	if (!vertices_edges) {
-		vertices_edges = make_vertices_edges_unsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const vectors = vertices_edges[vertex].map(i => edges_vectors[i]);
 	const sortedVectors = math.core.counterClockwiseOrder2(vectors)
@@ -13886,7 +13926,7 @@ const use = function (library) {
  * Rabbit Ear (c) Kraft
  */
 
-const vertices_circle = (graph, attributes = {}) => {
+const verticesCircle = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords) { return g; }
 	graph.vertices_coords
@@ -13936,38 +13976,38 @@ const STYLE_FLAT = {
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
-const edges_assignment_indices = (graph) => {
+const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
 	const lowercase_assignment = graph[_edges_assignment]
-		.map(a => edges_assignment_to_lowercase[a]);
+		.map(a => edgesAssignmentToLowercase[a]);
 	graph[_edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
 	return assignment_indices;
 };
 
-const edges_coords = ({ vertices_coords, edges_vertices }) => {
+const edgesCoords = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
 	return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 };
 /**
  * a segment is a line segment in the form: [[x1, y1], [x2, y2]]
  */
-const segment_to_path = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
+const segmentToPath = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
 
-const edges_path_data = (graph) => edges_coords(graph)
-	.map(segment => segment_to_path(segment)).join("");
+const edgesPathData = (graph) => edgesCoords(graph)
+	.map(segment => segmentToPath(segment)).join("");
 
-const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+const edgesPathDataAssign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
 	if (!vertices_coords || !edges_vertices) { return {}; }
 	if (!edges_assignment) {
-		return ({ u: edges_path_data({ vertices_coords, edges_vertices }) });
+		return ({ u: edgesPathData({ vertices_coords, edges_vertices }) });
 	}
-	// const segments = edges_coords({ vertices_coords, edges_vertices, edges_assignment });
-	const data = edges_assignment_indices({ vertices_coords, edges_vertices, edges_assignment });
+	// const segments = edgesCoords({ vertices_coords, edges_vertices, edges_assignment });
+	const data = edgesAssignmentIndices({ vertices_coords, edges_vertices, edges_assignment });
 	// replace each value in data from array of indices [1,2,3] to path string "M2,3L2.."
 	Object.keys(data).forEach(key => {
-		data[key] = edges_path_data({
+		data[key] = edgesPathData({
 			vertices_coords,
 			edges_vertices: data[key].map(i => edges_vertices[i]),
 		});
@@ -13979,19 +14019,19 @@ const edges_path_data_assign = ({ vertices_coords, edges_vertices, edges_assignm
 };
 
 /**
- * replace edges_path_data_assign values from path strings "M2,3L.." to <path> elements
+ * replace edgesPathDataAssign values from path strings "M2,3L.." to <path> elements
  */
-const edges_paths_assign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
-	const data = edges_path_data_assign({ vertices_coords, edges_vertices, edges_assignment });
+const edgesPathsAssign = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+	const data = edgesPathDataAssign({ vertices_coords, edges_vertices, edges_assignment });
 	Object.keys(data).forEach(assignment => {
 		const path = root.svg.path(data[assignment]);
-		path.setAttributeNS(null, _class, edges_assignment_names[assignment]);
+		path.setAttributeNS(null, _class, edgesAssignmentNames[assignment]);
 		data[assignment] = path;
 	});
 	return data;
 };
 
-const apply_style$2 = (el, attributes = {}) => Object.keys(attributes)
+const applyStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
@@ -13999,44 +14039,44 @@ const apply_style$2 = (el, attributes = {}) => Object.keys(attributes)
  * if edges_assignment exists, there will be as many paths as there are types of edges
  * if no edges_assignment exists, there will be an array of 1 path.
  */
-const edges_paths = (graph, attributes = {}) => {
+const edgesPaths = (graph, attributes = {}) => {
 	const group = root.svg.g();
 	if (!graph) { return group; }
-	const isFolded = is_folded_form(graph);
-	const paths = edges_paths_assign(graph);
+	const isFolded = isFoldedForm(graph);
+	const paths = edgesPathsAssign(graph);
 	Object.keys(paths).forEach(key => {
-		paths[key].setAttributeNS(null, _class, edges_assignment_names[key]);
-		apply_style$2(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
-		apply_style$2(paths[key], attributes[key]);
-		apply_style$2(paths[key], attributes[edges_assignment_names[key]]);
+		paths[key].setAttributeNS(null, _class, edgesAssignmentNames[key]);
+		applyStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+		applyStyle(paths[key], attributes[key]);
+		applyStyle(paths[key], attributes[edgesAssignmentNames[key]]);
 		group.appendChild(paths[key]);
-		Object.defineProperty(group, edges_assignment_names[key], { get: () => paths[key] });
+		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
-	apply_style$2(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	// todo: everything else that isn't a class name. filter out classes
 	// const no_class_attributes = Object.keys(attributes).filter(
-	apply_style$2(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
 };
 
-const angle_to_opacity = (foldAngle) => (Math.abs(foldAngle) / 180);
+const angleToOpacity = (foldAngle) => (Math.abs(foldAngle) / 180);
 
-const edges_lines = (graph, attributes = {}) => {
+const edgesLines = (graph, attributes = {}) => {
 	const group = root.svg.g();
 	if (!graph) { return group; }
-	const isFolded = is_folded_form(graph);
+	const isFolded = isFoldedForm(graph);
 	const edges_assignment = (graph.edges_assignment
 		? graph.edges_assignment
-		: make_edges_assignment(graph))
-		.map(assign => edges_assignment_to_lowercase[assign]);
+		: makeEdgesAssignment(graph))
+		.map(assign => edgesAssignmentToLowercase[assign]);
 	const groups_by_key = {};
 	["b", "m", "v", "f", "u"].forEach(k => {
 		const child_group = root.svg.g();
 		group.appendChild(child_group);
-		child_group.setAttributeNS(null, _class, edges_assignment_names[k]);
-		apply_style$2(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
-		apply_style$2(child_group, attributes[edges_assignment_names[k]]);
-		Object.defineProperty(group, edges_assignment_names[k], {
+		child_group.setAttributeNS(null, _class, edgesAssignmentNames[k]);
+		applyStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
+		applyStyle(child_group, attributes[edgesAssignmentNames[k]]);
+		Object.defineProperty(group, edgesAssignmentNames[k], {
 			get: () => child_group
 		});
 		groups_by_key[k] = child_group;
@@ -14048,35 +14088,35 @@ const edges_lines = (graph, attributes = {}) => {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];
 			if (angle === 0 || angle === 180 || angle === -180) { return;}
-			line.setAttributeNS(null, "opacity", angle_to_opacity(angle));
+			line.setAttributeNS(null, "opacity", angleToOpacity(angle));
 		});
 	}
 	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
 		.appendChild(line));
 
-	apply_style$2(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-	apply_style$2(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 
 	return group;
 };
 
-const draw_edges = (graph, attributes) => edges_foldAngle_all_flat(graph)
-	? edges_paths(graph, attributes)
-	: edges_lines(graph, attributes);
+const drawEdges = (graph, attributes) => edgesFoldAngleAreAllFlat(graph)
+	? edgesPaths(graph, attributes)
+	: edgesLines(graph, attributes);
 
-// const make_edges_assignment_names = ({ edges_vertices, edges_assignment }) => {
+// const make_edgesAssignmentNames = ({ edges_vertices, edges_assignment }) => {
 // 	if (!edges_vertices) { return []; }
-// 	if (!edges_assignment) { return edges_vertices.map(() => edges_assignment_names["u"]); }
+// 	if (!edges_assignment) { return edges_vertices.map(() => edgesAssignmentNames["u"]); }
 // 	return edges_vertices
 // 		.map((_, i) => edges_assignment[i])
-// 		.map((a) => edges_assignment_names[(a ? a : "u")]);
+// 		.map((a) => edgesAssignmentNames[(a ? a : "u")]);
 // };
 
-// const edges_lines = ({ vertices_coords, edges_vertices, edges_assignment }) => {
+// const edgesLines = ({ vertices_coords, edges_vertices, edges_assignment }) => {
 // 	if (!vertices_coords || !edges_vertices) { return []; }
-//   const svg_edges = edges_coords({ vertices_coords, edges_vertices })
+//   const svg_edges = edgesCoords({ vertices_coords, edges_vertices })
 //     .map(e => libraries.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));
-//   make_edges_assignment_names(graph)
+//   make_edgesAssignmentNames(graph)
 //     .foreach((a, i) => svg_edges[i][k.setAttributeNS](null, k._class, a));
 //   return svg_edges;
 // };
@@ -14125,13 +14165,13 @@ const apply_style$1 = (el, attributes = {}) => Object.keys(attributes)
  * and applies style attributes to the group itself too.
  */
 const finalize_faces = (graph, svg_faces, group, attributes) => {
-	const isFolded = is_folded_form(graph);
+	const isFolded = isFoldedForm(graph);
 	// currently, layer order is determined by "faces_layer" key, and
 	// ensuring that the length matches the number of faces in the graph.
 	const orderIsCertain = graph[_faces_layer] != null
 		&& graph[_faces_layer].length === graph[_faces_vertices].length;
 	const classNames = [[_front], [_back]];
-	const faces_winding = make_faces_winding(graph);
+	const faces_winding = makeFacesWinding(graph);
 	// counter-clockwise faces are "face up", their front facing the camera
 	// clockwise faces means "flipped", their back is facing the camera.
 	// set these class names, and apply the style as attributes on each face.
@@ -14169,7 +14209,7 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-const faces_vertices_polygon = (graph, attributes = {}) => {
+const facesVerticesPolygon = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return g; }
 	const svg_faces = graph.faces_vertices
@@ -14185,7 +14225,7 @@ const faces_vertices_polygon = (graph, attributes = {}) => {
  * @returns {SVGElement[]} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
-const faces_edges_polygon = function (graph, attributes = {}) {
+const facesEdgesPolygon = function (graph, attributes = {}) {
 	const g = root.svg.g();
 	if (!graph
 		|| _faces_edges in graph === false
@@ -14224,10 +14264,10 @@ const apply_style = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 // todo this needs to be able to handle multiple boundaries
-const boundaries_polygon = (graph, attributes = {}) => {
+const boundariesPolygon = (graph, attributes = {}) => {
 	const g = root.svg.g();
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
-	const boundary = get_boundary(graph)
+	const boundary = getBoundary(graph)
 		.vertices
 		.map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
 	if (boundary.length === 0) { return g; }
@@ -14236,7 +14276,7 @@ const boundaries_polygon = (graph, attributes = {}) => {
 	poly.setAttributeNS(null, _class, _boundary);
 	g.appendChild(poly);
 	// style attributes on group container
-	apply_style(g, is_folded_form(graph) ? FOLDED : FLAT);
+	apply_style(g, isFoldedForm(graph) ? FOLDED : FLAT);
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
@@ -14247,22 +14287,22 @@ const boundaries_polygon = (graph, attributes = {}) => {
  */
 
 // preference for using faces_vertices over faces_edges, it runs faster
-const faces_draw_function = (graph, options) => (
+const facesDrawFunction = (graph, options) => (
 	graph != null && graph[_faces_vertices] != null
-		? faces_vertices_polygon(graph, options)
-		: faces_edges_polygon(graph, options));
+		? facesVerticesPolygon(graph, options)
+		: facesEdgesPolygon(graph, options));
 
 const svg_draw_func = {
-	vertices: vertices_circle,
-	edges: draw_edges, // edges_paths
-	faces: faces_draw_function,
-	boundaries: boundaries_polygon
+	vertices: verticesCircle,
+	edges: drawEdges, // edgesPaths
+	faces: facesDrawFunction,
+	boundaries: boundariesPolygon
 };
 
 /**
  * @param {string} key will be either "vertices", "edges", "faces", "boundaries"
  */
-const draw_group = (key, graph, options) => {
+const drawGroup = (key, graph, options) => {
 	const group = options === false ? (root.svg.g()) : svg_draw_func[key](graph, options);
 	group.setAttributeNS(null, _class, key);
 	return group;
@@ -14278,7 +14318,7 @@ const DrawGroups = (graph, options = {}) => [
 	_boundaries,
 	_faces,
 	_edges,
-	_vertices].map(key => draw_group(key, graph, options[key]));
+	_vertices].map(key => drawGroup(key, graph, options[key]));
 
 // static style draw methods for individual components
 [_boundaries,
@@ -14287,7 +14327,7 @@ const DrawGroups = (graph, options = {}) => [
 	_vertices,
 ].forEach(key => {
 	DrawGroups[key] = function (graph, options = {}) {
-		return draw_group(key, graph, options[key]);
+		return drawGroup(key, graph, options[key]);
 	};
 });
 
@@ -14324,7 +14364,7 @@ const DEFAULT_CIRCLE_RADIUS = 1 / 50;
  * @returns {number[] | undefined} bounding box as [x, y, width, height]
  *  or undefined if no vertices_coords exist.
  */
-const get_bounding_rect = ({ vertices_coords }) => {
+const getBoundingRect = ({ vertices_coords }) => {
 	if (vertices_coords == null || vertices_coords.length === 0) {
 		return undefined;
 	}
@@ -14342,7 +14382,7 @@ const get_bounding_rect = ({ vertices_coords }) => {
 		: [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
 };
 const getViewBox$1 = (graph) => {
-	const viewBox = get_bounding_rect(graph);
+	const viewBox = getBoundingRect(graph);
 	return viewBox === undefined
 		? ""
 		: viewBox.join(" ");
@@ -14371,7 +14411,7 @@ const findSVGInParents = (element) => {
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
 	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
-	const bounds = get_bounding_rect(graph);
+	const bounds = getBoundingRect(graph);
 	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
 	const svgElement = findSVGInParents(element);
 	if (svgElement && options.viewBox) {
@@ -14393,6 +14433,8 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 	}
 };
 /**
+ * @name svg
+ * @memberof graph
  * @description renders a FOLD object into an SVG, ensuring visibility by
  *  setting the viewBox and the stroke-width attributes on the SVG.
  * @param {SVGElement} an already initialized SVG DOM element.
@@ -14416,7 +14458,7 @@ const drawInto = (element, graph, options = {}) => {
  *  setting the viewBox and the stroke-width attributes on the SVG.
  *  The drawInto() method will accept options/setViewBox in any order.
  * @param {object} graph FOLD object
- * @param {object} options (optional)
+ * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
  */
@@ -14442,7 +14484,17 @@ Object.defineProperty(FOLDtoSVG, "linker", {
 const SVG_Constructor = {
 	init: () => {},
 };
-
+/**
+ * @name svg
+ * @description Create an svg element, the object will be bound with instance methods for creating children and styles.
+ * @memberof SVG
+ * @param {Element} [parent=undefined] optional parent DOM element, this will append to.
+ * @param {number} [width=undefined] optional width of viewBox (if present, include height)
+ * @param {number} [height=undefined] optional height of viewBox (if present, include width)
+ * @param {function} [callback=undefined] optional function which will be
+ * executed upon completion of initialization.
+ * @returns {Element} one svg DOM element
+ */
 function SVG () {
 	return SVG_Constructor.init(...arguments);
 }
@@ -14479,45 +14531,50 @@ const str_tail = "tail";
  * SVG (c) Kraft
  */
 
-var detect = {
 // compare to "undefined", the string
-	isBrowser: typeof window !== str_undefined
-		&& typeof window.document !== str_undefined,
-	isNode: typeof process !== str_undefined
-		&& process.versions != null
-		&& process.versions.node != null,
-	isWebWorker: typeof self === str_object
-		&& self.constructor
-		&& self.constructor.name === "DedicatedWorkerGlobalScope",
+const isBrowser = typeof window !== str_undefined
+	&& typeof window.document !== str_undefined;
+
+const isNode = typeof process !== str_undefined
+	&& process.versions != null
+	&& process.versions.node != null;
+
+const svgErrors = [];
+
+svgErrors[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+
+/**
+ * SVG (c) Kraft
+ */
+
+const svgWindowContainer = { window: undefined };
+
+const buildHTMLDocument = (newWindow) => new newWindow.DOMParser()
+	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+
+const setWindow = (newWindow) => {
+	// make sure window has a document. xmldom does not, and requires it be built.
+	if (!newWindow.document) { newWindow.document = buildHTMLDocument(newWindow); }
+	svgWindowContainer.window = newWindow;
+	return svgWindowContainer.window;
+};
+// if we are in the browser, by default use the browser's "window".
+if (isBrowser) { svgWindowContainer.window = window; }
+/**
+ * @description get the "window" object, which should have
+ * DOMParser, XMLSerializer, and document.
+ */
+const SVGWindow = () => {
+	if (svgWindowContainer.window === undefined) {
+    throw svgErrors[10];
+	}
+	return svgWindowContainer.window;
 };
 
 /**
  * SVG (c) Kraft
  */
-/**
- * @description an object named "window" with DOMParser, XMLSerializer,
- * and document.
- * in the case of browser-usage, this object is simply the browser window,
- * in the case of nodejs, the package "xmldom" provides the methods.
- */
-const SVGWindow = (function () {
-	let win = {};
-	if (detect.isNode) {
-		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-		win.DOMParser = DOMParser;
-		win.XMLSerializer = XMLSerializer;
-		// smallest, valid HTML5 document: doctype with non-whitespace title
-		win.document = new DOMParser().parseFromString(
-			"<!DOCTYPE html><title>.</title>", "text/html");
-	} else if (detect.isBrowser) {
-		win = window;
-	}
-	return win;
-}());
-
-/**
- * SVG (c) Kraft
- */
+/** @description The namespace of an SVG element, the value of the attribute xmlns */
 var NS = "http://www.w3.org/2000/svg";
 
 /**
@@ -15246,7 +15303,7 @@ function viewBox$1 () {
  * SVG (c) Kraft
  */
 
-const cdata = (textContent) => (new SVGWindow.DOMParser())
+const cdata = (textContent) => (new SVGWindow().DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(`${textContent}`);
 
@@ -15329,7 +15386,7 @@ const filterWhitespaceNodes = (node) => {
  * parse and checkParseError go together. 
  * checkParseError needs to be called to pull out the .documentElement
  */
-const parse = string => (new SVGWindow.DOMParser())
+const parse = string => (new SVGWindow().DOMParser())
 	.parseFromString(string, "text/xml");
 
 const checkParseError = xml => {
@@ -15359,7 +15416,7 @@ const async = function (input) {
 						: resolve(svg)))
 				.catch(err => reject(err));
 		}
-		else if (input instanceof SVGWindow.Document) {
+		else if (input instanceof SVGWindow().Document) {
 			return asyncDone(input);
 		}
 	});
@@ -15385,8 +15442,8 @@ const isFilename = input => typeof input === str_string
 	&& input.length < 10000;
 
 const Load = input => (isFilename(input) 
-	&& detect.isBrowser
-	&& typeof SVGWindow.fetch === str_function
+	&& isBrowser
+	&& typeof SVGWindow().fetch === str_function
 	? async(input)
 	: sync(input));
 
@@ -15476,9 +15533,9 @@ const SAVE_OPTIONS = () => ({
 
 const getWindowStylesheets = function () {
 	const css = [];
-	if (SVGWindow.document.styleSheets) {
-		for (let s = 0; s < SVGWindow.document.styleSheets.length; s += 1) {
-			const sheet = SVGWindow.document.styleSheets[s];
+	if (SVGWindow().document.styleSheets) {
+		for (let s = 0; s < SVGWindow().document.styleSheets.length; s += 1) {
+			const sheet = SVGWindow().document.styleSheets[s];
 			try {
 				const rules = ("cssRules" in sheet) ? sheet.cssRules : sheet.rules;
 				for (let r = 0; r < rules.length; r += 1) {
@@ -15498,13 +15555,13 @@ const getWindowStylesheets = function () {
 };
 
 const downloadInBrowser = function (filename, contentsAsString) {
-	const blob = new SVGWindow.Blob([contentsAsString], { type: "text/plain" });
-	const a = SVGWindow.document.createElement("a");
-	a.setAttribute("href", SVGWindow.URL.createObjectURL(blob));
+	const blob = new SVGWindow().Blob([contentsAsString], { type: "text/plain" });
+	const a = SVGWindow().document.createElement("a");
+	a.setAttribute("href", SVGWindow().URL.createObjectURL(blob));
 	a.setAttribute("download", filename);
-	SVGWindow.document.body.appendChild(a);
+	SVGWindow().document.body.appendChild(a);
 	a.click();
-	SVGWindow.document.body.removeChild(a);
+	SVGWindow().document.body.removeChild(a);
 };
 
 const save = function (svg, options) {
@@ -15513,16 +15570,16 @@ const save = function (svg, options) {
 	// stylesheets present on the window, this allows them to be included.
 	// default: not included.
 	if (options.windowStyle) {
-		const styleContainer = SVGWindow.document.createElementNS(NS, str_style);
+		const styleContainer = SVGWindow().document.createElementNS(NS, str_style);
 		styleContainer.setAttribute("type", "text/css");
 		styleContainer.innerHTML = getWindowStylesheets();
 		svg.appendChild(styleContainer);
 	}
 	// convert the SVG to a string and format it with good indentation
-	const source = (new SVGWindow.XMLSerializer()).serializeToString(svg);
+	const source = (new SVGWindow().XMLSerializer()).serializeToString(svg);
 	const formattedString = vkXML(source);
 	//
-	if (options.download && detect.isBrowser && !detect.isNode) {
+	if (options.download && isBrowser && !isNode) {
 		downloadInBrowser(options.filename, formattedString);
 	}
 	return (options.output === str_svg ? svg : formattedString);
@@ -15646,7 +15703,7 @@ const background = function (element, color) {
 		.filter(child => child.getAttribute(str_class) === bgClass)
 		.shift();
 	if (backRect == null) {
-		backRect = this.Constructor("rect", ...getFrame(element));
+		backRect = this.Constructor("rect", null, ...getFrame(element));
 		backRect.setAttribute(str_class, bgClass);
 		backRect.setAttribute(str_stroke, str_none);
 		element.insertBefore(backRect, element.firstChild);
@@ -15829,8 +15886,8 @@ const Animation = function (element) {
 	let requestId;
 
 	const removeHandlers = () => {
-		if (SVGWindow.cancelAnimationFrame) {
-			SVGWindow.cancelAnimationFrame(requestId);
+		if (SVGWindow().cancelAnimationFrame) {
+			SVGWindow().cancelAnimationFrame(requestId);
 		}
 		Object.keys(handlers)
 			.forEach(uuid => delete handlers[uuid]);
@@ -15853,15 +15910,15 @@ const Animation = function (element) {
 				// prepare next frame
 				frame += 1;
 				if (handlers[uuid]) {
-					requestId = SVGWindow.requestAnimationFrame(handlers[uuid]);
+					requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 				}
 			};
 			handlers[uuid] = handlerFunc;
 			// node.js doesn't have requestAnimationFrame
 			// we don't need to duplicate this if statement above, because it won't
 			// ever be called if this one is prevented.
-			if (SVGWindow.requestAnimationFrame) {
-				requestId = SVGWindow.requestAnimationFrame(handlers[uuid]);
+			if (SVGWindow().requestAnimationFrame) {
+				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 			}
 		},
 		enumerable: true
@@ -16039,9 +16096,6 @@ const applyControlsToSVG = (svg) => {
 /**
  * SVG (c) Kraft
  */
-
-// const ElementConstructor = (new window.DOMParser())
-//   .parseFromString("<div />", "text/xml").documentElement.constructor;
 
 // const findWindowBooleanParam = (...params) => params
 //   .filter(arg => typeof arg === S.str_object)
@@ -16237,9 +16291,8 @@ const Args$1 = (...args) => coordinates(...svg_semi_flatten_arrays(...args)).sli
 const setPoints$1 = (element, ...args) => { Args$1(...args)
 	.forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
 /**
- * @description SVG Line element
  * @name line
- * @variation 2
+ * @description SVG Line element
  * @memberof SVG
  */
 var lineDef = {
@@ -16479,12 +16532,12 @@ var textDef = {
 		init: (element, a, b, c, d) => {
 			const text = [a,b,c,d].filter(a => typeof a === str_string).shift();
 			if (text) {
-				element.appendChild(SVGWindow.document.createTextNode(text));
+				element.appendChild(SVGWindow().document.createTextNode(text));
 				// it seems like this is excessive and will never happen
 				// if (element.firstChild) {
 				//   element.firstChild.nodeValue = text;
 				// } else {
-				//   element.appendChild(window.document.createTextNode(text));
+				//   element.appendChild(window().document.createTextNode(text));
 				// }
 			}
 		}
@@ -16931,7 +16984,7 @@ const RequiredAttributes = (element, nodeName) => {
 const bound = {};
 
 const constructor = (nodeName, parent, ...args) => {
-	const element = SVGWindow.document.createElementNS(NS, Nodes[nodeName].nodeName);
+	const element = SVGWindow().document.createElementNS(NS, Nodes[nodeName].nodeName);
 	if (parent) { parent.appendChild(element); }
 	RequiredAttributes(element, nodeName);
 	Nodes[nodeName].init(element, ...args);
@@ -17080,8 +17133,8 @@ const initialize = function (svg, ...args) {
 SVG_Constructor.init = function () {
 	const svg = constructor(str_svg, null, ...arguments);
 	// call initialize as soon as possible. check if page has loaded
-	if (SVGWindow.document.readyState === "loading") {
-		SVGWindow.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
+	if (SVGWindow().document.readyState === "loading") {
+		SVGWindow().document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
 	} else {
 		initialize(svg, ...arguments);
 	}
@@ -17091,8 +17144,8 @@ SVG_Constructor.init = function () {
 // const SVG = function () {
 // 	const svg = Constructor(S.str_svg, null, ...arguments);
 // 	// call initialize as soon as possible. check if page has loaded
-// 	if (window.document.readyState === "loading") {
-// 		window.document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
+// 	if (window().document.readyState === "loading") {
+// 		window().document.addEventListener("DOMContentLoaded", () => initialize(svg, ...arguments));
 // 	} else {
 // 		initialize(svg, ...arguments);
 // 	}
@@ -17113,29 +17166,155 @@ SVG.core = Object.assign(Object.create(null), {
 	cdata,
 }, Case, classMethods, dom, svg_algebra, TransformMethods, viewBox);
 
+// the window object, from which the document is used to createElement.
+// when using Node.js, this must be set to to the
+// default export of the library @xmldom/xmldom
+Object.defineProperty(SVG, "window", {
+	enumerable: false,
+	set: value => setWindow(value),
+});
+
 /**
  * Rabbit Ear (c) Kraft
  */
-/**
- * @description an object named "window" with DOMParser, XMLSerializer,
- * and document.
- * in the case of browser-usage, this object is simply the browser window,
- * in the case of nodejs, the package "xmldom" provides the methods.
- */
-((function () {
-	let win = {};
-	if (isNode) {
-		const { DOMParser, XMLSerializer } = require("@xmldom/xmldom");
-		win.DOMParser = DOMParser;
-		win.XMLSerializer = XMLSerializer;
-		// smallest, valid HTML5 document: doctype with non-whitespace title
-		win.document = new DOMParser().parseFromString(
-			"<!DOCTYPE html><title>.</title>", "text/html");
-	} else if (isBrowser) {
-		win = window;
+
+// if three doesn't exist, throw an error
+
+// const make_faces_geometry = (graph, material) => {
+const make_faces_geometry = (graph) => {
+	const { THREE } = RabbitEarWindow();
+	const vertices = graph.vertices_coords
+		.map(v => [v[0], v[1], v[2] || 0])
+		.flat();
+	const normals = graph.vertices_coords
+		.map(v => [0, 0, 1])
+		.flat();
+	const colors = graph.vertices_coords
+		.map(v => [1, 1, 1])
+		.flat();
+	const faces = graph.faces_vertices
+		.map(fv => fv
+			.map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
+			.slice(0, fv.length - 2))
+		.flat(2);
+	const geometry = new THREE.BufferGeometry();
+	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+	geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+	geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+	geometry.setIndex(faces);
+	return geometry;
+};
+
+const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
+	if (math.core.magSquared(edge_vector) < math.core.EPSILON) {
+		return [];
 	}
-	return win;
-})());
+	const normalized = math.core.normalize(edge_vector);
+	const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
+		.map(vec => math.core.cross3(vec, normalized))
+		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
+		.shift();
+	const rotated = [ math.core.normalize(perp) ];
+	// const mat = math.core.make_matrix3_rotate(Math.PI/9, normalized);
+	// for (let i = 1; i < 4; i += 1) {
+	// 	rotated.push(math.core.multiply_matrix3_vector3(mat, rotated[i - 1]));
+	// }
+	for (let i = 1; i < 4; i += 1) {
+		rotated.push(math.core.cross3(rotated[i - 1], normalized));
+	}
+	const dirs = rotated.map(v => math.core.scale(v, radius));
+	const nudge = [-end_pad, end_pad].map(n => math.core.scale(normalized, n));
+	const coords = end_pad === 0
+		? edge_coords
+		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
+	//console.log(dirs);
+	return coords
+		.map(v => dirs.map(dir => math.core.add(v, dir)))
+		.flat();
+};
+
+const make_edges_geometry = function ({
+	vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
+}, scale=0.002, end_pad = 0) {
+	const { THREE } = RabbitEarWindow;
+	if (!edges_coords) {
+		edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
+	}
+	if (!edges_vector) {
+		edges_vector = edges_coords.map(edge => math.core.subtract(edge[1], edge[0]));
+	}
+	// make sure they all have a z component. when z is implied it's 0
+	edges_coords = edges_coords
+		.map(edge => edge
+			.map(coord => math.core.resize(3, coord)));
+	edges_vector = edges_vector
+		.map(vec => math.core.resize(3, vec));
+	const colorAssignments = {
+		"B": [0.0,0.0,0.0],
+ // "M": [0.9,0.31,0.16],
+		"M": [0.0,0.0,0.0],//[34/255, 76/255, 117/255], //[0.6,0.2,0.11],
+		"F": [0.0,0.0,0.0],//[0.25,0.25,0.25],
+		"V": [0.0,0.0,0.0],//[227/255, 85/255, 54/255]//[0.12,0.35,0.50]
+	};
+
+	const colors = edges_assignment.map(e => 
+		[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
+	).flat(3);
+
+	const vertices = edges_coords
+		.map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
+		.flat(2);
+
+	const normals = edges_vector.map(vector => {
+		if (math.core.magSquared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
+		let normalized = math.core.normalize(vector);
+		// scale to line width
+		math.core.scale(normalized, scale);
+		// let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
+		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,-1])), scale);
+		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,1])), scale);
+		// let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
+		// let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
+		return [
+			c0, [-c0[2], c0[1], c0[0]],
+			c1, [-c1[2], c1[1], c1[0]],
+			c0, [-c0[2], c0[1], c0[0]],
+			c1, [-c1[2], c1[1], c1[0]]
+		]
+	}).flat(2);
+
+	let faces = edges_coords.map((e,i) => [
+		// 8 triangles making the long cylinder
+		i*8+0, i*8+4, i*8+1,
+		i*8+1, i*8+4, i*8+5,
+		i*8+1, i*8+5, i*8+2,
+		i*8+2, i*8+5, i*8+6,
+		i*8+2, i*8+6, i*8+3,
+		i*8+3, i*8+6, i*8+7,
+		i*8+3, i*8+7, i*8+0,
+		i*8+0, i*8+7, i*8+4,
+		// endcaps
+		i*8+0, i*8+1, i*8+3,
+		i*8+1, i*8+2, i*8+3,
+		i*8+5, i*8+4, i*8+7,
+		i*8+7, i*8+6, i*8+5,
+	]).flat();
+
+	const geometry = new THREE.BufferGeometry();
+	geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+	geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+	geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+	geometry.setIndex(faces);
+	geometry.computeVertexNormals();
+	return geometry;
+};
+
+var webgl = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	make_faces_geometry: make_faces_geometry,
+	make_edges_geometry: make_edges_geometry
+});
 
 /**
  * Rabbit Ear (c) Kraft
@@ -17148,7 +17327,8 @@ const ear = Object.assign(root, ObjectConstructors, {
 	layer,
 	singleVertex,
 	text,
-	// webgl,
+	webgl,
+	// svg,
 });
 /**
  * math is uniquely constructed where all the core methods are exposed
@@ -17173,5 +17353,14 @@ if (!isWebWorker) {
 	ear.use(FOLDtoSVG); // must happen before SVG
 	ear.use(SVG);
 }
+
+Object.defineProperty(ear, "window", {
+	enumerable: false,
+	set: value => {
+		setWindow$1(value);
+		// hardcoded. update window in extensions automatically, if we know them.
+		SVG.window = value;
+	},
+});
 
 export { ear as default };

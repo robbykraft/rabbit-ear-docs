@@ -3,12 +3,12 @@ const showdown = require('showdown');
 const showdownHighlight = require('showdown-highlight');
 const makeTreeHTMLList = require("./make-html-tree-list");
 
-const makeSidebar = (libraryTree, path) => `<div class="sidebar">
+const makeSidebar = (topLevelTrees, path) => `<div class="sidebar">
 	<h3>Rabbit Ear</h3>
-	${makeTreeHTMLList(libraryTree, path)}
+	${makeTreeHTMLList(topLevelTrees, path)}
 </div>`;
 
-const makeHTMLFiles = (libraryTree) => {
+const makeHTMLFiles = (topLevelTrees) => {
 	const header = fs.readFileSync(`./template/header.html`, "utf8");
 	const footer = fs.readFileSync(`./template/footer.html`, "utf8");
 	const converter = new showdown.Converter({
@@ -20,7 +20,7 @@ const makeHTMLFiles = (libraryTree) => {
 		.filter(str => str.substr(-3) === ".md");
 	markdownFiles.forEach(filename => {
 		const path = filename.substr(0, filename.length - 3).split(".");
-		const sidebar = makeSidebar(libraryTree, path);
+		const sidebar = makeSidebar(topLevelTrees, path);
 		const name = filename.substr(0, filename.length - 3);
 		const customDefinition = fs.existsSync(`./template/custom/${filename}`);
 		if (customDefinition) { console.log(`using custom definition for ${filename}`); }
