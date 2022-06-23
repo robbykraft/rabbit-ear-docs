@@ -79,3 +79,4 @@ blockquote > * {
 /*.hljs-property { color: #ad6; }*/
 .hljs-keyword { color: #8be; }
 .hljs-title.function_ { color: #ad6; }
+.hljs-variable.constant_ { color: #8be; }

@@ -3,6 +3,14 @@ const showdown = require('showdown');
 const showdownHighlight = require('showdown-highlight');
 const makeTreeHTMLList = require("./make-html-tree-list");
 
+const indexHTML = `<!DOCTYPE html>
+<html>
+<title>.</title>
+<script type="text/javascript">
+window.location.href = "/docs/ear.html"
+</script>
+</html>`;
+
 const makeSidebar = (topLevelTrees, path) => `<div class="sidebar">
 	<h3>Rabbit Ear</h3>
 	${makeTreeHTMLList(topLevelTrees, path)}
@@ -30,6 +38,7 @@ const makeHTMLFiles = (topLevelTrees) => {
 		const html = `${header}\n${sidebar}\n<div class="body">\n${converter.makeHtml(markdown)}\n</div>\n${footer}`;
 		fs.writeFileSync(`./docs/${name}.html`, html);
 	});
+	fs.writeFileSync("./docs/index.html", indexHTML);
 };
 
 module.exports = makeHTMLFiles;

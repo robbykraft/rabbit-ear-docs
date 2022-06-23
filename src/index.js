@@ -75,11 +75,53 @@ const sortJSDocs = (jsdocs) => {
 	return res;
 };
 
-const errorsTree = () => ({
+const makeErrorsTree = () => ({
 	"key": "errors",
 	// "staticType": "Array",
 	// "simpleObject": true,
 	"hasOwnPage": true
+});
+
+// {
+// 	comment: "",
+// 	meta: {
+//     filename: 'rabbit-ear.comments.js',
+//     lineno: 17366,
+//     columnno: 0,
+//     path: '/Users/robby/Code/RabbitEarJS/docgen/input',
+//     code: {}
+//   },
+//   description: 'The definition for the FOLD file format, as a Javascript object.',
+//   kind: 'typedef',
+//   name: 'FOLD',
+//   type: { names: [Array] },
+//   properties: [
+//     [Object], [Object],
+//     [Object], [Object],
+//     [Object], [Object],
+//     [Object]
+//   ],
+//   longname: 'FOLD',
+//   scope: 'global'
+// }
+
+const makeLibraryObject = (doc) => Object.assign(doc, {
+	key: doc.name,
+	staticType: doc.kind,
+	hasOwnPage: false,
+	isExpandable: false,
+});
+
+const makeTypesTree = (jsdocs) => ({
+  key: "types",
+  type: "undefined",
+  staticChildren: jsdocs
+		.filter(el => el.kind === "typedef")
+		.sort((a, b) => a.name.localeCompare(b.name))
+		.map(makeLibraryObject),
+  hasOwnPage: true,
+  isExpandable: true,
+  prototypes: [],
 });
 /**
  * @description the main function.
@@ -88,13 +130,19 @@ const errorsTree = () => ({
 const buildDocs = (jsdocs) => {
 	clearAll();
 	if (jsdocs.constructor !== Array) { return; }
-	const libraryTree = makeObjectTree(ear, "ear");
+	const rabbitearTree = makeObjectTree(ear, "ear");
+	const errorsTree = makeErrorsTree();
+	const typesTree = makeTypesTree(jsdocs);
 	const filtered = filterJSDocs(jsdocs);
 	const docsEntries = sortJSDocs(filtered);
 	fs.writeFileSync(`./tmp/docs.json`, JSON.stringify(docsEntries, null, 2));
-	fs.writeFileSync(`./tmp/directory-tree.json`, JSON.stringify(libraryTree, null, 2));
+	fs.writeFileSync(`./tmp/tree-rabbit-ear.json`, JSON.stringify(rabbitearTree, null, 2));
+	fs.writeFileSync(`./tmp/tree-errors.json`, JSON.stringify(errorsTree, null, 2));
+	fs.writeFileSync(`./tmp/tree-types.json`, JSON.stringify(typesTree, null, 2));
 	// build docs. first markdown, then convert that into HTML
-	const topLevelTrees = [libraryTree, errorsTree()];
+	// console.log(JSON.stringify(makeTypesTree(filtered)));
+	// const topLevelTrees = [rabbitearTree, errorsTree()];
+	const topLevelTrees = [rabbitearTree, errorsTree, typesTree];
 	makeMarkdownFiles(docsEntries, topLevelTrees);
 	makeHTMLFiles(topLevelTrees);
 	// these template files are copied over to the build folder

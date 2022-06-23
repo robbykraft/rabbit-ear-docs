@@ -10,6 +10,7 @@ const {
 const {
 	makeParamsSection,
 	makeReturnSection,
+	makeTypedefProperties,
 	makeConstantDefinition,
 	makeFunctionDefinition,
 } = require("./markdown-methods");
@@ -101,6 +102,13 @@ const makeStaticFunction = (match, tree, path) => {
 	return markdown.join("\n\n");
 };
 
+const makeTypedef = (match, tree, path) => {
+	const markdown = [];
+	markdown.push(tree.description);
+	markdown.push(makeTypedefProperties(tree));
+	return markdown.join("\n\n");
+};
+
 const makeStaticEntry = (docsEntries, tree, path) => {
 	const match = findMatch(docsEntries, tree, path);
 	const markdown = [`### ${tree.key}`];
@@ -113,6 +121,7 @@ const makeStaticEntry = (docsEntries, tree, path) => {
 		case "Object": markdown.push(makeStaticObject(match, tree, path)); break;
 		case "Function": markdown.push(makeStaticFunction(match, tree, path)); break;
 		case "undefined": markdown.push("todo: undefined static type"); break;
+		case "typedef": markdown.push(makeTypedef(match, tree, path)); break;
 		default: markdown.push("TODO default (unknown) static type"); break;
 	}
 	return markdown.filter(a => a !== undefined).join("\n\n");
@@ -131,6 +140,7 @@ const makeInstancePageSection = (docsEntries, tree, path) => {
 		case "Array": markdown.push("TODO Array"); break;
 		case "Function": markdown.push(makeStaticFunction(matchStatic, tree, path)); break;
 		case "undefined": markdown.push(makeStaticContainerObject(matchInstance, tree, path)); break;
+		case "typedef": markdown.push("todo: instance typedef"); break;
 		default: markdown.push("TODO default (unknown) instance type"); break;
 	}
 	// if (tree.instanceType) { }

@@ -1,5 +1,5 @@
 
-const tsParam = (param, i) => {
+const fnParam = (param, i) => {
 	const name = param.name ? param.name : alphabet[i];
 	const optional = param.optional ? "?" : "";
 	const defaultvalue = param.defaultvalue === undefined ? "" : `=${param.defaultvalue}`;
@@ -8,7 +8,7 @@ const tsParam = (param, i) => {
 		: undefined;
 };
 
-const tsReturnValue = (val) => val.type && val.type.names
+const fnReturnValue = (val) => val.type && val.type.names
 	? `${val.type.names.map(formatType).join("|")}`
 	: undefined;
 
@@ -42,10 +42,18 @@ const formatType = (str) => {
 };
 
 const makeTypeListString = el => el.type && el.type.names && el.type.names.length
-		? `\`${el.type.names.map(formatType).join("|")}\``
-		: undefined;
+	? `\`${el.type.names.map(formatType).join("|")}\``
+	: undefined;
 
-const makeTypeDescriptionEntryString = (el) => [makeTypeListString(el), el.description]
+// we know name exists
+const printAttrName = (el) => el.optional
+	// ? `**<span class="hljs-attr">${el.name} ?</span>:**`
+	? `**<span class="hljs-attr">${el.name}</span> ?:**`
+	: `**<span class="hljs-attr">${el.name}</span> :**`;
+
+const makeAttrName = (el) => el.name ? printAttrName(el) : undefined;
+
+const makeTypeDescriptionEntryString = (el) => [makeAttrName(el), makeTypeListString(el), el.description]
 	.filter(a => a !== undefined)
 	.join(" ");
 
@@ -67,6 +75,14 @@ const makeReturnSection = (data) => data.returns && data.returns.length
 	? `returns\n\n${makeTypeDescriptionUnorderedList(data.returns)}`
 	: undefined;
 
+// const makeTypedefProperties = (tree) => {
+// 	return tree.properties.map(el => `- ${el.name}`).join("\n");
+// };
+const makeTypedefProperties = (tree) => tree.properties && tree.properties.length
+	? makeTypeDescriptionOrderedList(tree.properties)
+	: undefined;{
+};
+
 const makeConstantDefinition = (data, tree, path) => `${path.join(".")}.${tree.key}:${tree.staticType.toLowerCase()}`;
 
 const makeFunctionDefinition = (data, tree, path) => {
@@ -76,11 +92,11 @@ const makeFunctionDefinition = (data, tree, path) => {
 	// const functionCall = path.join(".");
 	const params = data.params == null
 		? ""
-		: data.params.map((param, i) => tsParam(param, i))
+		: data.params.map((param, i) => fnParam(param, i))
 			.filter(a => a !== undefined)
 			.join(", ");
 	const returnvalue = data.returns
-		? data.returns.map(tsReturnValue).join(", ")
+		? data.returns.map(fnReturnValue).join(", ")
 		: undefined;
 	return returnvalue ? `${functionCall}(${params}): ${returnvalue}` : `${functionCall}(${params})`;
 };
@@ -88,6 +104,7 @@ const makeFunctionDefinition = (data, tree, path) => {
 module.exports = {
 	makeParamsSection,
 	makeReturnSection,
+	makeTypedefProperties,
 	makeConstantDefinition,
 	makeFunctionDefinition,
 };

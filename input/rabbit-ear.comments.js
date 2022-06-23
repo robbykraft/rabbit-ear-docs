@@ -4498,12 +4498,20 @@ const edgesAssignmentValues = Array.from("MmVvBbFfUu");
  *    and re-arranging keys or values based on key queries.
  */
 /**
- * English conversion from the plural form of words to the singular
+ * @description English conversion of the names of graph components from plural to singular.
  */
 const singularize = {
 	vertices: "vertex",
 	edges: "edge",
 	faces: "face",
+};
+/**
+ * @description English conversion of the names of graph components from singular to plural.
+ */
+const pluralize = {
+	vertex: "vertices",
+	edge: "edges",
+	face: "faces",
 };
 /**
  * @description get the English word for every FOLD spec assignment character (like "M", or "b")
@@ -4527,7 +4535,7 @@ edgesAssignmentValues.forEach(key => {
 	edgesAssignmentToLowercase[key] = key.toLowerCase();
 });
 /**
- * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b")
+ * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b"). **this assumes the creases are flat folded.**
  */
 const edgesAssignmentDegrees = {
 	M: -180,
@@ -4667,6 +4675,7 @@ const isFoldObject = (object = {}) => (
 var fold_spec = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	singularize: singularize,
+	pluralize: pluralize,
 	edgesAssignmentNames: edgesAssignmentNames,
 	edgesAssignmentToLowercase: edgesAssignmentToLowercase,
 	edgesAssignmentDegrees: edgesAssignmentDegrees,
@@ -4782,22 +4791,37 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * simply checking the length of arrays starting with the key; in the case
  * of differing array lengths (which shouldn't happen) return the largest number.
  * 
- * This works even with custom component names, not "vertices", "edges", etc..
+ * This works even with custom component names in place of "vertices", "edges"...
  *
  * This will fail in the case of abstract graphs, for example where no vertices
- * are defined in any vertex_ array but only exist as mentions in faces_vertices.
+ * are defined in a vertex_ array, but still exist as mentions in faces_vertices.
  * In that case, use the implied count method. "count_implied.js"
- * @param {object} a FOLD graph
- * @param {string} the prefix for a key, eg: "vertices" 
- * @returns {number} the number of vertices, edges, or faces in the graph.
+ * @param {FOLD} graph a FOLD graph
+ * @param {string} key the prefix for a key, eg: "vertices" 
+ * @returns {number} the number of the requested element type in the graph
  */
 const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
 
 // standard graph components names
+/**
+ * @description Get the number of vertices in a graph.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number} the number of vertices in the graph
+ */
 count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
 	max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+/**
+ * @description Get the number of edges in a graph.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number} the number of edges in the graph
+ */
 count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
 	max_arrays_length(edges_vertices, edges_edges, edges_faces);
+/**
+ * @description Get the number of faces in a graph.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number} the number of faces in the graph
+ */
 count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
 	max_arrays_length(faces_vertices, faces_edges, faces_faces);
 
@@ -5749,29 +5773,36 @@ const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 		if (a === 0) { return "F"; }
 		return a < 0 ? "M" : "V";
 	});
-
+/**
+ * @description map vertices_coords onto edges_vertices so that the result
+ * is an edge array where each edge contains its two points. Each point being
+ * the 2D or 3D coordinate as an array of numbers.
+ * @param {FOLD} graph a FOLD graph with vertices and edges
+ * @returns {number[][][]} an array of array of points (which are arrays of numbers)
+ */
 const makeEdgesCoords = ({ vertices_coords, edges_vertices }) =>
 	edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 /**
- * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
+ * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
  * @returns {number[]} a vector beginning at vertex 0, ending at vertex 1
  */
 const makeEdgesVector = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesCoords({ vertices_coords, edges_vertices })
 		.map(verts => math.core.subtract(verts[1], verts[0]));
 /**
- * @param {object} FOLD object, with "vertices_coords", "edges_vertices"
+ * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
  * @returns {number[]} the Euclidean distance between each edge's vertices.
  */
 const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesVector({ vertices_coords, edges_vertices })
 		.map(vec => math.core.magnitude(vec));
 /**
- * @description for each edge, get the bounding box in n-dimensions.
- * for fast line-sweep algorithms.
- *
- * @returns {object[]} an array of boxes matching length of edges.
+ * @description Make an array of axis-aligned bounding boxes, one for each edge,
+ * that encloses the edge, and will work in n-dimensions. Intended for
+ * fast line-sweep algorithms.
+ * @param {FOLD} graph a FOLD graph with vertices and edges.
+ * @returns {object[]} an array of boxes, length matching the number of edges
  */
 const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
 	if (!edges_coords) {
@@ -5835,7 +5866,7 @@ const makeFacesEdgesFromVertices = (graph) => {
 		.map(face => face.map(pair => map[pair]));
 };
 /**
- * @param {object} FOLD object, with entry "faces_vertices"
+ * @param {FOLD} graph a FOLD graph, with entry "faces_vertices"
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
  * @description faces_faces is a list of edge-adjacent face indices for each face.
@@ -7738,7 +7769,7 @@ const clone = function (o) {
  * @description add vertices to a graph by adding their vertices_coords only. This
  * will also compare against every existing vertex, only adding non-duplicate
  * vertices, as determined by an epsilon.
- * @param {object} graph a FOLD graph, modified in place.
+ * @param {FOLD} graph a FOLD graph, modified in place.
  * @param {number[][]} vertices_coords, array of points to be added to the graph
  * @param {number} [epsilon=1e-6] optional epsilon to merge similar vertices
  * @returns {number[]} index of vertex in new vertices_coords array.
@@ -8790,12 +8821,7 @@ const clip = function (
 /**
  * Rabbit Ear (c) Kraft
  */
-// this method is meant to add edges between EXISTING vertices.
-// this should split and rebuild faces.
 
-// todo: we need to make a removeDuplicateEdges that returns merge info
-
-// const edges = ear.graph.addEdges(graph, [[0, vertex], [1, vertex], [2, 3], [2, vertex]]);
 const addEdges = (graph, edges_vertices) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }
 	// the user messed up the input and only provided one edge
@@ -8892,11 +8918,13 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	return segment_edges;
 };
 /**
- * @description Given a valid planar graph this method will add a new segment
- * between two points anywhere in the 2D plane, and fix up the graph by clipping
- * overlapping segments and making new vertices and rebuilding the affected faces.
- * If edges_assignment or edges_foldAngle exist, this will append "U" and 0.
- * @param {object} graph a planar FOLD graph, modified in place.
+ * @description Add a segment to a planar graph and maintain planarity.
+ * If endpoints lie within an epsilon to existing vertices, they will be used.
+ * If edges are crossed by the new edge, all edges will be segmented and
+ * new vertices will be added. Finally, all faces will be rebuilt.
+ * If the graph contains the arrays edges_assignment or edges_foldAngle,
+ * the corresponding new edge indices will be appended with "U" and 0.
+ * @param {FOLD} graph a planar FOLD graph, modified in place.
  * @param {number[]} point1 a 2D point as an array of numbers
  * @param {number[]} point2 a 2D point as an array of numbers
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
@@ -10732,7 +10760,7 @@ var edgesEdges = /*#__PURE__*/Object.freeze({
 
 var graph_methods = Object.assign(Object.create(null), {
 	count,
-	implied: countImplied,
+	countImplied,
 	validate,
 	clean,
 	populate,
@@ -10741,7 +10769,7 @@ var graph_methods = Object.assign(Object.create(null), {
 	removePlanarVertex,
 	removePlanarEdge,
 	addVertices,
-	addEdges,
+	// addEdges,
 	splitEdge,
 	splitFace: splitConvexFace,
 	flatFold,
@@ -10801,11 +10829,11 @@ const make_closed_polygon = (vertices_coords) => populate({
 });
 
 const polygon_names = [
-	null,
-	null,
-	null,
+	undefined,
+	undefined,
+	undefined,
 	"triangle",
-	"square",
+	undefined,
 	"pentagon",
 	"hexagon",
 	"heptagon",
@@ -10819,7 +10847,7 @@ const polygon_names = [
  * create an array/object with only the keys and polygon names used below.
  */
 polygon_names
-	.map((str, i) => str === null ? i : undefined)
+	.map((str, i) => str === undefined ? i : undefined)
 	.filter(a => a !== undefined)
 	.forEach(i => delete polygon_names[i]);
 /**
@@ -10828,7 +10856,7 @@ polygon_names
 /**
  * @description make vertices_coords for a regular polygon,
  * centered at the origin and with side lengths of 1,
- * except for unit_square, centered at [0.5, 0.5]
+ * except for square, centered at [0.5, 0.5]
  * @param {number} number of sides of the desired regular polygon
  * @returns {number[][]} 2D vertices_coords, vertices of the polygon
  */
@@ -10843,7 +10871,7 @@ polygon_names.forEach((name, i) => {
  * circle asks for # of sides, and also sets radius to be 1,
  *  instead of side-length to be 1.
  */
-Create.unit_square = () =>
+Create.square = () =>
 	make_closed_polygon(make_rect_vertices_coords(1, 1));
 Create.rectangle = (width = 1, height = 1) =>
 	make_closed_polygon(make_rect_vertices_coords(width, height));
@@ -10954,13 +10982,6 @@ Object.assign(ObjectConstructors.graph, graph_methods);
 							 |___/
 */
 
-/**
- * @typedef UDLine
- * @type {object}
- * @property {number[]} u - the line's normal vector
- * @property {number} d - the shortest distance from the origin to the line
- */
-
 const intersectionUD = (line1, line2) => {
 	const det = math.core.cross2(line1.u, line2.u);
 	if (Math.abs(det) < math.core.EPSILON) { return undefined; }
@@ -10972,7 +10993,7 @@ const intersectionUD = (line1, line2) => {
  * @description origami axiom 1: form a line that passes between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {u, d} form
  */
 const axiom1ud = (point1, point2) => {
 	const u = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
@@ -10982,7 +11003,7 @@ const axiom1ud = (point1, point2) => {
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {u, d} form
  */
 const axiom2ud = (point1, point2) => {
 	const u = math.core.normalize2(math.core.subtract2(point2, point1));
@@ -10991,9 +11012,9 @@ const axiom2ud = (point1, point2) => {
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
  * two input lines, and in the case of parallel inputs only one solution will be given
- * @param {UDLine} line1 one 2D line in {vector, origin} form
- * @param {UDLine} line2 one 2D line in {vector, origin} form
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @param {UniqueLine} line1 one 2D line in {vector, origin} form
+ * @param {UniqueLine} line2 one 2D line in {vector, origin} form
+ * @returns {UniqueLine[]} an array of lines in {u, d} form
  */
 const axiom3ud = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
@@ -11007,9 +11028,9 @@ const axiom3ud = (line1, line2) => {
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
- * @param {UDLine} line one 2D line in {u, d} form
+ * @param {UniqueLine} line one 2D line in {u, d} form
  * @param {number[]} point one 2D point
- * @returns {UDLine} the line in {u, d} form
+ * @returns {UniqueLine} the line in {u, d} form
  */
  const axiom4ud = (line, point) => {
 	const u = math.core.rotate90(line.u);
@@ -11019,10 +11040,10 @@ const axiom3ud = (line1, line2) => {
 /**
  * @description origami axiom 5: form up to two lines that pass through a point that also
  * brings another point onto a given line
- * @param {UDLine} line one 2D line in {u, d} form
+ * @param {UniqueLine} line one 2D line in {u, d} form
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @returns {UniqueLine[]} an array of lines in {u, d} form
  */
 const axiom5ud = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.u);
@@ -11108,11 +11129,11 @@ const polynomial = (degree, a, b, c, d) => {
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
- * @param {UDLine} line1 one 2D line in {u, d} form
- * @param {UDLine} line2 one 2D line in {u, d} form
+ * @param {UniqueLine} line1 one 2D line in {u, d} form
+ * @param {UniqueLine} line2 one 2D line in {u, d} form
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
- * @returns {UDLine[]} an array of lines in {u, d} form
+ * @returns {UniqueLine[]} an array of lines in {u, d} form
  */
 const axiom6ud = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -11147,12 +11168,12 @@ const axiom6ud = (line1, line2, point1, point2) => {
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
  * while being perpendicular to another given line.
- * @param {UDLine} line1 one 2D line in {u, d} form,
+ * @param {UniqueLine} line1 one 2D line in {u, d} form,
  * the line the point will be brought onto.
- * @param {UDLine} line2 one 2D line in {u, d} form,
+ * @param {UniqueLine} line2 one 2D line in {u, d} form,
  * the line which the perpendicular will be based off.
  * @param {number[]} point the point to bring onto the line
- * @returns {UDLine | undefined} the line in {u, d} form
+ * @returns {UniqueLine | undefined} the line in {u, d} form
  * or undefined if the given lines are parallel
  */
 const axiom7ud = (line1, line2, point) => {
@@ -11198,17 +11219,10 @@ var AxiomsUD = /*#__PURE__*/Object.freeze({
  */
 
 /**
- * @typedef VectorOriginLine
- * @type {object}
- * @property {number[]} vector - the line's direction vector
- * @property {number[]} origin - one point that intersects with the line
- */
-
-/**
  * @description origami axiom 1: form a line that passes between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {VectorOriginLine} the line in {vector, origin} form
+ * @returns {RayLine} the line in {vector, origin} form
  */
 const axiom1 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
@@ -11218,7 +11232,7 @@ const axiom1 = (point1, point2) => ({
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
- * @returns {VectorOriginLine} the line in {vector, origin} form
+ * @returns {RayLine} the line in {vector, origin} form
  */
 const axiom2 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(point2, point1)))),
@@ -11228,9 +11242,9 @@ const axiom2 = (point1, point2) => ({
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
  * two input lines, and in the case of parallel inputs only one solution will be given
- * @param {VectorOriginLine} line1 one 2D line in {vector, origin} form
- * @param {VectorOriginLine} line2 one 2D line in {vector, origin} form
- * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
+ * @param {RayLine} line1 one 2D line in {vector, origin} form
+ * @param {RayLine} line2 one 2D line in {vector, origin} form
+ * @returns {RayLine[]} an array of lines in {vector, origin} form
  */
 const axiom3 = (line1, line2) => math.core.bisectLines2(
 	line1.vector, line1.origin, line2.vector, line2.origin
@@ -11238,9 +11252,9 @@ const axiom3 = (line1, line2) => math.core.bisectLines2(
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
- * @param {VectorOriginLine} line one 2D line in {vector, origin} form
+ * @param {RayLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point
- * @returns {VectorOriginLine} the line in {vector, origin} form
+ * @returns {RayLine} the line in {vector, origin} form
  */
 const axiom4 = (line, point) => ({
 	vector: math.core.rotate90(math.core.normalize2(line.vector)),
@@ -11249,10 +11263,10 @@ const axiom4 = (line, point) => ({
 /**
  * @description origami axiom 5: form up to two lines that pass through a point that also
  * brings another point onto a given line
- * @param {VectorOriginLine} line one 2D line in {vector, origin} form
+ * @param {RayLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
- * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
+ * @returns {RayLine[]} an array of lines in {vector, origin} form
  */
 const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
 		math.core.distance2(point1, point2),
@@ -11267,11 +11281,11 @@ const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
- * @param {VectorOriginLine} line1 one 2D line in {vector, origin} form
- * @param {VectorOriginLine} line2 one 2D line in {vector, origin} form
+ * @param {RayLine} line1 one 2D line in {vector, origin} form
+ * @param {RayLine} line2 one 2D line in {vector, origin} form
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
- * @returns {VectorOriginLine[]} an array of lines in {vector, origin} form
+ * @returns {RayLine[]} an array of lines in {vector, origin} form
  */
 const axiom6 = (line1, line2, point1, point2) => axiom6ud(
 	math.core.vectorOriginToUD(line1),
@@ -11281,12 +11295,12 @@ const axiom6 = (line1, line2, point1, point2) => axiom6ud(
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
  * while being perpendicular to another given line.
- * @param {VectorOriginLine} line1 one 2D line in {vector, origin} form,
+ * @param {RayLine} line1 one 2D line in {vector, origin} form,
  * the line the point will be brought onto.
- * @param {VectorOriginLine} line2 one 2D line in {vector, origin} form,
+ * @param {RayLine} line2 one 2D line in {vector, origin} form,
  * the line which the perpendicular will be based off.
  * @param {number[]} point the point to bring onto the line
- * @returns {VectorOriginLine | undefined} the line in {vector, origin} form
+ * @returns {RayLine | undefined} the line in {vector, origin} form
  * or undefined if the given lines are parallel
  */
 const axiom7 = (line1, line2, point) => {
@@ -11557,18 +11571,11 @@ const filterWithBoundary = (number, params, solutions, boundary) => {
 		.forEach((valid, i) => { if (!valid) { delete solutions[i]; } });
 };
 /**
- * The point and line parameter object passed into the axioms function.
- * @typedef {object} AxiomParams
- * @property {Array} lines an array of all lines
- * @property {Array} points an array of all points
- */
-
-/**
  * @description seven origami axioms
- * @param {number} number the axiom number, 1-7
+ * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {AxiomParams} params the origami axiom parameters, lines and points, in one object.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
- * @returns {Line[]} an array of solutions as lines, or an empty array if no solutions.
+ * @returns {RayLine[] | UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
  */
 const axiom = (number, params = {}, boundary) => {
 	const parameters = checkParams(params);
@@ -13701,7 +13708,7 @@ var de = [
 	"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie",
 	"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen"
 ];
-var en$1 = [
+var en = [
 	null,
 	"fold a line through two points",
 	"fold two points together",
@@ -13711,7 +13718,7 @@ var en$1 = [
 	"fold a point to a line and another point to another line",
 	"fold a point to a line and another line onto itself"
 ];
-var es$1 = [
+var es = [
 	null,
 	"dobla una línea entre dos puntos",
 	"dobla dos puntos juntos",
@@ -13811,7 +13818,7 @@ var vi = [
 	"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai",
 	"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó"
 ];
-var zh$1 = [
+var zh = [
 	null,
 	"通過兩點折一條線",
 	"將兩點折疊起來",
@@ -13824,8 +13831,8 @@ var zh$1 = [
 var axioms = {
 	ar: ar,
 	de: de,
-	en: en$1,
-	es: es$1,
+	en: en,
+	es: es,
 	fr: fr,
 	hi: hi,
 	jp: jp,
@@ -13835,65 +13842,59 @@ var axioms = {
 	ru: ru,
 	tr: tr,
 	vi: vi,
-	zh: zh$1
+	zh: zh
 };
 
-var es = {
-	fold: {
-		verb: "",
-		noun: "doblez"
-	},
-	valley: "doblez de valle",
-	mountain: "doblez de montaña",
-	inside: "",
-	outside: "",
-	open: "",
-	closed: "",
-	rabbit: "",
-	rabbit2: "",
-	petal: "",
-	squash: "",
-	flip: "dale la vuelta a tu papel"
+var fold = {
+	es: "doblez"
 };
-var en = {
-	fold: {
-		verb: "fold",
-		noun: "crease"
-	},
-	valley: "valley fold",
-	mountain: "mountain fold",
-	inside: "inside reverse fold",
-	outside: "outside reverse fold",
-	open: "open sink",
-	closed: "closed sink",
-	rabbit: "rabbit ear fold",
-	rabbit2: "double rabbit ear fold",
-	petal: "petal fold",
-	squash: "squash fold",
-	flip: "flip over"
+var valley = {
+	es: "doblez de valle",
+	zh: "谷摺"
 };
-var zh = {
-	fold: {
-		verb: "",
-		noun: ""
-	},
-	valley: "谷摺",
-	mountain: "山摺",
-	inside: "內中割摺",
-	outside: "外中割摺",
-	open: "開放式沉壓摺",
-	closed: "封閉式沉壓摺",
-	rabbit: "兔耳摺",
-	rabbit2: "雙兔耳摺",
-	petal: "花瓣摺",
-	blintz: "坐墊基",
-	squash: "壓摺",
-	flip: ""
+var mountain = {
+	es: "doblez de montaña",
+	zh: "山摺"
+};
+var sink = {
+};
+var blintz = {
+	zh: "坐墊基"
+};
+var squash = {
+	zh: "壓摺"
 };
 var folds = {
-	es: es,
-	en: en,
-	zh: zh
+	fold: fold,
+	valley: valley,
+	mountain: mountain,
+	"inside reverse fold": {
+	zh: "內中割摺"
+},
+	"outside reverse fold": {
+	zh: "外中割摺"
+},
+	sink: sink,
+	"open sink": {
+	zh: "開放式沉壓摺"
+},
+	"closed sink": {
+	zh: "封閉式沉壓摺"
+},
+	"rabbit ear": {
+	zh: "兔耳摺"
+},
+	"double rabbit ear": {
+	zh: "雙兔耳摺"
+},
+	"petal fold": {
+	zh: "花瓣摺"
+},
+	blintz: blintz,
+	squash: squash,
+	"flip over": {
+	es: "dale la vuelta a tu papel"
+}
 };
 
 /**
@@ -13921,6 +13922,50 @@ const use = function (library) {
 	}
 	library.linker(this);
 };
+
+/**
+ * @typedef FOLD
+ * @type {object}
+ * @description A Javascript object representation of a FOLD file which follows the FOLD
+ * specification in that it contains any number of the geometry arrays.
+ * @property {number[][]} [vertices_coords] xy or xyz coordinates of the vertices
+ * @property {number[][]} [vertices_vertices] for each vertex, all of its edge-adjacent vertices
+ * @property {number[][]} [edges_vertices] each edge connects two vertex indices
+ * @property {string[]} [edges_assignment] single-character fold assignment of each edge
+ * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
+ * @property {number[][]} [faces_vertices] each face defined by a sequence of vertex indices
+ * @property {number[][]} [faces_edges] each face defined by a sequence of edge indices
+ * @property {number[][]} [faces_faces] for each face, a list of faces which are edge-adjacent neighbors.
+ * @property {FOLD[]} [file_frames] embedded FOLD objects as a linear sequence,
+ * good for storing diagram steps for example.
+ */
+
+/**
+ * @typedef RayLine
+ * @type {object}
+ * @property {number[]} vector - the line's direction vector
+ * @property {number[]} origin - one point that intersects with the line
+ */
+
+/**
+ * @typedef UniqueLine
+ * @type {object}
+ * @description This is a line parameterization which 
+ * @property {number[]} u - the line's normal vector
+ * @property {number} d - the shortest distance from the origin to the line
+ */
+
+/**
+ * @typedef AxiomParams
+ * @type {object}
+ * @description The input to one of the seven axiom calculations. Depending on which axiom,
+ * this will include up to two points and up to two lines, each inside their
+ * respectively named arrays.
+ * @property {RayLine[]} [lines] an array of all lines
+ * @property {number[][]} [points] an array of all points
+ */
+
+const emptyTypeFunc = () => console.log("rabbit ear types");
 
 /**
  * Rabbit Ear (c) Kraft
@@ -13962,17 +14007,7 @@ const STYLE_FLAT = {
 };
 
 /**
- * @typedef EdgesAssignmentIndices
- * @type {object}
- * @property {number[]} b - boundary edge indices
- * @property {number[]} m - mountain edge indices
- * @property {number[]} v - valley edge indices
- * @property {number[]} f - flat edge indices
- * @property {number[]} u - unassigned edge indices
- */
-
-/**
- * @returns {EdgesAssignmentIndices} an object with 5 keys, each value is an array 
+ * @returns {object} an object with 5 keys, each value is an array 
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
@@ -15303,7 +15338,7 @@ function viewBox$1 () {
  * SVG (c) Kraft
  */
 
-const cdata = (textContent) => (new SVGWindow().DOMParser())
+const cdata = (textContent) => (new (SVGWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(`${textContent}`);
 
@@ -15386,7 +15421,7 @@ const filterWhitespaceNodes = (node) => {
  * parse and checkParseError go together. 
  * checkParseError needs to be called to pull out the .documentElement
  */
-const parse = string => (new SVGWindow().DOMParser())
+const parse = string => (new (SVGWindow()).DOMParser())
 	.parseFromString(string, "text/xml");
 
 const checkParseError = xml => {
@@ -15555,7 +15590,7 @@ const getWindowStylesheets = function () {
 };
 
 const downloadInBrowser = function (filename, contentsAsString) {
-	const blob = new SVGWindow().Blob([contentsAsString], { type: "text/plain" });
+	const blob = new (SVGWindow()).Blob([contentsAsString], { type: "text/plain" });
 	const a = SVGWindow().document.createElement("a");
 	a.setAttribute("href", SVGWindow().URL.createObjectURL(blob));
 	a.setAttribute("download", filename);
@@ -15576,7 +15611,7 @@ const save = function (svg, options) {
 		svg.appendChild(styleContainer);
 	}
 	// convert the SVG to a string and format it with good indentation
-	const source = (new SVGWindow().XMLSerializer()).serializeToString(svg);
+	const source = (new (SVGWindow()).XMLSerializer()).serializeToString(svg);
 	const formattedString = vkXML(source);
 	//
 	if (options.download && isBrowser && !isNode) {
@@ -17319,6 +17354,7 @@ var webgl = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
+emptyTypeFunc();
 
 const ear = Object.assign(root, ObjectConstructors, {
 	math: math.core,
