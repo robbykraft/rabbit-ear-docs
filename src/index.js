@@ -3,8 +3,8 @@ const { exec } = require("child_process");
 const jsdoc2md = require("jsdoc-to-markdown");
 const ear = require("rabbit-ear");
 const makeObjectTree = require("./make-object-tree");
-const makeMarkdownFiles = require("./make-markdown-files");
-const makeHTMLFiles = require("./make-html-files");
+const makeMarkdownFiles = require("./markdown/index");
+const makeHTMLFiles = require("./html/index");
 
 /**
  * clear tmp/ folder only
@@ -139,11 +139,15 @@ const buildDocs = (jsdocs) => {
 	fs.writeFileSync(`./tmp/tree-rabbit-ear.json`, JSON.stringify(rabbitearTree, null, 2));
 	fs.writeFileSync(`./tmp/tree-errors.json`, JSON.stringify(errorsTree, null, 2));
 	fs.writeFileSync(`./tmp/tree-types.json`, JSON.stringify(typesTree, null, 2));
+	const customTypes = typesTree.staticChildren
+		? typesTree.staticChildren.map(el => el.name)
+		: [];
+	console.log("customTypes", customTypes);
 	// build docs. first markdown, then convert that into HTML
 	// console.log(JSON.stringify(makeTypesTree(filtered)));
 	// const topLevelTrees = [rabbitearTree, errorsTree()];
 	const topLevelTrees = [rabbitearTree, errorsTree, typesTree];
-	makeMarkdownFiles(docsEntries, topLevelTrees);
+	makeMarkdownFiles(docsEntries, topLevelTrees, customTypes);
 	makeHTMLFiles(topLevelTrees);
 	// these template files are copied over to the build folder
 	const copyFileTypes = [".css", ".svg"];

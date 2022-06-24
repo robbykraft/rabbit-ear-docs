@@ -50,7 +50,8 @@ pre code {
 blockquote { font-style: italic; }
 
 code.language-text,
-code.language-json {
+code.language-json,
+code.language-typescript {
 	text-align: left;
 	display: block;
 }
@@ -122,8 +123,9 @@ ul .active { display: block; }
 p, li { line-height: 1.25rem; }
 code { line-height: 2.5rem; }
 code.language-text,
-code.language-json {
-	line-height: 1rem;
+code.language-json,
+code.language-typescript {
+	line-height: 1.1rem;
 }
 code { padding: 0.5rem; }
 .body blockquote > * {

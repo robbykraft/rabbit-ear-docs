@@ -66,6 +66,23 @@ blockquote > * {
 .body a:active { color: var(--darkmode-yellow); }
 .body a:hover { color: var(--darkmode-yellow); }
 
+.body a:hover { text-decoration: none; }
+.body p a:hover { text-decoration: underline; }
+
+.body a code {
+	color: #ad6;
+	/*background-color: var(--darkmode-purple-dark);*/
+	border: 1px solid transparent;
+/*	transition: color 0.15s ease-in-out,
+		border-color 0.15s ease-in-out,
+		background-color 0.15s ease-in-out;*/
+}
+.body a:hover code {
+	color: var(--darkmode-gray-11);
+	background-color: var(--darkmode-gray-2);
+	/*border: 1px solid var(--darkmode-yellow);*/
+}
+
 .caret:hover::before {
 	color: var(--darkmode-yellow);
 }

@@ -3,6 +3,9 @@ const xmldom = require("@xmldom/xmldom");
 
 ear.window = xmldom;
 
+/**
+ * @param {any} obj pass in an object
+ */
 const getPrototypeChain = (obj, chain = []) => {
 	if (obj == null) { return chain; }
 	const proto = Object.getPrototypeOf(obj);
@@ -10,7 +13,10 @@ const getPrototypeChain = (obj, chain = []) => {
 		? chain
 		: getPrototypeChain(proto, [...chain, proto]);
 };
-
+/**
+ * @param {any} obj pass in an object's prototype, not an object: Object.getPrototypeOf(myobj)
+ * then this will match the same sequence given from getPrototypeChain
+ */
 const getPrototypeNameChain = (obj, chain = []) => {
 	if (obj == null || obj.constructor == null) { return chain; }
 	const name = obj.constructor.name
@@ -62,7 +68,6 @@ const isUniquePrototype = (proto) => proto !== Function.prototype
 	&& proto !== Boolean.prototype
 	&& proto !== Element.prototype
 	&& proto !== ElementParentPrototype;
-
 
 const containsUniquePrototype = (protos = []) => protos
 	.map(p => isUniquePrototype(p))
@@ -168,31 +173,35 @@ const getChildren = (tree, depth = 0) => {
 		const staticPrototypeChain = getPrototypeChain(tree[key]);
 		if (staticPrototypeChain) { res.staticPrototypeChain = staticPrototypeChain; }
 
-		// if (staticType === "Function") {
-		// 	try {
-		// 		if (hasVisitedAlready(tree[key], depth)) {
-		// 			console.log("already seen this instance constructor", tree[key]);
-		// 			throw "already found. error";
-		// 		}
-		// 		setVisited(tree[key], depth);
-		// 		const instance = tree[key]();
-		// 		res.instanceType = getObjectType(instance);
-		// 		const instancePrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(instance));
-		// 		if (instancePrototypeNameChain) { res.instancePrototypeNameChain = instancePrototypeNameChain; }
-		// 		const instancePrototypeChain = getPrototypeChain(instance);
-		// 		instancePrototypeChain.map(proto => {
-		// 			const match = prototypes.map(p => p === proto).reduce((a, b) => a || b, false);
-		// 			if (!match) { prototypes.push(proto); }
-		// 		});
-		// 		if (instancePrototypeChain) { res.instancePrototypeChain = instancePrototypeChain; }
-		// 		// finally, we get the children, because this could potentially throw an error
-		// 		const instanceChildren = getChildren(instance, depth+1);
-		// 		if (instanceChildren.length) { res.instanceChildren = instanceChildren; }
-		// 	} catch(error) {
-		// 		catchCount++;
-		// 		catchFnNames.push(key);
-		// 	}
-		// }
+		if (staticType === "Function") {
+			try {
+				if (hasVisitedAlready(tree[key], depth)) {
+					console.log("already seen this instance constructor", tree[key]);
+					throw "already found. error";
+				}
+				setVisited(tree[key], depth);
+				const instance = tree[key]();
+				res.instanceType = getObjectType(instance);
+				const instancePrototypeChain = getPrototypeChain(instance);
+				const instancePrototypeNameChain = getPrototypeNameChain(Object.getPrototypeOf(instance));
+				instancePrototypeChain.map(proto => {
+					const match = prototypes.map(p => p === proto).reduce((a, b) => a || b, false);
+					if (!match) { prototypes.push(proto); }
+				});
+				if (containsUniquePrototype(instancePrototypeChain)) {
+				// if (instancePrototypeChain) {
+					res.instancePrototypeChain = instancePrototypeChain;
+					res.instancePrototypeNameChain = instancePrototypeNameChain;
+				}
+				// begin recursion!
+				// finally, we get the children, because this could potentially throw an error
+				// const instanceChildren = getChildren(instance, depth+1);
+				// if (instanceChildren.length) { res.instanceChildren = instanceChildren; }
+			} catch(error) {
+				catchCount++;
+				catchFnNames.push(key);
+			}
+		}
 		return res;
 	});
 };

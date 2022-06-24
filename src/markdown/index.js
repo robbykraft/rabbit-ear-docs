@@ -1,19 +1,15 @@
 const fs = require("fs");
 const ear = require("rabbit-ear");
-const findMatch = require("./find-match");
-const {
-	makeMarkdownConstant,
-	makeMarkdownObject,
-	makeMarkdownFunction,
-} = require("./json-to-markdown");
-
+const findMatch = require("../find-match");
 const {
 	makeParamsSection,
 	makeReturnSection,
-	makeTypedefProperties,
+	makeExamplesSection,
+	makeTypedefDefinition,
 	makeConstantDefinition,
 	makeFunctionDefinition,
-} = require("./markdown-methods");
+	makeExamplesDefinition,
+} = require("./methods");
 
 const tsCodeBlock = str => `\`\`\`typescript
 ${str}
@@ -48,9 +44,10 @@ const makeDebugSection = (tree) => {
 	return `\`\`\`text\n${text}\n\`\`\``;
 };
 
-const makeStaticConstant = (match, tree, path) => {
+const makeStaticConstant = (match, tree, customTypes, path) => {
 	if (!match) { return undefined; }
 	const markdown = [];
+	markdown.push(`### ${tree.key}`);
 	markdown.push(match.description);
 	markdown.push(tsCodeBlock(makeConstantDefinition(match, tree, path)));
 	markdown.push("value");
@@ -63,12 +60,13 @@ const makeStaticConstant = (match, tree, path) => {
 			default: markdown.push(tsCodeBlock("undefined type for " + match.meta.code.type)); break;
 		}
 	}
-	return markdown.join("\n\n");
+	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeStaticSimpleObject = (match, tree, path) => {
+const makeStaticSimpleObject = (match, tree, customTypes, path) => {
 	if (!match) { return undefined; }
 	const markdown = [];
+	markdown.push(`### ${tree.key}`);
 	markdown.push(match.description);
 	const value = getLiteralValue(tree.key, path);
 	const simpleString = JSON.stringify(value);
@@ -76,58 +74,74 @@ const makeStaticSimpleObject = (match, tree, path) => {
 	markdown.push(tsCodeBlock(makeConstantDefinition(match, tree, path)));
 	markdown.push("value");
 	markdown.push(jsonCodeBlock(string));
-	return markdown.join("\n\n");
+	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeStaticContainerObject = (match, tree, path) => {
+const makeStaticContainerObject = (match, tree, customTypes, path) => {
 	if (!match) { return undefined; }
 	const markdown = [];
+	markdown.push(`### ${tree.key}`);
 	markdown.push(match.description);
 	markdown.push(tsCodeBlock([...path, tree.key].join(".")));
-	return markdown.join("\n\n");
+	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeStaticObject = (match, tree, path) => tree.simpleObject
-	? makeStaticSimpleObject(match, tree, path)
-	: makeStaticContainerObject(match, tree, path);
+const makeStaticObject = (match, tree, customTypes, path) => tree.simpleObject
+	? makeStaticSimpleObject(match, tree, customTypes, path)
+	: makeStaticContainerObject(match, tree, customTypes, path);
 
-const makeStaticFunction = (match, tree, path) => {
+const makeStaticFunction = (match, tree, customTypes, path) => {
 	if (!match) { return undefined; }
+	const instancePrototypes = tree.instancePrototypeNameChain
+		? tsCodeBlock("prototype: " + tree.instancePrototypeNameChain
+			.map(a => a.toLowerCase()).join(" → "))
+		: undefined
+
 	const markdown = [];
+	markdown.push(`### ${tree.key}`);
+	markdown.push(instancePrototypes);
 	markdown.push(match.description);
-	markdown.push(tsCodeBlock(makeFunctionDefinition(match, tree, path)));
-	markdown.push(makeParamsSection(match));
-	markdown.push(makeReturnSection(match));
+	markdown.push(tsCodeBlock(makeFunctionDefinition(match, tree, customTypes, path)));
+	markdown.push(makeParamsSection(match, customTypes));
+	markdown.push(makeReturnSection(match, customTypes));
+	markdown.push(makeExamplesSection(match));
 	// staticPrototypeNameChain: [ 'Number', 'Object' ],
-	return markdown.join("\n\n");
+	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeTypedef = (match, tree, path) => {
+const makeTypedef = (match, tree, customTypes, path) => {
 	const markdown = [];
+	// console.log(tree);
+	const typeName = tree.type && tree.type.names && tree.type.names.length
+		? `\`${tree.type.names.join(" ")}\``
+		: undefined;
+	markdown.push(`### ${tree.key}`);
+	markdown.push(typeName);
 	markdown.push(tree.description);
-	markdown.push(makeTypedefProperties(tree));
-	return markdown.join("\n\n");
+	markdown.push(makeTypedefDefinition(tree, customTypes));
+	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeStaticEntry = (docsEntries, tree, path) => {
+const makeStaticEntry = (docsEntries, tree, customTypes, path) => {
 	const match = findMatch(docsEntries, tree, path);
-	const markdown = [`### ${tree.key}`];
+	const markdown = [];
+	// const markdown = [`### ${tree.key}`];
 	if (!match) { return markdown.join("\n\n"); }
 	switch (tree.staticType) {
 		case "Boolean":
 		case "Number":
 		case "String":
-		case "Array": markdown.push(makeStaticConstant(match, tree, path)); break;
-		case "Object": markdown.push(makeStaticObject(match, tree, path)); break;
-		case "Function": markdown.push(makeStaticFunction(match, tree, path)); break;
-		case "undefined": markdown.push("todo: undefined static type"); break;
-		case "typedef": markdown.push(makeTypedef(match, tree, path)); break;
-		default: markdown.push("TODO default (unknown) static type"); break;
+		case "Array": markdown.push(makeStaticConstant(match, tree, customTypes, path)); break;
+		case "Object": markdown.push(makeStaticObject(match, tree, customTypes, path)); break;
+		case "Function": markdown.push(makeStaticFunction(match, tree, customTypes, path)); break;
+		case "undefined": markdown.push(`### ${tree.key}`, "todo: undefined static type"); break;
+		case "typedef": markdown.push(makeTypedef(match, tree, customTypes, path)); break;
+		default: markdown.push(`### ${tree.key}`, "TODO default (unknown) static type"); break;
 	}
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeInstancePageSection = (docsEntries, tree, path) => {
+const makeInstancePageSection = (docsEntries, tree, customTypes, path) => {
 	const matchStatic = findMatch(docsEntries, tree, path);
 	const matchInstance = matchStatic; //findMatch(docsEntries, tree, path);
 	const markdown = [];
@@ -136,10 +150,10 @@ const makeInstancePageSection = (docsEntries, tree, path) => {
 		case "Boolean": markdown.push("TODO Boolean"); break;
 		case "Number": markdown.push("TODO Number"); break;
 		case "String": markdown.push("TODO String"); break;
-		case "Object": markdown.push(makeStaticObject(matchStatic, tree, path)); break;
+		case "Object": markdown.push(makeStaticObject(matchStatic, tree, customTypes, path)); break;
 		case "Array": markdown.push("TODO Array"); break;
-		case "Function": markdown.push(makeStaticFunction(matchStatic, tree, path)); break;
-		case "undefined": markdown.push(makeStaticContainerObject(matchInstance, tree, path)); break;
+		case "Function": markdown.push(makeStaticFunction(matchStatic, tree, customTypes, path)); break;
+		case "undefined": markdown.push(makeStaticContainerObject(matchInstance, tree, customTypes, path)); break;
 		case "typedef": markdown.push("todo: instance typedef"); break;
 		default: markdown.push("TODO default (unknown) instance type"); break;
 	}
@@ -147,13 +161,13 @@ const makeInstancePageSection = (docsEntries, tree, path) => {
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeStaticPageSection = (docsEntries, tree, path) => {
+const makeStaticPageSection = (docsEntries, tree, customTypes, path) => {
 	const match = findMatch(docsEntries, tree, path);
 	// console.log("Found match", tree.key, match);
 	const markdown = ["## static properties/methods"];
 	// tree.staticChildren.forEach(child => console.log(child));
 	markdown.push(...tree.staticChildren
-		.map(child => makeStaticEntry(docsEntries, child, path)));
+		.map(child => makeStaticEntry(docsEntries, child, customTypes, path)));
 
 	// if (match && match.kind === "function") {
 	// 	markdown.push(match.description);
@@ -163,7 +177,7 @@ const makeStaticPageSection = (docsEntries, tree, path) => {
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
-const makeMarkdownFile = (docsEntries, tree, path = []) => {
+const makeMarkdownFile = (docsEntries, tree, customTypes, path = []) => {
 	// console.log("building", tree.key);
 	const pathString = path.join(".");
 	// const mdTitle = `# ${pathString}`;
@@ -171,18 +185,19 @@ const makeMarkdownFile = (docsEntries, tree, path = []) => {
 	// const staticPrototypes = tree.staticType
 	// 	? tsCodeBlock(`${pathString}:${tree.staticType.toLowerCase()}`)
 	// 	: tsCodeBlock(pathString)
-	const instancePrototypes = tree.instancePrototypeNameChain
-		? tsCodeBlock("prototype: " + tree.instancePrototypeNameChain
-			.map(a => a.toLowerCase()).join(" → "))
-		: undefined
+	// console.log("proto", tree.instancePrototypeNameChain);
+	// const instancePrototypes = tree.instancePrototypeNameChain
+	// 	? tsCodeBlock("prototype: " + tree.instancePrototypeNameChain
+	// 		.map(a => a.toLowerCase()).join(" → "))
+	// 	: undefined
 
 	const markdown = [];
 	// markdown.push(makeDebugSection(tree));
 	markdown.push(mdTitle);
-	markdown.push(instancePrototypes);
-	markdown.push(makeInstancePageSection(docsEntries, tree, path.slice(0, -1)));
+	// markdown.push(instancePrototypes);
+	markdown.push(makeInstancePageSection(docsEntries, tree, customTypes, path.slice(0, -1)));
 	if (tree.staticChildren && tree.staticChildren.length) {
-		markdown.push(makeStaticPageSection(docsEntries, tree, path));
+		markdown.push(makeStaticPageSection(docsEntries, tree, customTypes, path));
 	}
 
 	// debug section, the matched jsdocs entries
@@ -195,7 +210,7 @@ const makeMarkdownFile = (docsEntries, tree, path = []) => {
 /**
  * recursive method to iterate through tree's children, writing each file along the way
  */
-const makeAllMarkdownFiles = (docsEntries, tree, path = []) => {
+const makeAllMarkdownFiles = (docsEntries, tree, customTypes = [], path = []) => {
 	// const hasChildren = (tree.staticChildren || tree.instanceChildren) && !tree.simpleObject;
 	// if (!hasChildren) { return; }
 	if (!tree.hasOwnPage) { return; }
@@ -205,12 +220,12 @@ const makeAllMarkdownFiles = (docsEntries, tree, path = []) => {
 	// let shouldWriteFile = false;
 	const thisPath = [...path, tree.key];
 	const thisPathString = thisPath.join(".");
-	const markdown = makeMarkdownFile(docsEntries, tree, thisPath);
+	const markdown = makeMarkdownFile(docsEntries, tree, customTypes, thisPath);
 	fs.writeFileSync(`./tmp/${thisPathString}.md`, markdown);
-	children.forEach(el => makeAllMarkdownFiles(docsEntries, el, [...path, tree.key]));
+	children.forEach(el => makeAllMarkdownFiles(docsEntries, el, customTypes, [...path, tree.key]));
 };
 
-const makeAllTrees = (docsEntries, topLevelTrees, path = []) => topLevelTrees
-	.forEach(tree => makeAllMarkdownFiles(docsEntries, tree, path));
+const makeAllTrees = (docsEntries, topLevelTrees, customTypes = []) => topLevelTrees
+	.forEach(tree => makeAllMarkdownFiles(docsEntries, tree, customTypes));
 
 module.exports = makeAllTrees;

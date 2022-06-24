@@ -1,7 +1,7 @@
 const fs = require("fs");
 const showdown = require('showdown');
 const showdownHighlight = require('showdown-highlight');
-const makeTreeHTMLList = require("./make-html-tree-list");
+const makeSidebarList = require("./sidebar-list");
 
 const indexHTML = `<!DOCTYPE html>
 <html>
@@ -13,7 +13,7 @@ window.location.href = "/docs/ear.html"
 
 const makeSidebar = (topLevelTrees, path) => `<div class="sidebar">
 	<h3>Rabbit Ear</h3>
-	${makeTreeHTMLList(topLevelTrees, path)}
+	${makeSidebarList(topLevelTrees, path)}
 </div>`;
 
 const makeHTMLFiles = (topLevelTrees) => {
