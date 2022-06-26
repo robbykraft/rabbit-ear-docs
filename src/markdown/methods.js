@@ -1,3 +1,9 @@
+const buildSourceURL = (repo, path, lineno) => {
+	return `https://github.com/robbykraft/${repo}/blob/master/${path}#L${lineno}`;
+};
+
+const alphabet = "abcdefghijklmnopqrstuvwxyz";
+
 const formatType = (str) => {
 	if (str.substr(0, 6) === "Array.") {
 		const rest = str.substr(6);
@@ -89,6 +95,29 @@ const makeTypeDescriptionOrderedList = (arr, customTypes) => arr
 	.map((str, i) => `${i+1}. ${str}`)
 	.join("\n");
 
+const makeCodeSourceLink = (data) => {
+	if (!data.tags) { return undefined; }
+	const linkcode = data.tags
+		.filter(el => el.title === "linkcode")
+		.shift();
+	if (!linkcode) { return undefined; }
+	const parts = linkcode.value.split(" ");
+	const filename = parts[1].split("/").pop();
+	const url = buildSourceURL(...parts);
+	// return `source code: [${filename}](${url})`;
+	return `[${filename}: ${parts[2]}](${url})`;
+};
+// https://github.com/robbykraft/Origami/blob/master/src/graph/fragment.js#L171
+
+	// "tags": [
+	//     {
+	//       "originalTitle": "linkcode",
+	//       "title": "linkcode",
+	//       "text": "Origami src/graph/fragment.js 176",
+	//       "value": "Origami src/graph/fragment.js 176"
+	//     }
+	//   ],
+
 const makeParamsSection = (data, customTypes) => data.params && data.params.length
 	// ? `params\n\n${makeTypeDescriptionOrderedList(data.params, customTypes)}`
 	? [`##### params`, makeTypeDescriptionOrderedList(data.params, customTypes)]
@@ -142,6 +171,7 @@ const makeFunctionDefinition = (data, tree, customTypes, path) => {
 };
 
 module.exports = {
+	makeCodeSourceLink,
 	makeParamsSection,
 	makeReturnSection,
 	makeExamplesSection,

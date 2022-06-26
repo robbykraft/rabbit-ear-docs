@@ -2,6 +2,7 @@ const fs = require("fs");
 const ear = require("rabbit-ear");
 const findMatch = require("../find-match");
 const {
+	makeCodeSourceLink,
 	makeParamsSection,
 	makeReturnSection,
 	makeExamplesSection,
@@ -60,6 +61,7 @@ const makeStaticConstant = (match, tree, customTypes, path) => {
 			default: markdown.push(tsCodeBlock("undefined type for " + match.meta.code.type)); break;
 		}
 	}
+	markdown.push(makeCodeSourceLink(match));
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
@@ -74,6 +76,7 @@ const makeStaticSimpleObject = (match, tree, customTypes, path) => {
 	markdown.push(tsCodeBlock(makeConstantDefinition(match, tree, path)));
 	markdown.push("value");
 	markdown.push(jsonCodeBlock(string));
+	markdown.push(makeCodeSourceLink(match));
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
@@ -96,7 +99,6 @@ const makeStaticFunction = (match, tree, customTypes, path) => {
 		? tsCodeBlock("prototype: " + tree.instancePrototypeNameChain
 			.map(a => a.toLowerCase()).join(" → "))
 		: undefined
-
 	const markdown = [];
 	markdown.push(`### ${tree.key}`);
 	markdown.push(instancePrototypes);
@@ -106,6 +108,7 @@ const makeStaticFunction = (match, tree, customTypes, path) => {
 	markdown.push(makeReturnSection(match, customTypes));
 	markdown.push(makeExamplesSection(match));
 	// staticPrototypeNameChain: [ 'Number', 'Object' ],
+	markdown.push(makeCodeSourceLink(match));
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 
@@ -119,6 +122,7 @@ const makeTypedef = (match, tree, customTypes, path) => {
 	markdown.push(typeName);
 	markdown.push(tree.description);
 	markdown.push(makeTypedefDefinition(tree, customTypes));
+	markdown.push(makeCodeSourceLink(match));
 	return markdown.filter(a => a !== undefined).join("\n\n");
 };
 

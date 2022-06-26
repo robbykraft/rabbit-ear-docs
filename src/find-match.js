@@ -35,7 +35,7 @@ const findMatch = (docsEntries, tree, path, targetProperties) => {
 			.map(el => el.key)
 			.shift();
 	if (keyInDocs === undefined) {
-		console.log(`find-match: no match for ${tree.key}`);
+		// console.log(`find-match: no match for ${tree.key}`);
 		return undefined;
 	}
 	const list = docsEntries[keyInDocs];
@@ -43,6 +43,9 @@ const findMatch = (docsEntries, tree, path, targetProperties) => {
 	if (list.length === 1) { return list[0]; }
 	// there are two or more possible matches. we have to consult the target properties
 	// no properties were offered. just get one of the global ones...
+	if (tree.key === "rect") {
+		console.log("RECT", path, targetProperties);
+	}
 	if (!targetProperties) {
 		const memberLength = list.map(el => el.memberof).filter(a => a !== undefined).length;
 		if (memberLength === 0) {
@@ -59,9 +62,15 @@ const findMatch = (docsEntries, tree, path, targetProperties) => {
 			.sort((a, b) => a.rank - b.rank)
 			.map(el => el.item)
 			.shift();
+		console.log(
+			"best match",
+			[...path, tree.key],
+			list.map(item => ({ rank: matchDepth(item.memberof, [...path, tree.key]) }))
+		);
 		if (bestMatch) {
 			return bestMatch;
 		}
+		// ear.rect, typedef, svg.rect
 		console.log(`find-match: "memberof" info given for ${tree.key}, but no match was found.`);
 		return list[0];
 	}

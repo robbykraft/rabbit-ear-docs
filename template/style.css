@@ -53,7 +53,7 @@ code.language-text,
 code.language-json,
 code.language-typescript {
 	text-align: left;
-	display: block;
+	display: inline-block;
 }
 
 .sidebar {

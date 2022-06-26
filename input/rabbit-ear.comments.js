@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.xx alpha 2022-05-13 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.3 alpha 2022-06-26 (c) Kraft, MIT License */
 
 /**
  * Rabbit Ear (c) Kraft
@@ -92,6 +92,84 @@ const RabbitEarWindow = () => {
  */
 var root = Object.create(null);
 
+/**
+ * @typedef AxiomParams
+ * @type {object}
+ * @description The input to one of the seven axiom calculations. Depending on which axiom,
+ * this will include up to two points and up to two lines, each inside their
+ * respectively named arrays, where the order matters.
+ * @property {RayLine[]} [lines] an array of lines
+ * @property {number[][]} [points] an array of points
+ * @example
+ * {
+ *   points: [[0.8, 0.5], [0.1, 0.15]],
+ *   lines: [{vector: [0,1], origin: [0.5, 0.5]}]
+ * }
+ */
+
+/**
+ * @typedef FOLD
+ * @type {object}
+ * @description A Javascript object representation of a FOLD file which follows the FOLD
+ * specification in that it contains any number of the geometry arrays.
+ * @property {number[][]} [vertices_coords] xy or xyz coordinates of the vertices
+ * @property {number[][]} [vertices_vertices] for each vertex, all of its edge-adjacent vertices
+ * @property {number[][]} [edges_vertices] each edge connects two vertex indices
+ * @property {string[]} [edges_assignment] single-character fold assignment of each edge
+ * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
+ * @property {number[][]} [faces_vertices] each face defined by a sequence of vertex indices
+ * @property {number[][]} [faces_edges] each face defined by a sequence of edge indices
+ * @property {number[][]} [faces_faces] for each face, a list of faces which are edge-adjacent neighbors.
+ * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
+ * a linear sequence like diagram steps for example.
+ * @example
+ * {
+ *   vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
+ *   edges_vertices: [[0,1], [1,2], [2,3], [3,0], [0,2]],
+ *   edges_assignment: ["B", "B", "B", "B", "V"],
+ *   edges_foldAngle: [0, 0, 0, 0, 180],
+ *   faces_vertices: [[0,1,2], [0,2,3]],
+ * }
+ */
+
+
+/**
+ * @typedef BoundingBox
+ * @type {object}
+ * @description An n-dimensional axis-aligned bounding box that ecloses a space.
+ * @property {number[]} min the corner point of the box that is a minima along all axes.
+ * @property {number[]} max the corner point of the box that is a maxima along all axes.
+ * @property {number[]} span the lengths of the box along all dimensions, the difference between the maxima and minima.
+ * @example
+ * {
+ *   min: [-3, -10],
+ *   max: [5, -1],
+ *   span: [8, 9],
+ * }
+ */
+
+
+/**
+ * @typedef RayLine
+ * @type {object}
+ * @description an object with a vector and an origin, representing a line or a ray.
+ * @property {number[]} vector - the line's direction vector
+ * @property {number[]} origin - one point that intersects with the line
+ * @example
+ * {
+ *   vector: [0.0, 1.0],
+ *   origin: [0.5, 0.5]
+ * }
+ */
+
+/**
+ * @typedef UniqueLine
+ * @type {object}
+ * @description This is a line parameterization which 
+ * @property {number[]} u - the line's normal vector
+ * @property {number} d - the shortest distance from the origin to the line
+ */
+
 /* Math (c) Kraft, MIT License */
 /**
  * Math (c) Kraft
@@ -109,6 +187,7 @@ var root = Object.create(null);
  * @description get the type of an object, which includes the custom types in this library.
  * @param {any} any object
  * @returns {string} the type name
+ * @linkcode Math ./src/arguments/typeof.js 17
  */
 const typeOf = function (obj) {
   switch (obj.constructor.name) {
@@ -241,18 +320,22 @@ var resizers = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description this epsilon is used throughout the library
+ * @linkcode Math ./src/core/constants.js 6
  */
 const EPSILON = 1e-6;
 /**
  * @description radians to degrees
+ * @linkcode Math ./src/core/constants.js 11
  */
 const R2D = 180 / Math.PI;
 /**
  * @description degrees to radians
+ * @linkcode Math ./src/core/constants.js 16
  */
 const D2R = Math.PI / 180;
 /**
  * @description pi x 2
+ * @linkcode Math ./src/core/constants.js 21
  */
 const TWO_PI = Math.PI * 2;
 
@@ -280,6 +363,7 @@ const fnTrue = () => true;
  * @description multiply a parameter by itself
  * @param {number} n a number
  * @returns {number} a number
+ * @linkcode Math ./src/arguments/functions.js 18
  */
 const fnSquare = n => n * n;
 /**
@@ -287,12 +371,14 @@ const fnSquare = n => n * n;
  * @param {number} a a number
  * @param {number} b a number
  * @returns {number} a number
+ * @linkcode Math ./src/arguments/functions.js 26
  */
 const fnAdd = (a, b) => a + (b || 0);
 /**
  * @description is an input not undefined? using Javascript's triple equals !==
  * @param {any} a any input
  * @returns {boolean} true if the input is not undefined
+ * @linkcode Math ./src/arguments/functions.js 33
  */
 const fnNotUndefined = a => a !== undefined;
 /**
@@ -300,6 +386,7 @@ const fnNotUndefined = a => a !== undefined;
  * @param {any} a any input
  * @param {any} b any input
  * @returns {boolean} the AND of both inputs
+ * @linkcode Math ./src/arguments/functions.js 41
  */
 const fnAnd = (a, b) => a && b;
 /**
@@ -307,18 +394,21 @@ const fnAnd = (a, b) => a && b;
  * @param {Array} a any array input
  * @param {Array} b any array input
  * @returns {Array} one joined array
+ * @linkcode Math ./src/arguments/functions.js 49
  */
 const fnCat = (a, b) => a.concat(b);
 /**
  * @description convert a 2D vector to an angle in radians
  * @param {number[]} v an input vector
  * @returns {number} the angle in radians
+ * @linkcode Math ./src/arguments/functions.js 56
  */
 const fnVec2Angle = v => Math.atan2(v[1], v[0]);
 /**
  * @description convert an angle in radians to a 2D vector
  * @param {number} a the angle in radians
  * @returns {number[]} a 2D vector
+ * @linkcode Math ./src/arguments/functions.js 63
  */
 const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
 /**
@@ -326,6 +416,7 @@ const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
  * @param {any} a any input
  * @param {any} b any input
  * @returns {boolean} true if the inputs are equal
+ * @linkcode Math ./src/arguments/functions.js 71
  */
 const fnEqual = (a, b) => a === b;
 /**
@@ -333,6 +424,7 @@ const fnEqual = (a, b) => a === b;
  * @param {number} a any number input
  * @param {number} b any number input
  * @returns {boolean} true if the numbers are near each other
+ * @linkcode Math ./src/arguments/functions.js 79
  */
 const fnEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
 /**
@@ -341,10 +433,11 @@ const fnEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
  * @param {number[]} a an array of numbers
  * @param {number[]} b an array of numbers
  * @returns {boolean} true if the vectors are similar within an epsilon
+ * @linkcode Math ./src/arguments/functions.js 88
  */
 const fnEpsilonEqualVectors = (a, b) => {
-  for (let i = 0; i < a.length; i++) {
-    if (!fnEpsilonEqual(a[i], b[i])) { return false; }
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (!fnEpsilonEqual(a[i] || 0, b[i] || 0)) { return false; }
   }
   return true;
 };
@@ -355,31 +448,52 @@ const fnEpsilonEqualVectors = (a, b) => {
  * @description the inclusive test used in intersection algorithms, returns
  * true if the number is positive, including the epsilon between -epsilon and 0.
  * @returns {boolean} -Infinity...{false}...-epsilon...{true}...+Infinity
+ * @linkcode Math ./src/arguments/functions.js 103
  */
 const include = (n, epsilon = EPSILON) => n > -epsilon;
 /**
  * @description the exclusive test used in intersection algorithms, returns
  * true if the number is positive, excluding the epsilon between 0 and +epsilon.
  * @returns {boolean} -Infinity...{false}...+epsilon...{true}...+Infinity
+ * @linkcode Math ./src/arguments/functions.js 110
  */
 const exclude = (n, epsilon = EPSILON) => n > epsilon;
-/** @description the function parameter for an inclusive line */
+/**
+ * @description the function parameter for an inclusive line
+ * @linkcode Math ./src/arguments/functions.js 115
+ */
 const includeL = fnTrue;
-/** @description the function parameter for an exclusive line */
+/**
+ * @description the function parameter for an exclusive line
+ * @linkcode Math ./src/arguments/functions.js 120
+ */
 const excludeL = fnTrue;
-/** @description the function parameter for an inclusive ray */
+/**
+ * @description the function parameter for an inclusive ray
+ * @linkcode Math ./src/arguments/functions.js 125
+ */
 const includeR = include;
-/** @description the function parameter for an exclusive ray */
+/**
+ * @description the function parameter for an exclusive ray
+ * @linkcode Math ./src/arguments/functions.js 130
+ */
 const excludeR = exclude;
-/** @description the function parameter for an inclusive segment */
+/**
+ * @description the function parameter for an inclusive segment
+ * @linkcode Math ./src/arguments/functions.js 135
+ */
 const includeS = (t, e = EPSILON) => t > -e && t < 1 + e;
-/** @description the function parameter for an exclusive segment */
+/**
+ * @description the function parameter for an exclusive segment
+ * @linkcode Math ./src/arguments/functions.js 140
+ */
 const excludeS = (t, e = EPSILON) => t > e && t < 1 - e;
 /**
  * @description These clamp functions process lines/rays/segments intersections.
  * The line method allows all values.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 148
  */
 const lineLimiter = dist => dist;
 /**
@@ -387,6 +501,7 @@ const lineLimiter = dist => dist;
  * The ray method clamps values below -epsilon to be 0.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 156
  */
 const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
 /**
@@ -394,6 +509,7 @@ const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
  * @param {number} t the length along the vector
  * @returns {number} the clamped input value
+ * @linkcode Math ./src/arguments/functions.js 164
  */
 const segmentLimiter = (dist) => {
   if (dist < -EPSILON) { return 0; }
@@ -443,10 +559,12 @@ var Constructors = Object.create(null);
  */
 /**
  * @description the identity matrix for 2x2 matrices
+ * @linkcode Math ./src/core/matrix2.js 6
  */
 const identity2x2 = [1, 0, 0, 1];
 /**
  * @description the identity matrix for 2x3 matrices (zero translation)
+ * @linkcode Math ./src/core/matrix2.js 11
  */
 const identity2x3 = identity2x2.concat(0, 0);
 
@@ -454,6 +572,7 @@ const identity2x3 = identity2x2.concat(0, 0);
  * @param {number[]} vector, in array form
  * @param {number[]} matrix, in array form
  * @returns {number[]} vector, the input vector transformed by the matrix
+ * @linkcode Math ./src/core/matrix2.js 19
  */
 const multiplyMatrix2Vector2 = (matrix, vector) => [
   matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -462,6 +581,7 @@ const multiplyMatrix2Vector2 = (matrix, vector) => [
 /**
  * @param line in point-vector form, matrix
  * @returns transformed line in point-vector form
+ * @linkcode Math ./src/core/matrix2.js 28
  */
 const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
   vector: [
@@ -476,6 +596,7 @@ const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
 /**
  * @param {number[]} matrix, matrix, left/right order matches what you'd see on a page.
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 43
  */
 const multiplyMatrices2 = (m1, m2) => [
   m1[0] * m2[0] + m1[2] * m2[1],
@@ -490,12 +611,14 @@ const multiplyMatrices2 = (m1, m2) => [
  * in the case of 2x3, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/core/matrix2.js 58
  */
 const determinant2 = m => m[0] * m[3] - m[1] * m[2];
 /**
  * @description invert a 2x3 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/core/matrix2.js 65
  */
 const invertMatrix2 = (m) => {
   const det = determinant2(m);
@@ -514,11 +637,13 @@ const invertMatrix2 = (m) => {
 /**
  * @param {number} x, y
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 84
  */
 const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
 /**
  * @param ratio of scale, optional origin homothetic center (0,0 default)
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 90
  */
 const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
   x,
@@ -531,6 +656,7 @@ const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
 /**
  * @param angle of rotation, origin of transformation
  * @returns {number[]} matrix
+ * @linkcode Math ./src/core/matrix2.js 103
  */
 const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
   const cos = Math.cos(angle);
@@ -549,6 +675,7 @@ const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
  * to leave it empty and make a reflection through the origin.
  * @param line in vector-origin form
  * @returns matrix
+ * @linkcode Math ./src/core/matrix2.js 122
  */
 const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
   // the line of reflection passes through origin, runs along vector
@@ -614,6 +741,7 @@ var matrix2 = /*#__PURE__*/Object.freeze({
  * @description compute the magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 32
  */
 const magnitude = v => Math.sqrt(v
   .map(fnSquare)
@@ -622,12 +750,14 @@ const magnitude = v => Math.sqrt(v
  * @description compute the magnitude a 2D vector
  * @param {number[]} v one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 41
  */
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 /**
  * @description compute the square-magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 48
  */
 const magSquared = v => v
   .map(fnSquare)
@@ -636,6 +766,7 @@ const magSquared = v => v
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching the input vector
+ * @linkcode Math ./src/core/algebra.js 57
  */
 const normalize = (v) => {
   const m = magnitude(v);
@@ -645,6 +776,7 @@ const normalize = (v) => {
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 67
  */
 const normalize2 = (v) => {
   const m = magnitude2(v);
@@ -655,6 +787,7 @@ const normalize2 = (v) => {
  * @param {number[]} v one vector, n-dimensions
  * @param {number} s one scalar
  * @returns {number[]} one vector
+ * @linkcode Math ./src/core/algebra.js 78
  */
 const scale = (v, s) => v.map(n => n * s);
 /**
@@ -662,6 +795,7 @@ const scale = (v, s) => v.map(n => n * s);
  * @param {number[]} v one 2D vector
  * @param {number} s one scalar
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 86
  */
 const scale2 = (v, s) => [v[0] * s, v[1] * s];
 /**
@@ -669,6 +803,7 @@ const scale2 = (v, s) => [v[0] * s, v[1] * s];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 94
  */
 const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 /**
@@ -676,6 +811,7 @@ const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 102
  */
 const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
 /**
@@ -683,6 +819,7 @@ const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 110
  */
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 /**
@@ -690,6 +827,7 @@ const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 118
  */
 const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
 /**
@@ -697,6 +835,7 @@ const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 126
  */
 const dot = (v, u) => v
   .map((_, i) => v[i] * u[i])
@@ -706,6 +845,7 @@ const dot = (v, u) => v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 136
  */
 const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
 /**
@@ -713,6 +853,7 @@ const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 144
  */
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 /**
@@ -720,12 +861,14 @@ const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 152
  */
 const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
 /**
  * @description the average of N number of vectors, similar to midpoint, but can accept more than 2 inputs
  * @param {number[]} ...args any number of input vectors
  * @returns {number[]} one vector, dimension matching first parameter
+ * @linkcode Math ./src/core/algebra.js 159
  */
 const average = function () {
   if (arguments.length === 0) { return []; }
@@ -741,6 +884,7 @@ const average = function () {
  * @param {number[]} u one vector, n-dimensions
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {number[]} one vector, dimensions matching first parameter
+ * @linkcode Math ./src/core/algebra.js 175
  */
 const lerp = (v, u, t) => {
   const inv = 1.0 - t;
@@ -751,6 +895,7 @@ const lerp = (v, u, t) => {
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar; the determinant; the magnitude of the vector
+ * @linkcode Math ./src/core/algebra.js 186
  */
 const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
 /**
@@ -758,6 +903,7 @@ const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
+ * @linkcode Math ./src/core/algebra.js 194
  */
 const cross3 = (v, u) => [
   v[1] * u[2] - v[2] * u[1],
@@ -769,6 +915,7 @@ const cross3 = (v, u) => [
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 206
  */
 const distance = (v, u) => Math.sqrt(v
   .map((_, i) => (v[i] - u[i]) ** 2)
@@ -778,6 +925,7 @@ const distance = (v, u) => Math.sqrt(v
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 216
  */
 const distance2 = (v, u) => {
   const p = v[0] - u[0];
@@ -789,6 +937,7 @@ const distance2 = (v, u) => {
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number} one scalar
+ * @linkcode Math ./src/core/algebra.js 228
  */
 const distance3 = (v, u) => {
   const a = v[0] - u[0];
@@ -800,18 +949,21 @@ const distance3 = (v, u) => {
  * @description return a copy of the input vector where each element's sign flipped
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimensions matching input parameter
+ * @linkcode Math ./src/core/algebra.js 240
  */
 const flip = v => v.map(n => -n);
 /**
  * @description return a copy of the input vector rotated 90 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 247
  */
 const rotate90 = v => [-v[1], v[0]];
 /**
  * @description return a copy of the input vector rotated 270 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/algebra.js 254
  */
 const rotate270 = v => [v[1], -v[0]];
 /**
@@ -819,6 +971,7 @@ const rotate270 = v => [v[1], -v[0]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} is the magnitude of the vector smaller than the epsilon?
+ * @linkcode Math ./src/core/algebra.js 262
  */
 const degenerate = (v, epsilon = EPSILON) => v
   .map(n => Math.abs(n))
@@ -829,6 +982,7 @@ const degenerate = (v, epsilon = EPSILON) => v
  * @param {number[]} u one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
+ * @linkcode Math ./src/core/algebra.js 273
  */
 const parallel = (v, u, epsilon = EPSILON) => 1 - Math
   .abs(dot(normalize(v), normalize(u))) < epsilon;
@@ -838,6 +992,7 @@ const parallel = (v, u, epsilon = EPSILON) => 1 - Math
  * @param {number[]} u one 2D vector
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
+ * @linkcode Math ./src/core/algebra.js 283
  */
 const parallel2 = (v, u, epsilon = EPSILON) => Math
   .abs(cross2(v, u)) < epsilon;
@@ -879,16 +1034,19 @@ var algebra = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description the identity matrix for 3x3 matrices
+ * @linkcode Math ./src/core/matrix3.js 14
  */
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 /**
  * @description the identity matrix for 3x4 matrices (zero translation)
+ * @linkcode Math ./src/core/matrix3.js 19
  */
 const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
 /**
  * @description test if a 3x4 matrix is the identity matrix within an epsilon
  * @param {number[]} matrix a 3x4 matrix
  * @returns {boolean} true if the matrix is the identity matrix
+ * @linkcode Math ./src/core/matrix3.js 26
  */
 const isIdentity3x4 = m => identity3x4
   .map((n, i) => Math.abs(n - m[i]) < EPSILON)
@@ -898,6 +1056,7 @@ const isIdentity3x4 = m => identity3x4
  * @param {number[]} matrix one matrix in array form
  * @param {number[]} vector in array form
  * @returns {number[]} the transformed vector
+ * @linkcode Math ./src/core/matrix3.js 36
  */
 const multiplyMatrix3Vector3 = (m, vector) => [
   m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
@@ -910,6 +1069,7 @@ const multiplyMatrix3Vector3 = (m, vector) => [
  * @param {number[]} vector the vector of the line
  * @param {number[]} origin the origin of the line
  * @returns {object} transformed line in point-vector form
+ * @linkcode Math ./src/core/matrix3.js 49
  */
 const multiplyMatrix3Line3 = (m, vector, origin) => ({
   vector: [
@@ -928,6 +1088,7 @@ const multiplyMatrix3Line3 = (m, vector, origin) => ({
  * @param {number[]} matrix the first matrix
  * @param {number[]} matrix the second matrix
  * @returns {number[]} one matrix, the product of the two
+ * @linkcode Math ./src/core/matrix3.js 68
  */
 const multiplyMatrices3 = (m1, m2) => [
   m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
@@ -948,6 +1109,7 @@ const multiplyMatrices3 = (m1, m2) => [
  * in the case of 3x4, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/core/matrix3.js 89
  */
 const determinant3 = m => (
     m[0] * m[4] * m[8]
@@ -961,6 +1123,7 @@ const determinant3 = m => (
  * @description invert a 3x4 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/core/matrix3.js 103
  */
 const invertMatrix3 = (m) => {
   const det = determinant3(m);
@@ -994,6 +1157,7 @@ const invertMatrix3 = (m) => {
  * @param {number} [y=0] the y component of the translation
  * @param {number} [z=0] the z component of the translation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 137
  */
 const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
 
@@ -1015,6 +1179,7 @@ const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 159
  */
 const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 1, 2, true);
 /**
@@ -1022,6 +1187,7 @@ const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 167
  */
 const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 2, false);
 /**
@@ -1029,6 +1195,7 @@ const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 175
  */
 const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 1, true);
 /**
@@ -1038,6 +1205,7 @@ const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number[]} [vector=[0,0,1]] the axis of rotation
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 185
  */
 const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
   const pos = [0, 1, 2].map(i => origin[i] || 0);
@@ -1058,6 +1226,7 @@ const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
  * @param {number} [scale=1] the uniform scale value
  * @param {number[]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 231
  */
 const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
   scale,
@@ -1079,6 +1248,7 @@ const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
+ * @linkcode Math ./src/core/matrix3.js 253
  */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
   // the line of reflection passes through origin, runs along vector
@@ -1142,7 +1312,6 @@ const vectorOriginForm = (vector, origin) => ({
   vector: vector || [],
   origin: origin || []
 });
-
 /**
  * search function arguments for a valid n-dimensional vector
  * can handle object-vector representation {x:, y:}
@@ -1209,14 +1378,6 @@ const getLine$1 = function () {
 };
 
 const getRay = getLine$1;
-
-// export const get_line_ud = function () {
-//   if (arguments.length === 0) { return { u:[], d:0 }; }
-//   if (arguments[0] instanceof Constructors.line) { return args[0]; }
-//   if (arguments[0].constructor === Object && arguments[0].u !== undefined) {
-//     return { u: arguments[0].u || [], d: arguments[0].d || 0 };
-//   }
-// };
 
 const getRectParams = (x = 0, y = 0, width = 0, height = 0) => ({
   x, y, width, height
@@ -1444,6 +1605,7 @@ var equal = /*#__PURE__*/Object.freeze({
  * @param {number[][]} points array of points (which are arrays of numbers)
  * @param {number[]} vector one 2D vector
  * @returns {number[][]} the same points, sorted.
+ * @linkcode Math ./src/core/sort.js 9
  */
 const sortPointsAlongVector2 = (points, vector) => points
 	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
@@ -1465,6 +1627,7 @@ var sort$1 = /*#__PURE__*/Object.freeze({
  * @param {function} compare_func a function which takes two items (which match
  * the type of the first parameter), execution of this function should return a scalar.
  * @returns {number[]} the index from the set which minimizes the compare function
+ * @linkcode Math ./src/core/nearest.js 27
  */
 const smallestComparisonSearch = (obj, array, compare_func) => {
   const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
@@ -1483,6 +1646,7 @@ const smallestComparisonSearch = (obj, array, compare_func) => {
  * @param {number[]} point the 2D point to test nearness to
  * @param {number[][]} array_of_points an array of 2D points to test against
  * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/core/nearest.js 46
  */
 const nearestPoint2 = (point, array_of_points) => {
   // todo speed up with partitioning
@@ -1494,6 +1658,7 @@ const nearestPoint2 = (point, array_of_points) => {
  * @param {number[]} point the point to test nearness to
  * @param {number[][]} array_of_points an array of points to test against
  * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/core/nearest.js 58
  */
 const nearestPoint = (point, array_of_points) => {
   // todo speed up with partitioning
@@ -1509,6 +1674,7 @@ const nearestPoint = (point, array_of_points) => {
  * for segments, greater than 0 for rays, or unbounded for lines.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 74
  */
 const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
   origin = resize(vector.length, origin);
@@ -1527,6 +1693,7 @@ const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILO
  * @param {number[][]} polygon an array of points (which are arrays of numbers)
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 93
  */
 const nearestPointOnPolygon = (polygon, point) => {
   const v = polygon
@@ -1544,6 +1711,7 @@ const nearestPointOnPolygon = (polygon, point) => {
  * @param {number[]} origin the origin of the circle as an array of numbers.
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
+ * @linkcode Math ./src/core/nearest.js 111
  */
 const nearestPointOnCircle = (radius, origin, point) => add(
   origin, scale(normalize(subtract(point, origin)), radius)
@@ -1572,6 +1740,7 @@ var nearest$1 = /*#__PURE__*/Object.freeze({
  * @param {number} floor angle in radians, lower bound
  * @param {number} ceiling angle in radians, upper bound
  * @returns {boolean} is the angle between floor and ceiling
+ * @linkcode Math ./src/core/radial.js 37
  */
 const isCounterClockwiseBetween = (angle, floor, ceiling) => {
   while (ceiling < floor) { ceiling += TWO_PI; }
@@ -1585,6 +1754,7 @@ const isCounterClockwiseBetween = (angle, floor, ceiling) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians
+ * @linkcode Math ./src/core/radial.js 51
  */
 const clockwiseAngleRadians = (a, b) => {
   // this is on average 50 to 100 times faster than clockwiseAngle2
@@ -1603,6 +1773,7 @@ const clockwiseAngleRadians = (a, b) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 70
  */
 const counterClockwiseAngleRadians = (a, b) => {
   // this is on average 50 to 100 times faster than counterClockwiseAngle2
@@ -1621,6 +1792,7 @@ const counterClockwiseAngleRadians = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 89
  */
 const clockwiseAngle2 = (a, b) => {
   const dotProduct = b[0] * a[0] + b[1] * a[1];
@@ -1635,6 +1807,7 @@ const clockwiseAngle2 = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/core/radial.js 104
  */
 const counterClockwiseAngle2 = (a, b) => {
   const dotProduct = a[0] * b[0] + a[1] * b[1];
@@ -1658,6 +1831,7 @@ const counterClockwiseAngle2 = (a, b) => {
  * @param {number[]} a one 2D vector
  * @param {number[]} b one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/radial.js 128
  */
 const clockwiseBisect2 = (a, b) => fnToVec2(
   fnVec2Angle(a) - clockwiseAngle2(a, b) / 2
@@ -1667,6 +1841,7 @@ const clockwiseBisect2 = (a, b) => fnToVec2(
  * @param {number[]} a one 2D vector
  * @param {number[]} b one 2D vector
  * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/core/radial.js 138
  */
 const counterClockwiseBisect2 = (a, b) => fnToVec2(
   fnVec2Angle(a) + counterClockwiseAngle2(a, b) / 2
@@ -1677,6 +1852,7 @@ const counterClockwiseBisect2 = (a, b) => fnToVec2(
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/core/radial.js 149
  */
 const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
   const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
@@ -1689,6 +1865,7 @@ const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/core/radial.js 162
  */
 const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
   const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
@@ -1701,6 +1878,7 @@ const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/core/radial.js 175
  */
 const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
   const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -1714,6 +1892,7 @@ const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/core/radial.js 189
  */
 const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
   const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -1730,6 +1909,7 @@ const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
  * @param {number[]} originB the origin of the first line, as an array of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
  * @returns {object[]} an array of objects with "vector" and "origin" keys defining a line
+ * @linkcode Math ./src/core/radial.js 206
  */
 const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
   const determinant = cross2(vectorA, vectorB);
@@ -1759,12 +1939,13 @@ const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => 
  * but this chooses the first element as the first element
  * and sort everything else counter-clockwise around it.
  *
- * @param {number[]} args array of angles in radians
+ * @param {number[]|...number} args array or sequence of angles in radians
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/core/radial.js 239
  */
 const counterClockwiseOrderRadians = function () {
-  const radians = flattenArrays(arguments);
+  const radians = Array.from(arguments).flat();
   const counter_clockwise = radians
     .map((_, i) => i)
     .sort((a, b) => radians[a] - radians[b]);
@@ -1778,6 +1959,7 @@ const counterClockwiseOrderRadians = function () {
  * @param {number[][]} args array of vectors (which are arrays of numbers)
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/core/radial.js 256
  */
 const counterClockwiseOrder2 = function () {
   return counterClockwiseOrderRadians(
@@ -1787,11 +1969,12 @@ const counterClockwiseOrder2 = function () {
 /**
  * @description given an array of angles, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[]} args array of angles in radians
+ * @param {number[]|...number} args array or sequence of angles in radians
  * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/core/radial.js 268
  */
 const counterClockwiseSectorsRadians = function () {
-  const radians = flattenArrays(arguments);
+  const radians = Array.from(arguments).flat();
   const ordered = counterClockwiseOrderRadians(radians)
     .map(i => radians[i]);
   return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
@@ -1802,6 +1985,7 @@ const counterClockwiseSectorsRadians = function () {
  * consecutive parameters. if radially unsorted, this will sort them.
  * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
  * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/core/radial.js 282
  */
 const counterClockwiseSectors2 = function () {
   return counterClockwiseSectorsRadians(
@@ -1881,6 +2065,7 @@ const overlapLinePoint = (vector, origin, point, func = excludeL, epsilon = EPSI
  * @param {function} [bFunction=includeL] second line's boolean test normalized value lies collinear
  * @param {number} [epsilon=1e-6] optional epsilon
  * @returns {number[]|undefined} one 2D point or undefined
+ * @linkcode Math ./src/intersection/intersect-line-line.js 27
 */
 const intersectLineLine = (
   aVector, aOrigin,
@@ -1917,6 +2102,7 @@ const intersectLineLine = (
  * @returns {circle} one circle with keys "radius" (number) and "origin" (number[])
  * @example
  * var centroid = polygon.centroid()
+ * @linkcode Math ./src/core/geometry.js 44
  */
 const circumcircle = function (a, b, c) {
   const A = b[0] - a[0];
@@ -1950,6 +2136,7 @@ const circumcircle = function (a, b, c) {
  * @returns {number} the area of the polygon
  * @example
  * var area = polygon.signedArea()
+ * @linkcode Math ./src/core/geometry.js 78
  */
 const signedArea = points => 0.5 * points
   .map((el, i, arr) => {
@@ -1962,6 +2149,7 @@ const signedArea = points => 0.5 * points
  * @returns {number[]} one 2D point as an array of numbers
  * @example
  * var centroid = polygon.centroid()
+ * @linkcode Math ./src/core/geometry.js 91
  */
 const centroid = (points) => {
   const sixthArea = 1 / (6 * signedArea(points));
@@ -1980,6 +2168,7 @@ const centroid = (points) => {
  * @param {number[][]} points an array of unsorted points, in any dimension
  * @param {number} [padding=0] optionally add padding around the box
  * @returns {BoundingBox} an object where "min" and "max" are two points and "span" is the lengths
+ * @linkcode Math ./src/core/geometry.js 110
  */
 const boundingBox = (points, padding = 0) => {
   const min = Array(points[0].length).fill(Infinity);
@@ -2012,6 +2201,7 @@ const anglesToVecs = (angles, radius) => angles
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 143
  */
 const makePolygonCircumradius = (sides = 3, radius = 1) =>
   anglesToVecs(angleArray(sides), radius);
@@ -2021,6 +2211,7 @@ const makePolygonCircumradius = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 153
  */
 const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
   const halfwedge = Math.PI / sides;
@@ -2033,6 +2224,7 @@ const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 166
  */
 const makePolygonInradius = (sides = 3, radius = 1) => 
   makePolygonCircumradius(sides, radius / Math.cos(Math.PI / sides));
@@ -2042,6 +2234,7 @@ const makePolygonInradius = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 176
  */
 const makePolygonInradiusSide = (sides = 3, radius = 1) =>
   makePolygonCircumradiusSide(sides, radius / Math.cos(Math.PI / sides));
@@ -2051,6 +2244,7 @@ const makePolygonInradiusSide = (sides = 3, radius = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 186
  */
 const makePolygonSideLength = (sides = 3, length = 1) =>
   makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides));
@@ -2060,6 +2254,7 @@ const makePolygonSideLength = (sides = 3, length = 1) =>
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/core/geometry.js 196
  */
 const makePolygonSideLengthSide = (sides = 3, length = 1) =>
   makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides));
@@ -2068,6 +2263,7 @@ const makePolygonSideLengthSide = (sides = 3, length = 1) =>
  * @param {number[][]} polygon a polygon as an array of ordered points in array form
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} a copy of the polygon with collinear points removed
+ * @linkcode Math ./src/core/geometry.js 205
  */
 const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
   // index map [i] to [i, i+1]
@@ -2108,6 +2304,7 @@ const pleatAngle = (count, a, b) => {
  * @param {line} object with two keys/values: { vector: [], origin: [] }
  * @param {number} the number of faces, the number of lines will be n-1.
  * @returns {line[]} an array of lines, objects which contain "vector" and "origin"
+ * @linkcode Math ./src/core/geometry.js 246
  */
 const pleat = (count, a, b) => {
   const lineA = getLine$1(a);
@@ -2123,6 +2320,7 @@ const pleat = (count, a, b) => {
  * @param {number[]} origin the origin component of the line
  * @returns {number[][][]} an array of one or two polygons, each polygon is an array of points,
  * each point is an array of numbers.
+ * @linkcode Math ./src/core/geometry.js 262
  */
 const splitConvexPolygon = (poly, lineVector, linePoint) => {
   // todo: should this return undefined if no intersection?
@@ -2196,6 +2394,7 @@ const splitConvexPolygon = (poly, lineVector, linePoint) => {
  * @param {boolean} [include_collinear=false] should we include points collinear along a boundary edge? by default, no (false).
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} an array of points (which are arrays of numbers)
+ * @linkcode Math ./src/core/geometry.js 336
  */
 const convexHull = (points, include_collinear = false, epsilon = EPSILON) => {
   // # points in the convex hull before escaping function
@@ -2356,6 +2555,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
  * make sure:
  *  - your polygon is convex (todo: make this algorithm work with non-convex)
  *  - your polygon points are sorted counter-clockwise
+ * @linkcode Math ./src/core/geometry.js 497
  */
 const straightSkeleton = (points) => {
   // first time running this function, create the 2nd and 3rd parameters
@@ -2427,6 +2627,7 @@ var geometry = /*#__PURE__*/Object.freeze({
 /**
  * @description convert a line from one parameterization into another.
  * convert vector-origin into u-d (normal, distance-to-origin)
+ * @linkcode Math ./src/core/parameterize.js 34
  */
 // export const vectorOriginToUD = ({ vector, origin }) => {
 const makeNormalDistanceLine = ({ vector, origin }) => {
@@ -2439,6 +2640,7 @@ const makeNormalDistanceLine = ({ vector, origin }) => {
 /**
  * @description convert a line from one parameterization into another.
  * convert u-d (normal, distance-to-origin) into vector-origin
+ * @linkcode Math ./src/core/parameterize.js 47
  */
 // export const UDToVectorOrigin = ({ u, d }) => ({
 const makeVectorOriginLine = ({ normal, distance }) => ({
@@ -2478,6 +2680,7 @@ const rotateVector2 = (center, pt, a) => {
  * @param {number[]} origin2 the second circle's origin
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]|undefined} an array of one or two points, or undefined if no intersection 
+ * @linkcode Math ./src/intersection/intersect-circle-circle.js 28
  */
 const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsilon = EPSILON) => {
   // sort by largest-smallest radius
@@ -2516,6 +2719,7 @@ const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsil
  * @param {number[]} lineOrigin the origin component of the line
  * @param {function} [lineFunc=includeL] set the line/ray/segment and inclusive/exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @linkcode Math ./src/intersection/intersect-circle-line.js 20
  */
 const intersectCircleLine = (
   circle_radius, circle_origin,
@@ -2556,6 +2760,7 @@ const intersectCircleLine = (
  * @param {number[][]} polygon in array of array form
  * @param {function} true for positive numbers, in/exclude near zero
  * @returns {boolean} is the point inside the polygon?
+ * @linkcode Math ./src/intersection/overlap-polygon-point.js 23
  */
 const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILON) => poly
   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
@@ -2642,12 +2847,13 @@ const intersectConvexPolygonLineInclusive = (
 };
 
 /**
- * generalized line-ray-segment intersection with convex polygon function
+ * @description generalized line-ray-segment intersection with convex polygon function
  * for lines and rays, line1 and line2 are the vector, origin in that order.
  * for segments, line1 and line2 are the two endpoints.
  *
  * this doubles as the exclusive condition, and the main export since it
  * checks for exclusive/inclusive and can early-return
+ * @linkcode Math ./src/intersection/intersect-polygon-line.js 72
  */
 const intersectConvexPolygonLine = (
   poly,
@@ -2784,6 +2990,15 @@ const default_intersect_domain_function = {
   segment: excludeS,
 };
 
+/**
+ * @name intersect
+ * @description get the intersection of two geometry objects, the type of each is inferred.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
+ * @linkcode Math ./src/intersection/intersect.js 92
+ */
 const intersect$1 = function (a, b, epsilon) {
   const type_a = typeOf(a);
   const type_b = typeOf(b);
@@ -2802,6 +3017,7 @@ const intersect$1 = function (a, b, epsilon) {
 /**
  * @description find out if two convex polygons are overlapping by searching
  * for a dividing axis, which should be one side from one of the polygons.
+ * @linkcode Math ./src/intersection/overlap-polygons.js 13
  */
 const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
   for (let p = 0; p < 2; p++) {
@@ -2855,6 +3071,7 @@ const overlapCirclePoint = (radius, origin, point, func = exclude, epsilon = EPS
  * @param {number[]} array of 2 numbers, the second line's origin
  * @param {function} first line's boolean test normalized value lies collinear
  * @param {function} seconde line's boolean test normalized value lies collinear
+ * @linkcode Math ./src/intersection/overlap-line-line.js 25
 */
 
 // export const exclude_s = (t, e = EPSILON) => t > e && t < 1 - e;
@@ -2979,7 +3196,15 @@ const default_overlap_domain_function = {
   segment: excludeS,
   vector: excludeL, // not used
 };
-
+/**
+ * @name overlap
+ * @description test whether or not two geometry objects overlap each other.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {boolean} true if the two objects overlap.
+ * @linkcode Math ./src/intersection/overlap.js 109
+ */
 const overlap$1 = function (a, b, epsilon) {
   const type_a = typeOf(a);
   const type_b = typeOf(b);
@@ -3004,6 +3229,7 @@ const overlap$1 = function (a, b, epsilon) {
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
  *
  * @todo: should one function be include and the other exclude?
+ * @linkcode Math ./src/intersection/enclose-polygons.js 18
  */
 const enclosingPolygonPolygon = (outer, inner, fnInclusive=include) => {
   // these points should be *not inside* (false)
@@ -3025,6 +3251,7 @@ const enclosingPolygonPolygon = (outer, inner, fnInclusive=include) => {
  * @param {BoundingBox} box1 an axis-aligned bounding box, the result of calling boundingBox(...)
  * @param {BoundingBox} box2 an axis-aligned bounding box, the result of calling boundingBox(...)
  * @returns {boolean} true if the bounding boxes overlap each other
+ * @linkcode Math ./src/intersection/overlap-bounding-boxes.js 9
  */
 const overlapBoundingBoxes = (box1, box2) => {
   const dimensions = box1.min.length > box2.min.length
@@ -3200,14 +3427,1300 @@ const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
  * Math (c) Kraft
  */
 
-// import primitives from "./primitives/index";
+const VectorArgs = function () {
+  this.push(...getVector(arguments));
+};
+
+/**
+ * Math (c) Kraft
+ */
+const VectorGetters = {
+  x: function () { return this[0]; },
+  y: function () { return this[1]; },
+  z: function () { return this[2]; },
+  // magnitude: function () { return magnitude(this); },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const table = {
+  preserve: { // don't transform the return type. preserve it
+    magnitude: function () { return magnitude(this); },
+    isEquivalent: function () {
+      return fnEpsilonEqualVectors(this, getVector(arguments));
+    },
+    isParallel: function () {
+      return parallel(...resizeUp(this, getVector(arguments)));
+    },
+    isCollinear: function (line) {
+      return overlap$1(this, line);
+    },
+    dot: function () {
+      return dot(...resizeUp(this, getVector(arguments)));
+    },
+    distanceTo: function () {
+      return distance(...resizeUp(this, getVector(arguments)));
+    },
+    overlap: function (other) {
+      return overlap$1(this, other);
+    },
+  },
+  vector: { // return type
+    copy: function () { return [...this]; },
+    normalize: function () { return normalize(this); },
+    scale: function () { return scale(this, arguments[0]); },
+    flip: function () { return flip(this); },
+    rotate90: function () { return rotate90(this); },
+    rotate270: function () { return rotate270(this); },
+    cross: function () {
+      return cross3(
+        resize(3, this),
+        resize(3, getVector(arguments))
+      );
+    },
+    transform: function () {
+      return multiplyMatrix3Vector3(
+        getMatrix3x4(arguments),
+        resize(3, this)
+      );
+    },
+    /**
+     * @description add a vector to this vector.
+     * @param {number[]} vector one vector
+     * @returns {number[]} one vector, the sum of this and the input vector
+     */
+    add: function () {
+      return add(this, resize(this.length, getVector(arguments)));
+    },
+    subtract: function () {
+      return subtract(this, resize(this.length, getVector(arguments)));
+    },
+    // todo, can this be improved?
+    rotateZ: function (angle, origin) {
+      return multiplyMatrix3Vector3(
+        getMatrix3x4(makeMatrix2Rotate(angle, origin)),
+        resize(3, this)
+      );
+    },
+    lerp: function (vector, pct) {
+      return lerp(this, resize(this.length, getVector(vector)), pct);
+    },
+    midpoint: function () {
+      return midpoint(...resizeUp(this, getVector(arguments)));
+    },
+    bisect: function () {
+      return counterClockwiseBisect2(this, getVector(arguments));
+    },
+  }
+};
+
+// the default export
+const VectorMethods = {};
+
+Object.keys(table.preserve).forEach(key => {
+  VectorMethods[key] = table.preserve[key];
+});
+
+Object.keys(table.vector).forEach(key => {
+  VectorMethods[key] = function () {
+    return Constructors.vector(...table.vector[key].apply(this, arguments));
+  };
+});
+
+/**
+ * Math (c) Kraft
+ */
+
+const VectorStatic = {
+  fromAngle: function (angle) {
+    return Constructors.vector(Math.cos(angle), Math.sin(angle));
+  },
+  fromAngleDegrees: function (angle) {
+    return Constructors.vector.fromAngle(angle * D2R);
+  },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Vector = {
+  vector: {
+    P: Array.prototype, // vector is a special case, it's an instance of an Array
+    A: VectorArgs,
+    G: VectorGetters,
+    M: VectorMethods,
+    S: VectorStatic,
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Static = {
+  fromPoints: function () {
+    const points = getVectorOfVectors(arguments);
+    return this.constructor({
+      vector: subtract(points[1], points[0]),
+      origin: points[0],
+    });
+  },
+  fromAngle: function() {
+    const angle = arguments[0] || 0;
+    return this.constructor({
+      vector: [Math.cos(angle), Math.sin(angle)],
+      origin: [0, 0],
+    });
+  },
+  perpendicularBisector: function () {
+    const points = getVectorOfVectors(arguments);
+    return this.constructor({
+      vector: rotate90(subtract(points[1], points[0])),
+      origin: average(points[0], points[1]),
+    });
+  },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// do not define object methods as arrow functions in here
+
+/**
+ * this prototype is shared among line types: lines, rays, segments.
+ * it's counting on each type having defined:
+ * - an origin
+ * - a vector
+ * - domain_function which takes one or two inputs (t0, epsilon) and returns
+ *   true if t0 lies inside the boundary of the line, t0 is scaled to vector
+ * - similarly, clip_function, takes two inputs (d, epsilon)
+ *   and returns a modified d for what is considered valid space between 0-1
+ */
+
+const LinesMethods = {
+// todo, this only takes line types. it should be able to take a vector
+  isParallel: function () {
+    const arr = resizeUp(this.vector, getLine$1(arguments).vector);
+    return parallel(...arr);
+  },
+  isCollinear: function () {
+    const line = getLine$1(arguments);
+    return overlapLinePoint(this.vector, this.origin, line.origin)
+      && parallel(...resizeUp(this.vector, line.vector));
+  },
+  isDegenerate: function (epsilon = EPSILON) {
+    return degenerate(this.vector, epsilon);
+  },
+  reflectionMatrix: function () {
+    return Constructors.matrix(makeMatrix3ReflectZ(this.vector, this.origin));
+  },
+  nearestPoint: function () {
+    const point = getVector(arguments);
+    return Constructors.vector(
+      nearestPointOnLine(this.vector, this.origin, point, this.clip_function)
+    );
+  },
+  // this works with lines and rays, it should be overwritten for segments
+  transform: function () {
+    const dim = this.dimension;
+    const r = multiplyMatrix3Line3(
+      getMatrix3x4(arguments),
+      resize(3, this.vector),
+      resize(3, this.origin)
+    );
+    return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
+  },
+  translate: function () {
+    const origin = add(...resizeUp(this.origin, getVector(arguments)));
+    return this.constructor(this.vector, origin);
+  },
+  intersect: function () {
+    return intersect$1(this, ...arguments);
+  },
+  overlap: function () {
+    return overlap$1(this, ...arguments);
+  },
+  bisect: function (lineType, epsilon) {
+    const line = getLine$1(lineType);
+    return bisectLines2(this.vector, this.origin, line.vector, line.origin, epsilon)
+      .map(line => this.constructor(line));
+  },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Line = {
+  line: {
+    P: Object.prototype,
+
+    A: function () {
+      const l = getLine$1(...arguments);
+      this.vector = Constructors.vector(l.vector);
+      this.origin = Constructors.vector(resize(this.vector.length, l.origin));
+      const alt = makeNormalDistanceLine({ vector: this.vector, origin: this.origin });
+      this.normal = alt.normal;
+      this.distance = alt.distance;
+      Object.defineProperty(this, "domain_function", { writable: true, value: includeL });
+    },
+
+    G: {
+      // length: () => Infinity,
+      dimension: function () {
+        return [this.vector, this.origin]
+          .map(p => p.length)
+          .reduce((a, b) => Math.max(a, b), 0);
+      },
+    },
+
+    M: Object.assign({}, LinesMethods, {
+      inclusive: function () { this.domain_function = includeL; return this; },
+      exclusive: function () { this.domain_function = excludeL; return this; },
+      clip_function: dist => dist,
+      svgPath: function (length = 20000) {
+        const start = add(this.origin, scale(this.vector, -length / 2));
+        const end = scale(this.vector, length);
+        return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
+      },
+    }),
+
+    S: Object.assign({
+      fromNormalDistance: function() {
+        return this.constructor(makeVectorOriginLine(arguments[0]));
+      },
+    }, Static)
+
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// LineProto.prototype.constructor = LineProto;
+
+var Ray = {
+  ray: {
+    P: Object.prototype,
+
+    A: function () {
+      const ray = getLine$1(...arguments);
+      this.vector = Constructors.vector(ray.vector);
+      this.origin = Constructors.vector(resize(this.vector.length, ray.origin));
+      Object.defineProperty(this, "domain_function", { writable: true, value: includeR });
+    },
+
+    G: {
+      // length: () => Infinity,
+      dimension: function () {
+        return [this.vector, this.origin]
+          .map(p => p.length)
+          .reduce((a, b) => Math.max(a, b), 0);
+      },
+    },
+
+    M: Object.assign({}, LinesMethods, {
+      inclusive: function () { this.domain_function = includeR; return this; },
+      exclusive: function () { this.domain_function = excludeR; return this; },
+      flip: function () {
+        return Constructors.ray(flip(this.vector), this.origin);
+      },
+      scale: function (scale) {
+        return Constructors.ray(this.vector.scale(scale), this.origin);
+      },
+      normalize: function () {
+        return Constructors.ray(this.vector.normalize(), this.origin);
+      },
+      // distance is between 0 and 1, representing the vector between start and end. cap accordingly
+      clip_function: rayLimiter,
+      svgPath: function (length = 10000) {
+        const end = this.vector.scale(length);
+        return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
+      },
+
+    }),
+
+    S: Static
+
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Segment = {
+  segment: {
+    P: Array.prototype,
+
+    A: function () {
+      const a = getSegment(...arguments);
+      this.push(...[a[0], a[1]].map(v => Constructors.vector(v)));
+      this.vector = Constructors.vector(subtract(this[1], this[0]));
+      // the fast way, but i think we need the ability to call seg[0].x
+      // this.push(a[0], a[1]);
+      // this.vector = subtract(this[1], this[0]);
+      this.origin = this[0];
+      Object.defineProperty(this, "domain_function", { writable: true, value: includeS });
+    },
+
+    G: {
+      points: function () { return this; },
+      magnitude: function () { return magnitude(this.vector); },
+      dimension: function () {
+        return [this.vector, this.origin]
+          .map(p => p.length)
+          .reduce((a, b) => Math.max(a, b), 0);
+      },
+    },
+
+    M: Object.assign({}, LinesMethods, {
+      inclusive: function () { this.domain_function = includeS; return this; },
+      exclusive: function () { this.domain_function = excludeS; return this; },
+      clip_function: segmentLimiter,
+      transform: function (...innerArgs) {
+        const dim = this.points[0].length;
+        const mat = getMatrix3x4(innerArgs);
+        const transformed_points = this.points
+          .map(point => resize(3, point))
+          .map(point => multiplyMatrix3Vector3(mat, point))
+          .map(point => resize(dim, point));
+        return Constructors.segment(transformed_points);
+      },
+      translate: function() {
+        const translate = getVector(arguments);
+        const transformed_points = this.points
+          .map(point => add(...resizeUp(point, translate)));
+        return Constructors.segment(transformed_points);
+      },
+      midpoint: function () {
+        return Constructors.vector(average(this.points[0], this.points[1]));
+      },
+      svgPath: function () {
+        const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
+        return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
+          .join("");
+      },
+    }),
+
+    S: {
+      fromPoints: function () {
+        return this.constructor(...arguments);
+      }
+    }
+
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * circle constructors:
+ * circle(1, [4,5]) radius:1, origin:4,5
+ * circle([4,5], 1) radius:1, origin:4,5
+ * circle(1, 2) radius: 2, origin:1
+ * circle(1, 2, 3) radius: 3, origin:1,2
+ * circle(1, 2, 3, 4) radius: 4, origin:1,2,3
+ * circle([1,2], [3,4]) radius:(dist between pts), origin:1,2
+ * circle([1,2], [3,4], [5,6]) circumcenter between 3 points
+ */
+
+const CircleArgs = function () {
+  const circle = getCircle(...arguments);
+  this.radius = circle.radius;
+  this.origin = Constructors.vector(...circle.origin);
+};
+
+/**
+ * Math (c) Kraft
+ */
+const CircleGetters = {
+  x: function () { return this.origin[0]; },
+  y: function () { return this.origin[1]; },
+  z: function () { return this.origin[2]; },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
+  const cos_rotate = Math.cos(zRotation);
+  const sin_rotate = Math.sin(zRotation);
+  const cos_arc = Math.cos(arcAngle);
+  const sin_arc = Math.sin(arcAngle);
+  return [
+    cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
+    cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc
+  ];
+};
+
+const pathInfo = function (cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
+  let arcStart = arcStart_;
+  if (arcStart < 0 && !isNaN(arcStart)) {
+    while (arcStart < 0) {
+      arcStart += Math.PI * 2;
+    }
+  }
+  const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
+  const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
+  // we need to divide the circle in half and make 2 arcs
+  const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
+  const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
+  const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
+  const fs = ((deltaArc / 2) > 0) ? 1 : 0;
+  return {
+    x1: start[0],
+    y1: start[1],
+    x2: middle[0],
+    y2: middle[1],
+    x3: end[0],
+    y3: end[1],
+    fa,
+    fs
+  };
+};
+
+const cln = n => cleanNumber(n, 4);
+
+// (rx ry x-axis-rotation large-arc-flag sweep-flag x y)+
+const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
+  `A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`;
+
+/**
+ * Math (c) Kraft
+ */
+
+// // (rx ry x-axis-rotation large-arc-flag sweep-flag x y)+
+// const circleArcTo = (radius, end) =>
+//   `A${radius} ${radius} 0 0 0 ${end[0]} ${end[1]}`;
+
+// const circlePoint = (origin, radius, angle) => [
+//   origin[0] + radius * Math.cos(angle),
+//   origin[1] + radius * Math.sin(angle),
+// ];
+
+// const circlePoints = c => Array.from(Array(count))
+//   .map((_, i) => { return })
+
+const CircleMethods = {
+  nearestPoint: function () {
+    return Constructors.vector(nearestPointOnCircle(
+      this.radius,
+      this.origin,
+      getVector(arguments)
+    ));
+  },
+
+  intersect: function (object) {
+    return intersect$1(this, object);
+  },
+
+  overlap: function (object) {
+    return overlap$1(this, object);
+  },
+
+  svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+    const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
+    const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
+    const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
+    return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+
+    // const arcMid = arcStart + deltaArc / 2;
+    // const start = circlePoint(this.origin, this.radius, arcStart);
+    // const mid = circlePoint(this.origin, this.radius, arcMid);
+    // const end = circlePoint(this.origin, this.radius, arcStart + deltaArc);
+    // const arc1 = circleArcTo(this.radius, mid);
+    // const arc2 = circleArcTo(this.radius, end);
+    // return `M${cln(start[0])} ${cln(start[1])}${arc1}${arc2}`;
+  },
+  points: function (count = 128) {
+    return Array.from(Array(count))
+      .map((_, i) => ((2 * Math.PI) / count) * i)
+      .map(angle => [
+        this.origin[0] + this.radius * Math.cos(angle),
+        this.origin[1] + this.radius * Math.sin(angle)
+      ]);
+  },
+  polygon: function () {
+    return Constructors.polygon(this.points(arguments[0]));
+  },
+  segments: function () {
+    const points = this.points(arguments[0]);
+    return points.map((point, i) => {
+      const nextI = (i + 1) % points.length;
+      return [point, points[nextI]];
+    }); // .map(a => Constructors.segment(...a));
+  }
+
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const CircleStatic = {
+  fromPoints: function () {
+    if (arguments.length === 3) {
+      const result = circumcircle(...arguments);
+      return this.constructor(result.radius, result.origin);
+    }
+    return this.constructor(...arguments);
+  },
+  fromThreePoints: function () {
+    const result = circumcircle(...arguments);
+    return this.constructor(result.radius, result.origin);
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Circle = {
+  circle: { A: CircleArgs, G: CircleGetters, M: CircleMethods, S: CircleStatic }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const getFoci = function (center, rx, ry, spin) {
+  const order = rx > ry;
+  const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
+  const l = Math.sqrt(lsq);
+  const trigX = order ? Math.cos(spin) : Math.sin(spin);
+  const trigY = order ? Math.sin(spin) : Math.cos(spin);
+  return [
+    Constructors.vector(center[0] + l * trigX, center[1] + l * trigY),
+    Constructors.vector(center[0] - l * trigX, center[1] - l * trigY),
+  ];
+};
+
+var Ellipse = {
+  ellipse: {
+    A: function () {
+      // const arr = Array.from(arguments);
+      const numbers = flattenArrays(arguments).filter(a => !isNaN(a));
+      const params = resize(5, numbers);
+      this.rx = params[0];
+      this.ry = params[1];
+      this.origin = Constructors.vector(params[2], params[3]);
+      this.spin = params[4];
+      this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
+      // const numbers = arr.filter(param => !isNaN(param));
+      // const vectors = getVector_of_vectors(arr);
+      // if (numbers.length === 4) {
+      //   // this.origin = Constructors.vector(numbers[0], numbers[1]);
+      //   // this.rx = numbers[2];
+      //   // this.ry = numbers[3];
+      // } else if (vectors.length === 2) {
+      //   // two foci
+      //   // this.radius = distance2(...vectors);
+      //   // this.origin = Constructors.vector(...vectors[0]);
+      // }
+    },
+
+    // todo, ellipse is not ready to have a Z yet. figure out arguments first
+    G: {
+      x: function () { return this.origin[0]; },
+      y: function () { return this.origin[1]; },
+      // z: function () { return this.origin[2]; },
+    },
+    M: {
+      // nearestPoint: function () {
+      //   return Constructors.vector(nearest_point_on_ellipse(
+      //     this.origin,
+      //     this.radius,
+      //     getVector(arguments)
+      //   ));
+      // },
+      // intersect: function (object) {
+      //   return Intersect(this, object);
+      // },
+      svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+        const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
+        const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
+        const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
+        return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+      },
+      points: function (count = 128) {
+        return Array.from(Array(count))
+          .map((_, i) => ((2 * Math.PI) / count) * i)
+          .map(angle => pointOnEllipse(
+            this.origin.x, this.origin.y,
+            this.rx, this.ry,
+            this.spin, angle
+          ));
+      },
+      polygon: function () {
+        return Constructors.polygon(this.points(arguments[0]));
+      },
+      segments: function () {
+        const points = this.points(arguments[0]);
+        return points.map((point, i) => {
+          const nextI = (i + 1) % points.length;
+          return [point, points[nextI]];
+        }); // .map(a => Constructors.segment(...a));
+      }
+
+    },
+
+    S: {
+      // static methods
+      // fromPoints: function () {
+      //   const points = getVector_of_vectors(arguments);
+      //   return Constructors.circle(points, distance2(points[0], points[1]));
+      // }
+    }
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// a polygon is expecting to have these properties:
+// this - an array of vectors in [] form
+// this.points - same as above
+// this.sides - array edge pairs of points
+// this.vectors - non-normalized vectors relating to this.sides.
+const PolygonMethods = {
+  /**
+   * @description calculate the signed area of this polygon
+   * @returns {number} the signed area
+   */
+  area: function () {
+    return signedArea(this);
+  },
+  // midpoint: function () { return average(this); },
+  centroid: function () {
+    return Constructors.vector(centroid(this));
+  },
+  boundingBox: function () {
+    return boundingBox(this);
+  },
+  // contains: function () {
+  //   return overlap_convex_polygon_point(this, getVector(arguments));
+  // },
+  straightSkeleton: function () {
+    return straightSkeleton(this);
+  },
+  // scale will return a rect for rectangles, otherwise polygon
+  scale: function (magnitude, center = centroid(this)) {
+    const newPoints = this
+      .map(p => [0, 1].map((_, i) => p[i] - center[i]))
+      .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+    return this.constructor.fromPoints(newPoints);
+  },
+  rotate: function (angle, centerPoint = centroid(this)) {
+    const newPoints = this.map((p) => {
+      const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+      const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+      const a = Math.atan2(vec[1], vec[0]);
+      return [
+        centerPoint[0] + Math.cos(a + angle) * mag,
+        centerPoint[1] + Math.sin(a + angle) * mag,
+      ];
+    });
+    return Constructors.polygon(newPoints);
+  },
+  translate: function () {
+    const vec = getVector(...arguments);
+    const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
+    return this.constructor.fromPoints(newPoints);
+  },
+  transform: function () {
+    const m = getMatrix3x4(...arguments);
+    const newPoints = this
+      .map(p => multiplyMatrix3Vector3(m, resize(3, p)));
+    return Constructors.polygon(newPoints);
+  },
+  // sectors: function () {
+  //   return this.map((p, i, arr) => {
+  //     const prev = (i + arr.length - 1) % arr.length;
+  //     const next = (i + 1) % arr.length;
+  //     const center = p;
+  //     const a = arr[prev].map((n, j) => n - center[j]);
+  //     const b = arr[next].map((n, j) => n - center[j]);
+  //     return Constructors.sector(b, a, center);
+  //   });
+  // },
+  nearest: function () {
+    const point = getVector(...arguments);
+    const result = nearestPointOnPolygon(this, point);
+    return result === undefined
+      ? undefined
+      : Object.assign(result, { edge: this.sides[result.i] });
+  },
+  split: function () {
+    const line = getLine$1(...arguments);
+    // const split_func = this.isConvex ? splitConvexPolygon : split_polygon;
+    const split_func = splitConvexPolygon;
+    return split_func(this, line.vector, line.origin)
+      .map(poly => Constructors.polygon(poly));
+  },
+  overlap: function () {
+    return overlap$1(this, ...arguments);
+  },
+  intersect: function () {
+    return intersect$1(this, ...arguments);
+  },
+  clip: function (line_type, epsilon) {
+    const fn_line = line_type.domain_function ? line_type.domain_function : includeL;
+    const segment = clipLineConvexPolygon(this,
+      line_type.vector,
+      line_type.origin,
+      this.domain_function,
+      fn_line,
+      epsilon);
+    return segment ? Constructors.segment(segment) : undefined;
+  },
+  svgPath: function () {
+    // make every point a Move or Line command, append with a "z" (close path)
+    const pre = Array(this.length).fill("L");
+    pre[0] = "M";
+    return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
+  },
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+/**
+ * this Rectangle type is aligned to the axes for speedy calculation.
+ * for a rectangle that can be rotated, use Polygon or ConvexPolygon
+ */
+const rectToPoints = r => [
+  [r.x, r.y],
+  [r.x + r.width, r.y],
+  [r.x + r.width, r.y + r.height],
+  [r.x, r.y + r.height]
+];
+
+const rectToSides = r => [
+  [[r.x, r.y], [r.x + r.width, r.y]],
+  [[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
+  [[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
+  [[r.x, r.y + r.height], [r.x, r.y]],
+];
+
+var Rect = {
+  rect: {
+    P: Array.prototype,
+    A: function () {
+      const r = getRect(...arguments);
+      this.width = r.width;
+      this.height = r.height;
+      this.origin = Constructors.vector(r.x, r.y);
+      this.push(...rectToPoints(this));
+      Object.defineProperty(this, "domain_function", { writable: true, value: include });
+    },
+    G: {
+      x: function () { return this.origin[0]; },
+      y: function () { return this.origin[1]; },
+      center: function () { return Constructors.vector(
+        this.origin[0] + this.width / 2,
+        this.origin[1] + this.height / 2,
+      ); },
+    },
+    M: Object.assign({}, PolygonMethods, {
+      inclusive: function () { this.domain_function = include; return this; },
+      exclusive: function () { this.domain_function = exclude; return this; },
+      area: function () { return this.width * this.height; },
+      segments: function () { return rectToSides(this); },
+      svgPath: function () {
+        return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
+      },
+    }),
+    S: {
+      fromPoints: function () {
+        const box = boundingBox(getVectorOfVectors(arguments));
+        return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
+      }
+    }
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Polygon = {
+  polygon: {
+    P: Array.prototype,
+    A: function () {
+      this.push(...semiFlattenArrays(arguments));
+      // this.points = semiFlattenArrays(arguments);
+        // .map(v => Constructors.vector(v));
+      this.sides = this
+        .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+        // .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+      this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+      // this.sectors
+      Object.defineProperty(this, "domain_function", { writable: true, value: include });
+    },
+    G: {
+      // todo: convex test
+      isConvex: function () {
+        return undefined;
+      },
+      points: function () {
+        return this;
+      },
+      // edges: function () {
+      //   return this.sides;
+      // },
+    },
+    M: Object.assign({}, PolygonMethods, {
+      inclusive: function () { this.domain_function = include; return this; },
+      exclusive: function () { this.domain_function = exclude; return this; },
+      segments: function () {
+        return this.sides;
+      },
+    }),
+    S: {
+      fromPoints: function () {
+        return this.constructor(...arguments);
+      },
+      regularPolygon: function () {
+        return this.constructor(makePolygonCircumradius(...arguments));
+      },
+      convexHull: function () {
+        return this.constructor(convexHull(...arguments));
+      },
+    }
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+var Polyline = {
+  polyline: {
+    P: Array.prototype,
+    A: function () {
+      this.push(...semiFlattenArrays(arguments));
+        // .map(v => Constructors.vector(v));
+      // this.sides = this
+      //   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+      // this.sides.pop(); // polylines are not closed. remove the last segment
+        // .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+      // this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+      // this.sectors
+    },
+    G: {
+      points: function () {
+        return this;
+      },
+      // edges: function () {
+      //   return this.sides;
+      // },
+    },
+    M: {
+      // segments: function () {
+      //   return this.sides;
+      // },
+      svgPath: function () {
+        // make every point a Move or Line command, no closed path at the end
+        const pre = Array(this.length).fill("L");
+        pre[0] = "M";
+        return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}`;
+      },
+
+    },
+    S: {
+      fromPoints: function () {
+        return this.constructor(...arguments);
+      },
+    }
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+/**
+ * 3D Matrix (3x4) with translation component in x,y,z. column-major order
+ *
+ *   x y z translation
+ *   | | | |           indices
+ * [ 1 0 0 0 ]   x   [ 0 3 6 9 ]
+ * [ 0 1 0 0 ]   y   [ 1 4 7 10]
+ * [ 0 0 1 0 ]   z   [ 2 5 8 11]
+ */
+
+// this is 4x faster than calling Object.assign(thisMat, mat)
+const array_assign = (thisMat, mat) => {
+  for (let i = 0; i < 12; i += 1) {
+    thisMat[i] = mat[i];
+  }
+  return thisMat;
+};
+
+var Matrix = {
+  matrix: {
+    P: Array.prototype,
+
+    A: function () {
+      // [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].forEach(m => this.push(m));
+      getMatrix3x4(arguments).forEach(m => this.push(m));
+    },
+
+    G: {
+    },
+
+    M: {
+      copy: function () { return Constructors.matrix(...Array.from(this)); },
+      set: function () {
+        return array_assign(this, getMatrix3x4(arguments));
+      },
+      isIdentity: function () { return isIdentity3x4(this); },
+      // todo: is this right, on the right hand side?
+      multiply: function (mat) {
+        return array_assign(this, multiplyMatrices3(this, mat));
+      },
+      determinant: function () {
+        return determinant3(this);
+      },
+      inverse: function () {
+        return array_assign(this, invertMatrix3(this));
+      },
+      // todo: is this the right order (this, transform)?
+      translate: function (x, y, z) {
+        return array_assign(this,
+          multiplyMatrices3(this, makeMatrix3Translate(x, y, z)));
+      },
+      rotateX: function (radians) {
+        return array_assign(this,
+          multiplyMatrices3(this, makeMatrix3RotateX(radians)));
+      },
+      rotateY: function (radians) {
+        return array_assign(this,
+          multiplyMatrices3(this, makeMatrix3RotateY(radians)));
+      },
+      rotateZ: function (radians) {
+        return array_assign(this,
+          multiplyMatrices3(this, makeMatrix3RotateZ(radians)));
+      },
+      rotate: function (radians, vector, origin) {
+        const transform = makeMatrix3Rotate(radians, vector, origin);
+        return array_assign(this, multiplyMatrices3(this, transform));
+      },
+      scale: function (amount) {
+        return array_assign(this,
+          multiplyMatrices3(this, makeMatrix3Scale(amount)));
+      },
+      reflectZ: function (vector, origin) {
+        const transform = makeMatrix3ReflectZ(vector, origin);
+        return array_assign(this, multiplyMatrices3(this, transform));
+      },
+      // todo, do type checking
+      transform: function (...innerArgs) {
+        return Constructors.vector(
+          multiplyMatrix3Vector3(this, resize(3, getVector(innerArgs)))
+        );
+      },
+      transformVector: function (vector) {
+        return Constructors.vector(
+          multiplyMatrix3Vector3(this, resize(3, getVector(vector)))
+        );
+      },
+      transformLine: function (...innerArgs) {
+        const l = getLine$1(innerArgs);
+        return Constructors.line(multiplyMatrix3Line3(this, l.vector, l.origin));
+      },
+    },
+
+    S: {
+    }
+  }
+};
+
+/**
+ * Math (c) Kraft
+ */
+// import Junction from "./junction/index";
+// import Plane from "./plane/index";
+// import Matrix2 from "./matrix/matrix2";
+
+// import PolygonPrototype from "./prototypes/polygon";
+
+// Each primitive is defined by these key/values:
+// {
+//   P: proto- the prototype of the prototype (default: Object.prototype)
+//   G: getters- will become Object.defineProperty(___, ___, { get: })
+//   M: methods- will become Object.defineProperty(___, ___, { value: })
+//   A: args- parse user-arguments, set properties on "this"
+//   S: static- static methods added to the constructor
+// }
+// keys are one letter to shrink minified compile size
+
+const Definitions = Object.assign({},
+  Vector,
+  Line,
+  Ray,
+  Segment,
+  Circle,
+  Ellipse,
+  Rect,
+  Polygon,
+  Polyline,
+  Matrix,
+  // Junction,
+  // Plane,
+  // Matrix2,
+);
+
+const create = function (primitiveName, args) {
+  const a = Object.create(Definitions[primitiveName].proto);
+  Definitions[primitiveName].A.apply(a, args);
+  return a; // Object.freeze(a); // basically no cost. matrix needs to able to be modified now
+};
+
+// these have to be typed out longform like this
+// this function name is what appears as the object type name in use
+/**
+ * @memberof ear
+ * @description Make a vector primitive from a sequence of numbers. This vector/point object comes with object methods, the object is **immutable** and methods will return modified copies. The object inherits from Array.prototype so that its components can be accessed via array syntax, [0], [1], or .x, .y, .z properties. There is no limit to the dimensions, some methods like cross product are dimension-specific.
+ * @param {...number|number[]} numbers a list of numbers as arguments or inside an array
+ * @returns {vector} one vector object
+ */
+const vector = function () { return create("vector", arguments); };
+/**
+ * @memberof ear
+ * @description Make a line defined by a vector and a point passing through the line. This object comes with object methods and can be used in intersection calculations.
+ * @param {number[]} vector the line's vector
+ * @param {number[]} origin the line's origin (without this, it will assumed to be the origin)
+ * @returns {line} one line object
+ */
+const line = function () { return create("line", arguments); };
+/**
+ * @memberof ear
+ * @description Make a ray defined by a vector and an origin point. This object comes with object methods and can be used in intersection calculations.
+ * @param {number[]} vector the ray's vector
+ * @param {number[]} origin the ray's origin (without this, it will assumed to be the origin)
+ * @returns {ray} one ray object
+ */
+const ray = function () { return create("ray", arguments); };
+/**
+ * @memberof ear
+ * @description Make a segment defined by two endpoints. This object comes with object methods and can be used in intersection calculations.
+ * @param {number[]} a the first point
+ * @param {number[]} b the second point
+ * @returns {segment} one segment object
+ */
+const segment = function () { return create("segment", arguments); };
+/**
+ * @memberof ear
+ * @description Make a circle defined by a radius and a center. This comes with object methods and can be used in intersection calculations.
+ * @param {number} radius
+ * @param {number[]|...number} origin the center of the circle 
+ * @returns {circle} one circle object
+ */
+const circle = function () { return create("circle", arguments); };
+/**
+ * @memberof ear
+ * @description Make an ellipse defined by a two radii and a center. This comes with object methods.
+ * @param {number} rx the radius along the x axis
+ * @param {number} ry the radius along the y axis
+ * @param {number[]} origin the center of the ellipse
+ * @param {number} spin the angle of rotation in radians
+ * @returns {ellipse} one ellipse object
+ */
+const ellipse = function () { return create("ellipse", arguments); };
+/**
+ * @memberof ear
+ * @description Make an 2D axis-aligned rectangle defined by a corner point and a width and height. This comes with object methods and can be used in intersection calculations.
+ * @param {number} x the x coordinate of the origin
+ * @param {number} y the y coordinate of the origin
+ * @param {number} width the width of the rectangle
+ * @param {number} height the height of the rectangle
+ * @returns {rect} one rect object
+ */
+const rect = function () { return create("rect", arguments); };
+/**
+ * @memberof ear
+ * @description Make a polygon defined by a sequence of points. This comes with object methods and can be used in intersection calculations. The polygon can be non-convex, but some methods only work on convex polygons.
+ * @param {number[][]|...number[]} one array containing points (array of numbers) or a list of points as the arguments.
+ * @returns {polygon} one polygon object
+ */
+const polygon = function () { return create("polygon", arguments); };
+/**
+ * @memberof ear
+ * @description Make a polyline defined by a sequence of points.
+ * @param {number[][]|...number[]} one array containing points (array of numbers) or a list of points as the arguments.
+ * @returns {polyline} one polyline object
+ */
+const polyline = function () { return create("polyline", arguments); };
+/**
+ * @memberof ear
+ * @description Make a 3x4 column-major matrix containing three basis vectors and a translation column. This comes with object methods and this is the one primitive in the library which **is mutable**.
+ * @param {number[]|...number} one array of numbers, or list of numbers as parameters.
+ * @returns {matrix} one 3x4 matrix object
+ */
+const matrix = function () { return create("matrix", arguments); };
+// const junction = function () { return create("junction", arguments); };
+// const plane = function () { return create("plane", arguments); };
+// const matrix2 = function () { return create("matrix2", arguments); };
+
+/**
+ * @typedef vector
+ * @type {object}
+ * @description a vector/point primitive. there is no limit to the number of dimensions.
+ * @property {number[]} 0...n array indices for the individual vector values.
+ */
+
+/**
+ * @typedef matrix
+ * @type {object}
+ * @description a 3x4 matrix representing a transformation in 3D space, including a translation component.
+ * @property {number[]} 0...11 array indices for the individual matrix values
+ */
+
+/**
+ * @typedef line
+ * @type {object}
+ * @description a line primitive
+ * @property {number[]} vector a vector which represents the direction of the line
+ * @property {number[]} origin a point that passes through the line
+ */
+
+/**
+ * @typedef ray
+ * @type {object}
+ * @description a ray primitive
+ * @property {number[]} vector a vector which represents the direction of the line
+ * @property {number[]} origin the origin of the ray
+ */
+
+/**
+ * @typedef segment
+ * @type {object}
+ * @description a segment primitive, defined by two endpoints
+ * @property {number[]} 0 array index 0, the location of the first point
+ * @property {number[]} 1 array index 1, the location of the second point
+ * @property {number[]} vector a vector which represents the direction and length of the segment
+ * @property {number[]} origin the first segment point
+ */
+
+/**
+ * @typedef rect
+ * @type {object}
+ * @description an axis-aligned rectangle primitive
+ * @property {number} width
+ * @property {number} height
+ * @property {number[]} origin the bottom left corner (or top level for Y-down computer screens)
+ */
+
+/**
+ * @typedef circle
+ * @type {object}
+ * @description a circle primitive
+ * @property {number} radius
+ * @property {number[]} origin
+ */
+
+/**
+ * @typedef ellipse
+ * @type {object}
+ * @description a ellipse primitive
+ * @property {number} rx radius in the primary axis
+ * @property {number} ry radius in the secondary axis
+ * @property {number} spin the angle of rotation through the center in radians
+ * @property {number[]} origin the center of the ellipse
+ * @property {number[][]} foci array of two points, each focus of the ellipse
+ */
+
+/**
+ * @typedef polygon
+ * @type {object}
+ * @description a polygon primitive
+ * @property {number[][]} points a sequence of points, each point being an array of numbers
+ */
+
+/**
+ * @typedef polyline
+ * @type {object}
+ * @description a polyline primitive
+ * @property {number[][]} points a sequence of points, each point being an array of numbers
+ */
+
+Object.assign(Constructors, {
+  vector,
+  line,
+  ray,
+  segment,
+  circle,
+  ellipse,
+  rect,
+  polygon,
+  polyline,
+  matrix,
+  // junction,
+  // plane,
+  // matrix2,
+});
+
+// build prototypes
+Object.keys(Definitions).forEach(primitiveName => {
+  // create the prototype
+  const Proto = {};
+  Proto.prototype = Definitions[primitiveName].P != null
+    ? Object.create(Definitions[primitiveName].P)
+    : Object.create(Object.prototype);
+  Proto.prototype.constructor = Proto;
+
+  // make this present in the prototype chain so "instanceof" works
+  Constructors[primitiveName].prototype = Proto.prototype;
+  Constructors[primitiveName].prototype.constructor = Constructors[primitiveName];
+
+  // getters
+  Object.keys(Definitions[primitiveName].G)
+    .forEach(key => Object.defineProperty(Proto.prototype, key, {
+      get: Definitions[primitiveName].G[key],
+      // enumerable: true
+    }));
+
+  // methods
+  Object.keys(Definitions[primitiveName].M)
+    .forEach(key => Object.defineProperty(Proto.prototype, key, {
+      value: Definitions[primitiveName].M[key],
+    }));
+
+  // applied to the constructor not the prototype
+  Object.keys(Definitions[primitiveName].S)
+    .forEach(key => Object.defineProperty(Constructors[primitiveName], key, {
+      // bind to the prototype, this.constructor will point to the constructor
+      value: Definitions[primitiveName].S[key]
+        .bind(Constructors[primitiveName].prototype),
+    }));
+
+  // done with prototype
+  // Object.freeze(Proto.prototype); // now able to be modified from the outside
+
+  // store the prototype on the Definition, to be called during instantiation
+  Definitions[primitiveName].proto = Proto.prototype;
+});
+
+/**
+ * Math (c) Kraft
+ */
 /**
  * @description A collection of math functions with a focus on linear algebra,
  * computational geometry, intersection of shapes, and some origami-specific operations.
  */
-// const math = primitives;
-const math = Object.create(null);
-
+const math = Constructors;
+// const math = Object.create(null);
 /*
  * the logic is under ".core", the primitives are under the top level.
  * the primitives have arguments type inference. the logic core is strict:
@@ -3220,7 +4733,6 @@ const math = Object.create(null);
  * the primitives store object methods under their prototype,
  * the top level has properties like x, y, z.
  */
-
 math.core = Object.assign(Object.create(null),
   constants,
   resizers,
@@ -3251,27 +4763,8 @@ math.core = Object.assign(Object.create(null),
     clipPolygonPolygon,
   }
 );
-/**
- * @description get the type of an object, which includes the custom types in this library.
- * @param {any} any object
- * @returns {string} the type name
- */
 math.typeof = typeOf;
-/**
- * @description get the intersection of two geometry objects, the type of each is inferred.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
- */
 math.intersect = intersect$1;
-/**
- * @description test whether or not two geometry objects overlap each other.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {boolean} true if the two objects overlap.
- */
 math.overlap = overlap$1;
 
 /**
@@ -3451,6 +4944,7 @@ const edgesAssignmentValues = Array.from("MmVvBbFfUu");
  */
 /**
  * @description English conversion of the names of graph components from plural to singular.
+ * @linkcode Origami ./src/fold/spec.js 20
  */
 const singularize = {
 	vertices: "vertex",
@@ -3459,6 +4953,7 @@ const singularize = {
 };
 /**
  * @description English conversion of the names of graph components from singular to plural.
+ * @linkcode Origami ./src/fold/spec.js 29
  */
 const pluralize = {
 	vertex: "vertices",
@@ -3467,6 +4962,7 @@ const pluralize = {
 };
 /**
  * @description get the English word for every FOLD spec assignment character (like "M", or "b")
+ * @linkcode Origami ./src/fold/spec.js 38
  */
 const edgesAssignmentNames = {
 	b: "boundary",
@@ -3479,15 +4975,8 @@ edgesAssignmentValues.forEach(key => {
 	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
- * @description convert upper or lowercase edge assignments to lowercase.
- * Use this to make all assignment cases consistently lowercase.
- */
-const edgesAssignmentToLowercase = {};
-edgesAssignmentValues.forEach(key => {
-	edgesAssignmentToLowercase[key] = key.toLowerCase();
-});
-/**
  * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b"). **this assumes the creases are flat folded.**
+ * @linkcode Origami ./src/fold/spec.js 52
  */
 const edgesAssignmentDegrees = {
 	M: -180,
@@ -3502,21 +4991,25 @@ const edgesAssignmentDegrees = {
 	u: 0
 };
 /**
- * @param {string} one edge assignment letter, any case: M V B F U
+ * @description Convert an assignment character to a foldAngle in degrees. This assumes
+ * that all assignments are flat folds.
+ * @param {string} assignment one edge assignment letter: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
+ * @linkcode Origami ./src/fold/spec.js 71
  */
 const edgeAssignmentToFoldAngle = assignment =>
 	edgesAssignmentDegrees[assignment] || 0;
 /**
- * @param {number} fold angle in degrees.
- * @returns {string} one edge assignment letter: M V or U, no boundary detection.
- *
- * todo: what should be the behavior for 0, undefined, null?
+ * @description Convert a foldAngle to an edge assignment character.
+ * @param {number} angle fold angle in degrees
+ * @returns {string} one edge assignment letter: M V or U, no boundary detection
+ * @todo should "U" be "F" instead, if so, we are assigning potental "B" edges to "F".
+ * @linkcode Origami ./src/fold/spec.js 80
  */
 const edgeFoldAngleToAssignment = (a) => {
-	if (a > 0) { return "V"; }
-	if (a < 0) { return "M"; }
-	// if (a === 0) { return "F"; }
+	if (a > math.core.EPSILON) { return "V"; }
+	if (a < -math.core.EPSILON) { return "M"; }
+	// if (math.core.fnEpsilonEqual(0, a)) { return "F"; }
 	return "U";
 };
 /**
@@ -3524,6 +5017,7 @@ const edgeFoldAngleToAssignment = (a) => {
  * and the +/- epsilon around each number.
  * @param {number} angle fold angle in degrees
  * @returns {boolean} true if the fold angle is flat
+ * @linkcode Origami ./src/fold/spec.js 93
  */
 const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
  || math.core.fnEpsilonEqual(-180, angle)
@@ -3535,6 +5029,7 @@ const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
  * the angles are considered flat, and the method returns "true".
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean} is the graph flat-foldable according to foldAngles.
+ * @linkcode Origami ./src/fold/spec.js 105
  */
 const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
@@ -3544,9 +5039,11 @@ const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	return true;
 };
 /**
- * @param {object} any object
- * @param {string} a suffix to match against the keys
- * @returns {string[]} array of keys that end with the string param
+ * @description Get all keys in an object that end with the provided suffix.
+ * @param {object} obj an object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
+ * @linkcode Origami ./src/fold/spec.js 119
  */
 const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
@@ -3554,39 +5051,48 @@ const filterKeysWithSuffix = (graph, suffix) => Object
 		? s : undefined))
 	.filter(str => str !== undefined);
 /**
- * @param {object} any object
- * @param {string} a prefix to match against the keys
- * @returns {string[]} array of keys that start with the string param
+ * @description Get all keys in an object that start with the provided prefix.
+ * @param {object} obj an object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
+ * @linkcode Origami ./src/fold/spec.js 131
  */
-const filterKeysWithPrefix = (graph, prefix) => Object
-	.keys(graph)
+const filterKeysWithPrefix = (obj, prefix) => Object
+	.keys(obj)
 	.map(str => (str.substring(0, prefix.length) === prefix
 		? str : undefined))
 	.filter(str => str !== undefined);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key STARTS WITH this string followed by a _.
- *
+ * @description Get all keys in a graph which contain a "_" prefixed by the provided string.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} prefix a prefix to match against the keys
+ * @returns {string[]} array of keys that start with the prefix
  * for example: "vertices" will return:
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
+ * @linkcode Origami ./src/fold/spec.js 146
  */
 const getGraphKeysWithPrefix = (graph, key) =>
 	filterKeysWithPrefix(graph, `${key}_`);
 /**
- * return a list of keys from a FOLD object that match a provided
- * string such that the key ENDS WITH this string, preceded by _.
- *
+ * @description Get all keys in a graph which contain a "_" followed by the provided suffix.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} suffix a suffix to match against the keys
+ * @returns {string[]} array of keys that end with the suffix
  * for example: "vertices" will return:
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
+ * @linkcode Origami ./src/fold/spec.js 158
  */
 const getGraphKeysWithSuffix = (graph, key) =>
 	filterKeysWithSuffix(graph, `_${key}`);
-
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys for every index.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @returns {object[]} an array of objects with FOLD keys but the values are from this single element
+ * @linkcode Origami ./src/fold/spec.js 168
  */
 const transposeGraphArrays = (graph, geometry_key) => {
 	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
@@ -3606,10 +5112,14 @@ const transposeGraphArrays = (graph, geometry_key) => {
 			.forEach((o, i) => { geometry[i][key] = graph[key][i]; }));
 	return geometry;
 };
-
 /**
- * this takes in a geometry_key (vectors, edges, faces), and flattens
- * across all related arrays, creating 1 array of objects with the keys
+ * @description This takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating one object with the keys.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} geometry_key a geometry item like "vertices"
+ * @param {number} the index of an element
+ * @returns {object} an object with FOLD keys but the values are from this single element
+ * @linkcode Origami ./src/fold/spec.js 195
  */
 const transposeGraphArrayAtIndex = function (
 	graph,
@@ -3625,7 +5135,12 @@ const transposeGraphArrayAtIndex = function (
 	matching_keys.forEach((key) => { geometry[key] = graph[key][index]; });
 	return geometry;
 };
-
+/**
+ * @description Using heuristics, try to determine if an object is a FOLD object.
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} value between 0 and 1, zero meaning no chance, one meaning 100% chance
+ * @linkcode Origami ./src/fold/spec.js 215
+ */
 const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
 		? 0
@@ -3637,7 +5152,6 @@ var fold_spec = /*#__PURE__*/Object.freeze({
 	singularize: singularize,
 	pluralize: pluralize,
 	edgesAssignmentNames: edgesAssignmentNames,
-	edgesAssignmentToLowercase: edgesAssignmentToLowercase,
 	edgesAssignmentDegrees: edgesAssignmentDegrees,
 	edgeAssignmentToFoldAngle: edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment: edgeFoldAngleToAssignment,
@@ -3672,15 +5186,17 @@ const are_vertices_equivalent = (a, b, epsilon = math.core.EPSILON) => {
 	return true;
 };
 /**
- * @returns {number[][]} array of array of numbers, each array is
- * an array of vertex indices.
- * if there are no duplicates, it returns [ [0], [1], [2], [3], [4], ... ]
- * if there are it looks like: [ [0, 2], [1], [3], [4, 5]]
- * if vertices_coords is not present, instead of undefined,
- *  it returns an empty array.
+ * @description Find all clusters of vertices which lie within an epsilon of each other.
+ * Each cluster is an array of vertex indices. If no clusters exist, the method returns
+ * N-number of arrays, each with a single vertex entry.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} array of arrays of vertex indices.
+ * @example
+ * no clusters: [ [0], [1], [2], [3], [4], ... ]
+ * clusters: [ [0, 5], [1], [3], [2, 4]]
+ * @linkcode Origami ./src/graph/verticesClusters.js 31
  */
-// clusters is an array of arrays of numbers
-// each entry in clusters is an array of vertex indices
 const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) => {
 	if (!vertices_coords) { return []; }
 	// equivalent_matrix is an NxN matrix storing (T/F) equivalency between vertices
@@ -3759,6 +5275,7 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @param {FOLD} graph a FOLD graph
  * @param {string} key the prefix for a key, eg: "vertices" 
  * @returns {number} the number of the requested element type in the graph
+ * @linkcode Origami ./src/graph/count.js 25
  */
 const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
 
@@ -3789,22 +5306,34 @@ count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given a list of integers (can contain duplicates),
- * this will return a sorted set of unique integers (removing duplicates).
- * @param {number[]} array of integers
- * @returns {number[]} set of sorted, unique integers
+ * @description Given a list of integers (can contain duplicates),
+ * this will return only the unique integers (removing duplicates).
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of unique integers
+ * @linkcode Origami ./src/general/arrays.js 9
  */
-const uniqueSortedIntegers = (array) => {
+const uniqueIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
-	return Object.keys(keys).map(n => parseInt(n)).sort((a, b) => a - b);
+	return Object.keys(keys).map(n => parseInt(n));
 };
 /**
- * @description a circular array (data wraps around) needs 2 indices to be split.
- * "indices" will be sorted, smaller index first.
- * @param {any[]} an array that is meant to be thought of as circular
- * @param {number[]} two numbers, indices that divide the array into 2 parts.
- * @returns {any[][]} the same array split into two portions, inside an array.
+ * @description Given a list of integers (can contain duplicates),
+ * this will return a sorted set of unique integers (removing duplicates).
+ * note: this sort appears to be unnecessary, as Object.keys() returns them
+ * in sorted order *sometimes*, but this is not strictly defined.
+ * @param {number[]} array an array of integers
+ * @returns {number[]} set of sorted, unique integers
+ * @linkcode Origami ./src/general/arrays.js 23
+ */
+const uniqueSortedIntegers = (array) => uniqueIntegers(array)
+	.sort((a, b) => a - b);
+/**
+ * @description A circular array (data wraps around) requires 2 indices if you intend to split it into two arrays. The "indices" parameter will be sorted, smaller index first.
+ * @param {any[]} array an array that is meant to be thought of as circular
+ * @param {number[]} indices two numbers, indices that divide the array into 2 parts
+ * @returns {any[][]} the same array split into two arrays
+ * @linkcode Origami ./src/general/arrays.js 32
  */
 const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
@@ -3814,10 +5343,11 @@ const splitCircularArray = (array, indices) => {
 	];
 };
 /**
- * @description this will iterate over the array of arrays and returning
+ * @description This will iterate over the array of arrays and returning
  * the first array in the list with the longest length.
- * @param {any[][]} this is an array of arrays.
+ * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
+ * @linkcode Origami ./src/general/arrays.js 46
  */
 const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
@@ -3831,11 +5361,12 @@ const getLongestArray = (arrays) => {
 	return arrays[max];
 };
 /**
- * @description given an array of any-type, return the same array but filter
- * out any items which only appear once.
- * @param {any[]} array of primitives which can become strings in an object.
- * the intended use case is an array of {number[]}.
- * @returns {any[]} input array, filtering out any items which only appear once.
+ * @description Given an array of any type, return the same array but filter
+ * out any items which only appear once. The comparison uses conversion-to-string then
+ * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
+ * @param {any[]} array an array of any type.
+ * @returns {any[]} the same input array but filtered to remove elements which appear only once.
+ * @linkcode Origami ./src/general/arrays.js 65
  */
 const removeSingleInstances = (array) => {
 	const count = {};
@@ -3846,15 +5377,25 @@ const removeSingleInstances = (array) => {
 	return array.filter(n => count[n] > 1);
 };
 /**
- * @description convert a non-sparse matrix of true/false/undefined
- * into arrays containing the index of the trues.
+ * @description Convert a sparse or dense matrix containing true/false/undefined
+ * into arrays containing the indices `[i,j]` of all true values.
+ * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
+ * @returns {number[][]} array of arrays of numbers
+ * @linkcode Origami ./src/general/arrays.js 80
  */
 const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
 		.map((value, i) => value === true ? i : undefined)
 		.filter(a => a !== undefined));
 /**
- * triangle number, only visit half the indices. make unique pairs
+ * @description consult the upper right half triangle of the matrix,
+ * find all truthy values, gather the row/column index pairs,
+ * return them as pairs of indices in a single array.
+ * Triangle number, only visit half the indices. make unique pairs
+ * @param {any[][]} matrix a matrix containing any type
+ * @returns {number[][]} array of pairs of numbers, the pairs of indices
+ * which are truthy in the matrix.
+ * @linkcode Origami ./src/general/arrays.js 94
  */
 const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
@@ -3870,11 +5411,14 @@ const booleanMatrixToUniqueIndexPairs = matrix => {
 /**
  * @description given a self-relational array of arrays, for example,
  * vertices_vertices, edges_edges, faces_faces, where the values in the
- * inner arrays relate to the outer structure, create collection groups
+ * inner arrays relate to the indices of the outer array, create collection groups
  * where each item is included in a group if it points to another member
  * in that group.
+ * @param {number[][]} matrix an array of arrays of numbers
+ * @returns {number[][]} groups of the indices where each index appears only once
+ * @linkcode Origami ./src/general/arrays.js 115
  */
-const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
+const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
 	const recurse = (index, current_group) => {
 		if (groups[index] !== undefined) { return 0; }
@@ -3894,23 +5438,27 @@ const makeUniqueSetsFromSelfRelationalArrays = (matrix) => {
  * the length is a triangle number, ie: 6 + 5 + 4 + 3 + 2 + 1
  * (length * (length-1)) / 2
  */
-const makeTrianglePairs = (array) => {
-	const pairs = Array((array.length * (array.length - 1)) / 2);
-	let index = 0;
-	for (let i = 0; i < array.length - 1; i++) {
-		for (let j = i + 1; j < array.length; j++, index++) {
-			pairs[index] = [array[i], array[j]];
-		}
-	}
-	return pairs;
-};
+// export const makeTrianglePairs = (array) => {
+// 	const pairs = Array((array.length * (array.length - 1)) / 2);
+// 	let index = 0;
+// 	for (let i = 0; i < array.length - 1; i++) {
+// 		for (let j = i + 1; j < array.length; j++, index++) {
+// 			pairs[index] = [array[i], array[j]];
+// 		}
+// 	}
+// 	return pairs;
+// };
 /**
  * @description given an array containing undefineds, gather all contiguous
  * series of valid entries, and return the list of their indices in the form
  * of [start_index, final_index].
- * For example [0, 1, undefined, 2, 3, 4, undefined, undefined, 5]
- * will return two entries: [ [8, 1], [3, 5] ]
- * @param {any[]} the array, which possibly contains holes
+ * @param {any[]} array the array which is allowed to contain holes
+ * @returns {number[][]} array containing pairs of numbers
+ * @example
+ * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
+ * // will return
+ * [ [8, 1], [3, 5] ]
+ * @linkcode Origami ./src/general/arrays.js 157
  */
 const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
@@ -3978,14 +5526,14 @@ const circularArrayValidRanges = (array) => {
 
 var arrays = /*#__PURE__*/Object.freeze({
 	__proto__: null,
+	uniqueIntegers: uniqueIntegers,
 	uniqueSortedIntegers: uniqueSortedIntegers,
 	splitCircularArray: splitCircularArray,
 	getLongestArray: getLongestArray,
 	removeSingleInstances: removeSingleInstances,
 	booleanMatrixToIndexedArray: booleanMatrixToIndexedArray,
 	booleanMatrixToUniqueIndexPairs: booleanMatrixToUniqueIndexPairs,
-	makeUniqueSetsFromSelfRelationalArrays: makeUniqueSetsFromSelfRelationalArrays,
-	makeTrianglePairs: makeTrianglePairs,
+	makeSelfRelationalArrayClusters: makeSelfRelationalArrayClusters,
 	circularArrayValidRanges: circularArrayValidRanges
 });
 
@@ -3993,28 +5541,30 @@ var arrays = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * Removes vertices, edges, or faces (or anything really)
+ * @name remove
+ * @memberof graph
+ * @description Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,
  * and updates all relevant references across other arrays due to shifting.
- *
- * for example: removing index 5 from a 10-long vertices list will shift all
+ * @param {FOLD} graph a FOLD object
+ * @param {string} key like "vertices", the prefix of the arrays
+ * @param {number[]} removeIndices an array of vertex indices, like [1,9,25]
+ * @returns {number[]} a map of changes to the graph
+ * @example remove(foldObject, "vertices", [2,6,11,15]);
+ * @example
+ * removing index 5 from a 10-long vertices list will shift all
  * indices > 5 up by one, and then will look through all other arrays like
  * edges_vertices, faces_vertices and update any reference to indices 6-9
  * to match their new positions 5-8.
  *
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
- *
- * @param {object} a FOLD object
- * @param {string} like "vertices", the prefix of the arrays
- * @param {number[]} an array of vertex indices, like [1,9,25]
- * @returns {number[]} an array resembling something like [0,0,-1,-1,-1,-2,-2,-2]
- *   indicating the relative shift of the position of each index in the array.
- * @example remove(foldObject, "vertices", [2,6,11,15]);
+ * @example
+ * given removeIndices: [4, 6, 7];
+ * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+ * map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
+ * @linkcode Origami ./src/graph/remove.js 33
  */
-// given removeIndices: [4, 6, 7];
-// given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-// map becomes (_=undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6];
 const removeGeometryIndices = (graph, key, removeIndices) => {
 	const geometry_array_size = count(graph, key);
 	const removes = uniqueSortedIntegers(removeIndices);
@@ -4049,10 +5599,17 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
  * Rabbit Ear (c) Kraft
  */
 /**
- * Replaces vertices, edges, or faces (or anything really)
+ * @name replace
+ * @memberof graph
+ * @description Replaces vertices, edges, or faces (or anything really)
  * replace elements from inside arrays, shift up remaining components,
  * and updates all relevant references across other arrays due to shifting.
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {string} key like "vertices", the prefix of the arrays
+ * @param {number[]} replaceIndices an array of vertex indices, like [1,9,25]
+ * @returns {number[]} a map of changes to the graph
+ * @example replace(foldObject, "vertices", [2,6,11,15]);
+ * @example
  * for example: removing index 5 from a 10-long vertices list will shift all
  * indices > 5 up by one, and then will look through all other arrays like
  * edges_vertices, faces_vertices and update any reference to indices 6-9
@@ -4060,13 +5617,7 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
  *
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
- *
- * @param {object} a FOLD object
- * @param {string} like "vertices", the prefix of the arrays
- * @param {number[]} an array of vertex indices, like [1,9,25]
- * @returns {number[]} an array resembling something like [0,0,-1,-1,-1,-2,-2,-2]
- *   indicating the relative shift of the position of each index in the array.
- * @example replace(foldObject, "vertices", [2,6,11,15]);
+ * @linkcode Origami ./src/graph/replace.js 29
  */
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
@@ -4109,19 +5660,21 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
  */
 
 /**
- * @description get the indices of all vertices which lie close to other vertices
+ * @description Get the indices of all vertices which lie close to other vertices.
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
+ * @linkcode Origami ./src/graph/verticesViolations.js 19
  */
 const getDuplicateVertices = (graph, epsilon) => {
 	return getVerticesClusters(graph, epsilon)
 		.filter(arr => arr.length > 1);
 };
 /**
- * @description get the indices of all vertices which make no appearance in any edge.
+ * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 29
  */
 const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
@@ -4138,9 +5691,10 @@ const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 		.filter(a => a !== undefined);
 };
 /**
- * @description get the indices of all vertices which make no appearance in any face.
+ * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 49
  */
 const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
@@ -4160,9 +5714,10 @@ const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 // todo this could be improved. for loop instead of forEach + filter.
 // break the loop early.
 /**
- * @description get the indices of all vertices which make no appearance in any edge or face.
+ * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
+ * @linkcode Origami ./src/graph/verticesViolations.js 72
  */
 const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
@@ -4189,13 +5744,17 @@ const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }
 		.filter(a => a !== undefined);
 };
 /**
- * @description remove any vertices which are not a part of any edge or
+ * @description Remove any vertices which are not a part of any edge or
  * face. This will shift up the remaining vertices indices so that the
  * vertices arrays will not have any holes, and, additionally it searches
  * through all _vertices reference arrays and updates the index
  * references for the shifted vertices.
- * @param {object} a FOLD graph
- * @param {number[]} optional. the result of getIsolatedVertices. 
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} [remove_indices] Leave this empty. Otherwise, if
+ * getIsolatedVertices() has already been called, provide the result here to speed
+ * up the algorithm.
+ * @returns {object} summary of changes
+ * @linkcode Origami ./src/graph/verticesViolations.js 109
  */
 const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -4212,11 +5771,14 @@ const removeIsolatedVertices = (graph, remove_indices) => {
 // };
 
 /**
- * @description this will shrink the number of vertices in the graph,
- * if vertices are too close it will keep the first one, find the geometric
- * average of all merging points, and set the one vertex's vertices_coords.
- * 
- * this has the potential to create circular and duplicate edges
+ * @description This will shrink the number of vertices in the graph,
+ * if vertices are close within an epsilon, it will keep the first one,
+ * find the average of close points, and assign it to the remaining vertex.
+ * **this has the potential to create circular and duplicate edges**.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} summary of changes
+ * @linkcode Origami ./src/graph/verticesViolations.js 133
  */
 const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,
@@ -4335,9 +5897,10 @@ const ordersArrayNames = {
  * @description Get the number of vertices, edges, or faces in the graph, as
  * evidenced by their appearance in other arrays; ie: searching faces_vertices
  * for the largest vertex index, and inferring number of vertices is that long.
- * @param {object} a FOLD graph
- * @param {string} the prefix for a key, eg: "vertices" 
+ * @param {FOLD} graph a FOLD graph
+ * @param {string} key the prefix for a key, eg: "vertices" 
  * @returns {number} the number of vertices, edges, or faces in the graph.
+ * @linkcode Origami ./src/graph/countImplied.js 48
  */
 const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
@@ -4361,11 +5924,14 @@ countImplied.faces = graph => countImplied(graph, _faces);
  */
 /**
  * @description discover a face by walking neighboring vertices until returning to the start.
- * @param {object} FOLD graph
- * @param {number} starting vertex
- * @param {number} second vertex, this sets the direction of the walk
- * @param {object} to prevent walking down duplicate paths, or finding duplicate
- * faces, this dictionary will store and check against vertex pairs "i j".
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} v0 starting vertex
+ * @param {number} v1 second vertex, this sets the direction of the walk
+ * @param {object} [walked_edges={}] memo object, to prevent walking down
+ * duplicate paths, or finding duplicate faces, this dictionary will
+ * store and check against vertex pairs "i j".
+ * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
+ * @linkcode Origami ./src/graph/walk.js 13
  */
 const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
@@ -4410,7 +5976,14 @@ const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, w
 		this_vertex = next_vertex;
 	}
 };
-
+/**
+ * @description Given a planar graph, discover all faces by counter-clockwise walking
+ * by starting at every edge.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object[]} an array of face objects, where each face has number arrays,
+ * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
+ * @linkcode Origami ./src/graph/walk.js 64
+ */
 const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
 	const walked_edges = {};
@@ -4418,13 +5991,19 @@ const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 		.map((adj_verts, v) => adj_verts
 			.map(adj_vert => counterClockwiseWalk(graph, v, adj_vert, walked_edges))
 			.filter(a => a !== undefined))
-		.reduce((a, b) => a.concat(b), [])
+		.flat();
 };
 /**
- * @description 180 - sector angle = the turn angle. counter clockwise
+ * @description This should be used in conjuction with planarVertexWalk() and 
+ * counterClockwiseWalk(). There will be one face in the which winds around the
+ * outside of the boundary and encloses the space outside around. This method will
+ * find that face and remove it from the set.
+ * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object} walked_faces, the result from calling "planarVertexWalk"
+ * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
+ * @returns {object[]} the same input array with one fewer element
+ * @linkcode Origami ./src/graph/walk.js 85
  */
 const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
@@ -4442,10 +6021,14 @@ var walk = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * @param {object} FOLD graph
- * @param {number[]} an array of vertex indices to be sorted
- * @param {number} the origin vertex, around which the vertices will be sorted
+ * @description This is a subroutine for building vertices_vertices. This will
+ * take a set of vertices indices and a vertex index to be the center point, and
+ * sort the indices radially counter-clockwise.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} vertices an array of vertex indices to be sorted
+ * @param {number} vertex the origin vertex, around which the vertices will be sorted
  * @returns {number[]} indices of vertices, in sorted order
+ * @linkcode Origami ./src/graph/sort.js 13
  */
 const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
 	vertices
@@ -4461,10 +6044,11 @@ const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
 /**
  * @description sort a subset of vertices from a graph along a vector.
  * eg: given the vector [1,0], points according to their X value.
- * @param {object} FOLD object
- * @param {number[]} the indices of vertices to be sorted
- * @param {number[]} a vector along which to sort vertices
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} vertices the indices of vertices to be sorted
+ * @param {number[]} vector a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
+ * @linkcode Origami ./src/graph/sort.js 33
  */
 const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) =>
 	vertices
@@ -4496,9 +6080,12 @@ var sort = /*#__PURE__*/Object.freeze({
  *
  */
 /**
- * @param {object} FOLD object, with entry "edges_vertices"
- * @returns {number[][]} array of array of numbers. each index is a vertex with
- *   the content an array of numbers, edge indices this vertex is adjacent.
+ * @description Make `vertices_edges` from `edges_vertices`, unsorted, which should
+ * be used sparingly. Prefer makeVerticesEdges().
+ * @param {FOLD} graph a FOLD object, containing edges_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are edge indices.
+ * @linkcode Origami ./src/graph/make.js 31
  */
 const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	const vertices_edges = [];
@@ -4515,11 +6102,12 @@ const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	return vertices_edges;
 };
 /**
- * @param {object} FOLD object, with entry "edges_vertices"
- * @returns {number[][]} array of array of numbers. each index is a vertex with
- *   the content an array of numbers, edge indices this vertex is adjacent.
- *
- * this one corresponds to vertices_vertices!
+ * @description Make `vertices_edges` sorted, so that the edges are sorted
+ * radially around the vertex, corresponding with the order in `vertices_vertices`.
+ * @param {FOLD} graph a FOLD object, containing edges_vertices, vertices_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are edge indices.
+ * @linkcode Origami ./src/graph/make.js 53
  */
 const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
@@ -4544,6 +6132,13 @@ const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
  * note: it is possible to rewrite this method to use faces_vertices to
  * discover adjacent vertices, currently this is 
  */
+/**
+ * @description Make `vertices_vertices` sorted radially counter-clockwise.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are vertex indices.
+ * @linkcode Origami ./src/graph/make.js 83
+ */
 const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
@@ -4562,8 +6157,12 @@ const makeVerticesVertices = ({ vertices_coords, vertices_edges, edges_vertices 
 			.map((verts, i) => sortVerticesCounterClockwise({ vertices_coords }, verts, i));
 };
 /**
- * this DOES NOT arrange faces in counter-clockwise order, as the spec suggests
- * use makeVerticesFaces for that, which requires vertices_vertices.
+ * @description Make `vertices_faces` **not sorted** counter-clockwise,
+ * which should be used sparingly. Prefer makeVerticesFaces().
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, faces_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are face indices.
+ * @linkcode Origami ./src/graph/make.js 108
  */
 const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
@@ -4584,7 +6183,11 @@ const makeVerticesFacesUnsorted = ({ vertices_coords, faces_vertices }) => {
 	return vertices_faces;
 };
 /**
- * this does arrange faces in counter-clockwise order, as the spec suggests
+ * @description Make `vertices_faces` sorted counter-clockwise.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, faces_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds to a
+ * vertex index and the values in the inner array are face indices.
+ * @linkcode Origami ./src/graph/make.js 133
  */
 const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }
@@ -4612,6 +6215,15 @@ const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices 
  * value is the index of the edge.
  * example: "9 3" and "3 9" are both entries with a value of the edge's index.
  */
+/**
+ * @description Make an object which answers the question: "which edge connects
+ * these two vertices?". This is accomplished by building an object with keys
+ * containing vertex pairs (space separated string), and the value is the edge index.
+ * This is bidirectional, so "7 15" and "15 7" are both keys that point to the same edge.
+ * @param {FOLD} graph a FOLD object, containing edges_vertices
+ * @returns {object} space-separated vertex pair keys, edge indices values
+ * @linkcode Origami ./src/graph/make.js 168
+ */
 const makeVerticesToEdgeBidirectional = ({ edges_vertices }) => {
 	const map = {};
 	edges_vertices
@@ -4623,9 +6235,14 @@ const makeVerticesToEdgeBidirectional = ({ edges_vertices }) => {
 	return map;
 };
 /**
- * same as above. but this method doesn't duplicate "9 3" and "3 9" it
- * only represents the edge in the direction it's stored. this is useful
+ * @description Make an object which answers the question: "which edge connects
+ * these two vertices?". This is accomplished by building an object with keys
+ * containing vertex pairs (space separated string), and the value is the edge index.
+ * This is not bidirectional, so "7 15" can exist while "15 7" does not. This is useful
  * for example for looking up the edge's vector, which is direction specific.
+ * @param {FOLD} graph a FOLD object, containing edges_vertices
+ * @returns {object} space-separated vertex pair keys, edge indices values
+ * @linkcode Origami ./src/graph/make.js 188
  */
 const makeVerticesToEdge = ({ edges_vertices }) => {
 	const map = {};
@@ -4634,6 +6251,17 @@ const makeVerticesToEdge = ({ edges_vertices }) => {
 		.forEach((key, i) => { map[key] = i; });
 	return map;
 };
+/**
+ * @description Make an object which answers the question: "which face contains these
+ * 3 consecutive vertices? (3 vertices in sequential order, from two adjacent edges)"
+ * The keys are space-separated trios of vertex indices, 3 vertices which
+ * are found when walking a face. These 3 vertices uniquely point to one and only one
+ * face, and the counter-clockwise walk direction is respected, this is not
+ * bidirectional, and does not contain the opposite order of the same 3 vertices.
+ * @param {FOLD} graph a FOLD object, containing faces_vertices
+ * @returns {object} space-separated vertex trio keys, face indices values
+ * @linkcode Origami ./src/graph/make.js 206
+ */
 const makeVerticesToFace = ({ faces_vertices }) => {
 	const map = {};
 	faces_vertices
@@ -4645,8 +6273,16 @@ const makeVerticesToFace = ({ faces_vertices }) => {
 			.forEach(key => { map[key] = f; }));
 	return map;
 };
-
-// this can someday be rewritten without edges_vertices
+/**
+ * @description For every vertex, make an array of vectors that point towards each
+ * of the incident vertices. This is accomplised by taking the vertices_vertices
+ * array and converting it into vectors, indices will be aligned with vertices_vertices.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
+ * @returns {number[][][]} array of array of array of numbers, where each row corresponds
+ * to a vertex index, inner arrays correspond to vertices_vertices, and inside is a 2D vector
+ * @todo this can someday be rewritten without edges_vertices
+ * @linkcode Origami ./src/graph/make.js 227
+ */
 const makeVerticesVerticesVector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -4662,10 +6298,13 @@ const makeVerticesVerticesVector = ({ vertices_coords, vertices_vertices, edges_
 			}));
 };
 /**
- * between counter-clockwise adjacent edges around a vertex, there lies
- * sectors, the interior angle space between edges.
- * this builds a list of sector angles in radians, index matched
- * to vertices_vertices.
+ * @description Between pairs of counter-clockwise adjacent edges around a vertex
+ * is the sector measured in radians. This builds an array of of sector angles,
+ * index matched to vertices_vertices.
+ * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
+ * @returns {number[][]} array of array of numbers, where each row corresponds
+ * to a vertex index, inner arrays contains angles in radians
+ * @linkcode Origami ./src/graph/make.js 250
  */
 const makeVerticesSectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
 	makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
@@ -4677,13 +6316,13 @@ const makeVerticesSectors = ({ vertices_coords, vertices_vertices, edges_vertice
  *    EDGES
  *
  */
-// export const make_edges_vertices = ({ faces_vertices }) => { };
 /**
- * @param {object} FOLD object, with entries "edges_vertices", "vertices_edges".
+ * @description Make `edges_edges` containing all vertex-adjacent edges.
+ * This will be radially sorted if you call makeVerticesEdges before calling this.
+ * @param {FOLD} graph a FOLD object, with entries edges_vertices, vertices_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
- *   of other edges that are vertex-adjacent.
- * @description edges_edges are vertex-adjacent edges. make sure to call
- *   makeVerticesEdgesUnsorted before calling this.
+ * of other edges.
+ * @linkcode Origami ./src/graph/make.js 268
  */
 const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 	edges_vertices.map((verts, i) => {
@@ -4691,8 +6330,14 @@ const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 		const side1 = vertices_edges[verts[1]].filter(e => e !== i);
 		return side0.concat(side1);
 	});
-	// if (!edges_vertices || !vertices_edges) { return undefined; }
-
+/**
+ * @description Make `edges_faces` where each edge is paired with its incident faces.
+ * This is unsorted, prefer makeEdgesFaces()
+ * @param {FOLD} graph a FOLD object, with entries edges_vertices, faces_edges
+ * @returns {number[][]} each entry relates to an edge, each array contains indices
+ * of adjacent faces.
+ * @linkcode Origami ./src/graph/make.js 282
+ */
 const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	// instead of initializing the array ahead of time (we would need to know
 	// the length of something like edges_vertices)
@@ -4709,7 +6354,14 @@ const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	});
 	return edges_faces;
 };
-
+/**
+ * @description Make `edges_faces` where each edge is paired with its incident faces.
+ * This is sorted according to the FOLD spec, sorting faces on either side of an edge.
+ * @param {FOLD} graph a FOLD object, with entries vertices_coords, edges_vertices, faces_vertices, faces_edges
+ * @returns {number[][]} each entry relates to an edge, each array contains indices
+ * of adjacent faces.
+ * @linkcode Origami ./src/graph/make.js 306
+ */
 const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
 	if (!edges_vertices) {
 		return makeEdgesFacesUnsorted({ faces_edges });
@@ -4742,10 +6394,20 @@ const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_v
 };
 
 const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
-
+/**
+ * @description Convert edges assignment into fold angle in degrees for every edge.
+ * @param {FOLD} graph a FOLD object, with edges_assignment
+ * @returns {number[]} array of fold angles in degrees
+ * @linkcode Origami ./src/graph/make.js 344
+ */
 const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
-
+/**
+ * @description Convert edges fold angle into assignment for every edge.
+ * @param {FOLD} graph a FOLD object, with edges_foldAngle
+ * @returns {string[]} array of fold assignments
+ * @linkcode Origami ./src/graph/make.js 352
+ */
 const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
 		// todo, consider finding the boundary
@@ -4758,20 +6420,26 @@ const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
  * the 2D or 3D coordinate as an array of numbers.
  * @param {FOLD} graph a FOLD graph with vertices and edges
  * @returns {number[][][]} an array of array of points (which are arrays of numbers)
+ * @linkcode Origami ./src/graph/make.js 366
  */
 const makeEdgesCoords = ({ vertices_coords, edges_vertices }) =>
 	edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]));
 /**
- * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
- * @returns {number[]} a vector beginning at vertex 0, ending at vertex 1
+ * @description Turn every edge into a vector, basing the direction on the order of
+ * the pair of vertices in each edges_vertices entry.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
+ * @returns {number[][]} each entry relates to an edge, each array contains a 2D vector
+ * @linkcode Origami ./src/graph/make.js 376
  */
 const makeEdgesVector = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesCoords({ vertices_coords, edges_vertices })
 		.map(verts => math.core.subtract(verts[1], verts[0]));
 /**
- * @param {FOLD} graph a FOLD graph, with "vertices_coords", "edges_vertices"
- * @returns {number[]} the Euclidean distance between each edge's vertices.
+ * @description For every edge, find the length between the edges pair of vertices.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
+ * @returns {number[]} the distance between each edge's pair of vertices
+ * @linkcode Origami ./src/graph/make.js 385
  */
 const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
 	makeEdgesVector({ vertices_coords, edges_vertices })
@@ -4782,6 +6450,7 @@ const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
  * fast line-sweep algorithms.
  * @param {FOLD} graph a FOLD graph with vertices and edges.
  * @returns {object[]} an array of boxes, length matching the number of edges
+ * @linkcode Origami ./src/graph/make.js 396
  */
 const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
 	if (!edges_coords) {
@@ -4793,6 +6462,19 @@ const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords },
  *
  *    FACES
  *
+ */
+/**
+ * @description Rebuild all faces in a 2D planar graph by walking counter-clockwise
+ * down every edge (both ways). This does not include the outside face which winds
+ * around the boundary backwards enclosing the outside space.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object[]} array of faces as objects containing "vertices" "edges" and "angles"
+ * @example
+ * // to convert the return object into faces_vertices and faces_edges
+ * var faces = makePlanarFaces(graph);
+ * faces_vertices = faces.map(el => el.vertices);
+ * faces_edges = faces.map(el => el.edges);
+ * @linkcode Origami ./src/graph/make.js 420
  */
 const makePlanarFaces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
 	if (!vertices_vertices) {
@@ -4809,13 +6491,11 @@ const makePlanarFaces = ({ vertices_coords, vertices_vertices, vertices_edges, v
 			planarVertexWalk({ vertices_vertices, vertices_sectors }))
 		.map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
+// export const makePlanarFacesVertices = graph => makePlanarFaces(graph)
+// 	.map(face => face.vertices);
 
-// without sector detection, this could be simplified so much that it only uses vertices_vertices.
-const makePlanarFacesVertices = graph => makePlanarFaces(graph)
-	.map(face => face.vertices);
-
-const makePlanarFacesEdges = graph => makePlanarFaces(graph)
-	.map(face => face.edges);
+// export const makePlanarFacesEdges = graph => makePlanarFaces(graph)
+// 	.map(face => face.edges);
 
 // const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
 // 	if (!edges_vertices) { return {}; }
@@ -4826,6 +6506,12 @@ const makePlanarFacesEdges = graph => makePlanarFaces(graph)
 // 	return map;
 // };
 // todo: this needs to be tested
+/**
+ * @description Make `faces_vertices` from `faces_edges`.
+ * @param {FOLD} graph a FOLD graph, with faces_edges, edges_vertices
+ * @returns {number[][]} a `faces_vertices` array
+ * @linkcode Origami ./src/graph/make.js 456
+ */
 const makeFacesVerticesFromEdges = (graph) => {
 	return graph.faces_edges
 		.map(edges => edges
@@ -4837,6 +6523,12 @@ const makeFacesVerticesFromEdges = (graph) => {
 					: pairs[0];
 			}));
 };
+/**
+ * @description Make `faces_edges` from `faces_vertices`.
+ * @param {FOLD} graph a FOLD graph, with faces_vertices
+ * @returns {number[][]} a `faces_edges` array
+ * @linkcode Origami ./src/graph/make.js 473
+ */
 const makeFacesEdgesFromVertices = (graph) => {
 	const map = makeVerticesToEdgeBidirectional(graph);
 	return graph.faces_vertices
@@ -4845,10 +6537,11 @@ const makeFacesEdgesFromVertices = (graph) => {
 		.map(face => face.map(pair => map[pair]));
 };
 /**
- * @param {FOLD} graph a FOLD graph, with entry "faces_vertices"
+ * @description faces_faces is an array of edge-adjacent face indices for each face.
+ * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
- * @description faces_faces is a list of edge-adjacent face indices for each face.
+ * @linkcode Origami ./src/graph/make.js 487
  */
 const makeFacesFaces = ({ faces_vertices }) => {
 	const faces_faces = faces_vertices.map(() => []);
@@ -4900,6 +6593,10 @@ const makeFacesFaces = ({ faces_vertices }) => {
  * ensure that each polygon has 0 collinear vertices.
  * this can result in a polygon with fewer vertices than is contained
  * in that polygon's faces_vertices array.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][][]} array of array of points, where each point is an array of numbers
+ * @linkcode Origami ./src/graph/make.js 542
  */
 const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =>
 	faces_vertices
@@ -4907,13 +6604,20 @@ const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =>
 		.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
 /**
  * @description map vertices_coords onto each face's set of vertices,
- * turning each face into an array of points.
+ * turning each face into an array of points. "Quick" meaning collinear vertices are
+ * not removed, which in some cases, this will be the preferred method.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @returns {number[][][]} array of array of points, where each point is an array of numbers
+ * @linkcode Origami ./src/graph/make.js 554
  */
 const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) =>
 	faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
 /**
- * @description for every face, get one point that is the face's centroid.
+ * @description For every face, get the face's centroid.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @returns {number[][]} array of points, where each point is an array of numbers
+ * @linkcode Origami ./src/graph/make.js 563
  */
 const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
@@ -4922,6 +6626,9 @@ const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
  * @description This uses point average, not centroid, faces must
  * be convex, and again it's not precise, but in many use cases
  * this is often more than sufficient.
+ * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @returns {number[][]} array of points, where each point is an array of numbers
+ * @linkcode Origami ./src/graph/make.js 574
  */
 const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) =>
 	faces_vertices
@@ -4952,8 +6659,6 @@ var make = /*#__PURE__*/Object.freeze({
 	makeEdgesLength: makeEdgesLength,
 	makeEdgesBoundingBox: makeEdgesBoundingBox,
 	makePlanarFaces: makePlanarFaces,
-	makePlanarFacesVertices: makePlanarFacesVertices,
-	makePlanarFacesEdges: makePlanarFacesEdges,
 	makeFacesVerticesFromEdges: makeFacesVerticesFromEdges,
 	makeFacesEdgesFromVertices: makeFacesEdgesFromVertices,
 	makeFacesFaces: makeFacesFaces,
@@ -4980,10 +6685,11 @@ var make = /*#__PURE__*/Object.freeze({
 //   return bad;
 // };
 /**
- * @description get the indices of all circular edges. circular edges are
+ * @description Get the indices of all circular edges. Circular edges are
  * edges where both of its edges_vertices is the same vertex.
- * @param {object} a FOLD graph
- * @returns {number[]} array of indices of circular edges. empty array if none.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} array of indices of circular edges. empty if none.
+ * @linkcode Origami ./src/graph/edgesViolations.js 34
  */
 const getCircularEdges = ({ edges_vertices }) => {
 	const circular = [];
@@ -4995,18 +6701,20 @@ const getCircularEdges = ({ edges_vertices }) => {
 	return circular;
 };
 /**
- * @description get the indices of all duplicate edges by marking the
+ * @description Get the indices of all duplicate edges by marking the
  * second/third/... as duplicate (not the first of the duplicates).
  * The result is given as an array with holes, where:
  * - the indices are the indices of the duplicate edges.
  * - the values are the indices of the first occurence of the duplicate.
  * Under this system, many edges can be duplicates of the same edge.
  * Order is not important. [5,9] and [9,5] are still duplicate.
- * @param {object} a FOLD object
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} an array where the redundant edges are the indices,
  * and the values are the indices of the first occurence of the duplicate.
- * @example {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
+ * @example
+ * {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
+ * @linkcode Origami ./src/graph/edgesViolations.js 59
  */
 const getDuplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
@@ -5029,10 +6737,13 @@ const getDuplicateEdges = ({ edges_vertices }) => {
 	return duplicates;
 };
 /**
- * @description given a set of graph geometry (vertices/edges/faces) indices,
+ * @description Given a set of graph geometry (vertices/edges/faces) indices,
  * get all the arrays which reference these geometries, (eg: end in _edges),
- * and remove (splice) that entry from the array if it contains a remove value
- * @example removing indices [4, 7] from "edges", then a faces_edges entry
+ * and remove (splice) that entry from the array if it contains a remove value.
+ * @param {FOLD} graph a FOLD object
+ * @param {string} suffix a component intended as a suffix, like "vertices" for "edges_vertices"
+ * @example
+ * removing indices [4, 7] from "edges", then a faces_edges entry
  * which was [15, 13, 4, 9, 2] will become [15, 13, 9, 2].
  */
 const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
@@ -5049,6 +6760,15 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 				}
 			}));
 };
+/**
+ * @description Find and remove all circular edges from a graph.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} [remove_indices=undefined] Leave this empty. Otherwise, if
+ * getCircularEdges() has already been called, provide the result here to speed
+ * up the algorithm.
+ * @returns {object} a summary of changes
+ * @linkcode Origami ./src/graph/edgesViolations.js 112
+ */
 const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {
 		remove_indices = getCircularEdges(graph);
@@ -5067,9 +6787,16 @@ const removeCircularEdges = (graph, remove_indices) => {
 	};
 };
 /**
- * @description if an edge is removed, it will mess up the vertices
- * data, so all of the vertices_ arrays will be rebuilt if this
- * method successfully found and removed a duplicate edge.
+ * @description Find and remove all duplicate edges from a graph.
+ * If an edge is removed, it will mess up the vertices data (vertices_vertices, 
+ * vertices_edges, vertices_faces) so if this method successfully found and
+ * removed a duplicate edge, the vertices arrays will be rebuilt as well.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} [replace_indices=undefined] Leave this empty. Otherwise, if
+ * getDuplicateEdges() has already been called, provide the result here to speed
+ * up the algorithm.
+ * @returns {object} a summary of changes
+ * @linkcode Origami ./src/graph/edgesViolations.js 141
  */
 const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.
@@ -5108,14 +6835,26 @@ var edgesViolations = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
-
+/**
+ * @description Provide two or more simple nextmaps in the order they were made
+ * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @param {...number[]} ...maps a sequence of simple nextmaps
+ * @returns {number[]} one nextmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 10
+ */
 const mergeSimpleNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
 };
-
+/**
+ * @description Provide two or more nextmaps in the order they were made
+ * and this will merge them into one nextmap which reflects all changes to the graph.
+ * @param {...number[][]} ...maps a sequence of nextmaps
+ * @returns {number[][]} one nextmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 23
+ */
 const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	const solution = maps[0].map((_, i) => [i]);
@@ -5129,7 +6868,13 @@ const mergeNextmaps = (...maps) => {
 	});
 	return solution;
 };
-
+/**
+ * @description Provide two or more simple backmaps in the order they were made
+ * and this will merge them into one backmap which reflects all changes to the graph.
+ * @param {...number[]} ...maps a sequence of simplebackmaps
+ * @returns {number[]} one backmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 43
+ */
 const mergeSimpleBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].map((_, i) => i);
@@ -5139,7 +6884,13 @@ const mergeSimpleBackmaps = (...maps) => {
 	});
 	return solution;
 };
-
+/**
+ * @description Provide two or more  backmaps in the order they were made
+ * and this will merge them into one backmap which reflects all changes to the graph.
+ * @param {...number[][]} ...maps a sequence of backmaps
+ * @returns {number[][]} one backmap reflecting the sum of changes
+ * @linkcode Origami ./src/graph/maps.js 59
+ */
 const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return; }
 	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
@@ -5157,6 +6908,7 @@ const mergeBackmaps = (...maps) => {
  * @description invert an array of integers so that indices become values and values become indices. in the case of multiple values trying to insert into the same index, a child array is made to house both (or more) numbers.
  * @param {number[]|number[][]} map an array of integers
  * @returns {number[]|number[][]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 78
  */
 const invertMap = (map) => {
 	const inv = [];
@@ -5180,6 +6932,7 @@ const invertMap = (map) => {
  * @description invert an array of integers so that indices become values and values become indices. duplicate entries will be overwritten.
  * @param {number[]} map an array of integers
  * @returns {number[]} the inverted map
+ * @linkcode Origami ./src/graph/maps.js 102
  */
 const invertSimpleMap = (map) => {
 	const inv = [];
@@ -5204,8 +6957,10 @@ var maps = /*#__PURE__*/Object.freeze({
  * @description clean will remove bad graph data. this includes:
  * - duplicate (Euclidean distance) and isolated vertices
  * - circular and duplicate edges.
- * @param {object} FOLD object
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes, a nextmap and the indices removed.
+ * @linkcode Origami ./src/graph/clean.js 24
  */
 const clean = (graph, epsilon) => {
 	// duplicate vertices has to be done first as it's possible that
@@ -5267,8 +7022,15 @@ const validate_references = (graph) => {
 		faces: counts.faces >= implied.faces,
 	}
 };
-
-const validate = (graph, epsilon) => {
+/**
+ * @description Validate a graph, get back a report on its duplicate/circular components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} a report on the validity state of the graph. a "summary" string,
+ * and "vertices" "edges" and "faces" information
+ * @linkcode Origami ./src/graph/validate.js 47
+ */
+const validate$1 = (graph, epsilon) => {
 	const duplicate_edges = getDuplicateEdges(graph);
 	const circular_edges = getCircularEdges(graph);
 	const isolated_vertices = getIsolatedVertices(graph);
@@ -5385,6 +7147,15 @@ const build_faces_if_needed = (graph, reface) => {
  * if you do have edges_assignment instead of edges_foldAngle the origami
  * will be limited to flat-foldable.
  */
+/**
+ * @description Populate all arrays in a FOLD graph. This includes building adjacency
+ * components like vertices_vertices, making edges_assignments from foldAngles or
+ * visa-versa, and building faces if they don't exist.
+ * @param {FOLD} graph a FOLD graph
+ * @param {boolean} [reface=false] optional boolean, request to rebuild all faces
+ * @return {FOLD} graph the same input graph object
+ * @linkcode Origami ./src/graph/populate.js 114
+ */
 const populate = (graph, reface) => {
 	if (typeof graph !== "object") { return graph; }
 	if (!graph.edges_vertices) { return graph; }
@@ -5413,36 +7184,41 @@ const populate = (graph, reface) => {
  * Rabbit Ear (c) Kraft
  */
 /**
- * contains methods for fast-approximating if geometry overlaps.
- * for example testing if edge's rectangular bounding boxes overlap.
- *
- * @returns {number[][]} array matching edges_ length where each value is
- * an array matching vertices_ length, containing true/false, answering
- * the question "does this vertex sit inside the edge's bounding rectangle?"
+ * @description This returns a matrix relating every edge to every vertex,
+ * answering the question "does the vertex sit inside the edge's bounding box?"
+ * It doesn't solve if a vertex lies on an edge, only that it *might* lie along an edge.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon to be added as padding to the bounding boxes
+ * @returns {boolean[][]} array matching edges_ length where each value is
+ * an array matching vertices_ length, containing true/false.
+ * @linkcode Origami ./src/graph/span.js 14
  */
-const getEdgesVerticesSpan = (graph, epsilon = math.core.EPSILON) =>
+const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) =>
 	makeEdgesBoundingBox(graph, epsilon)
-		.map((min_max, e) => graph.vertices_coords
-			.map((vert, v) => (
-				vert[0] > min_max.min[0] - epsilon &&
-				vert[1] > min_max.min[1] - epsilon &&
-				vert[0] < min_max.max[0] + epsilon &&
-				vert[1] < min_max.max[1] + epsilon)));
+		.map(min_max => graph.vertices_coords
+			.map(vert => (
+				vert[0] > min_max.min[0] &&
+				vert[1] > min_max.min[1] &&
+				vert[0] < min_max.max[0] &&
+				vert[1] < min_max.max[1])));
 /**
- * part of an algorithm for segment-segment intersection
- * this answers if it's possible that lines *might* overlap
- * by testing if their rectangular bounding boxes overlap.
- *
- * @returns NxN 2d array filled with true/false answering "do edges overlap
- * in their rectangular bounding boxes?" 
- * both triangles of the matrix are filled with t/f. The main diagonal contains true.
+ * @description Calculate every edge's rectangular bounding box and compare every box to
+ * every box to determine if boxes overlap. This doesn't claim edges overlap, only that
+ * their bounding boxes do, and that two edges *might* overlap.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon to be added as padding to the bounding boxes
+ * @returns {boolean[][]} NxN 2D array filled with true/false answering "do edges's bounding boxes overlap?"
+ * Both triangles of the matrix are filled and the main diagonal contains true.
+ * ```text
  *     0  1  2  3
  * 0 [ t,  ,  ,  ]
  * 1 [  , t,  ,  ]
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
+ * ```
+ * @linkcode Origami ./src/graph/span.js 39
  */
-const getEdgesEdgesSpan = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+const getEdgesEdgesOverlapingSpans = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
 	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 	const span_overlaps = edges_vertices.map(() => []);
 	// span_overlaps will be false if no overlap possible, true if overlap is possible.
@@ -5466,8 +7242,8 @@ const getEdgesEdgesSpan = ({ vertices_coords, edges_vertices, edges_coords }, ep
 
 var span = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	getEdgesVerticesSpan: getEdgesVerticesSpan,
-	getEdgesEdgesSpan: getEdgesEdgesSpan
+	getEdgesVerticesOverlappingSpan: getEdgesVerticesOverlappingSpan,
+	getEdgesEdgesOverlapingSpans: getEdgesEdgesOverlapingSpans
 });
 
 /**
@@ -5487,8 +7263,13 @@ const getOppositeVertices$1 = (graph, vertex, edges) => {
 };
 
 /**
- * @description determine if a vertex is between only two edges and
- * those edges are parallel, rendering the vertex potentially unnecessary.
+ * @description determine if a vertex exists between two and only two edges, and
+ * those edges are both parallel and on opposite ends of the vertex. The idea is
+ * that this vertex can be removed and the graph would appear similar.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} vertex an index of a vertex in the graph
+ * @returns {boolean} true if the vertex is collinear and can be removed.
+ * @linkcode Origami ./src/graph/verticesCollinear.js 26
  */
 const isVertexCollinear = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
@@ -5516,19 +7297,21 @@ const isVertexCollinear = (graph, vertex) => {
  * for this you want: ___________ method
  */
 /**
- * edges_collinear_vertices is a list of lists where for every edge there is a
+ * @description Get a list of lists where for every edge there is a
  * list filled with vertices that lies collinear to the edge, where
  * collinearity only counts if the vertex lies between the edge's endpoints,
  * excluding the endpoints themselves.
- * 
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
+ * @linkcode Origami ./src/graph/verticesCollinear.js 62
  */
 const getVerticesEdgesOverlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 	}
-	const edges_span_vertices = getEdgesVerticesSpan({
+	const edges_span_vertices = getEdgesVerticesOverlappingSpan({
 		vertices_coords, edges_vertices, edges_coords
 	}, epsilon);
 	// todo, consider pushing values into a results array instead of modifying,
@@ -5562,9 +7345,12 @@ var vertices_collinear = /*#__PURE__*/Object.freeze({
  */
 
 /**
- * @param {object} a FOLD object
- * @param {number[]} vector. a line defined by a vector crossing a point
- * @param {number[]} point. a line defined by a vector crossing a point
+ * @description Find all edges in a graph which lie parallel along a line (infinite line).
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} vector a line defined by a vector crossing a point
+ * @param {number[]} point a line defined by a vector crossing a point
+ * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
+ * @linkcode Origami ./src/graph/intersect.js 18
  */
 const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
@@ -5578,7 +7364,7 @@ const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vecto
 	// second, filter out edges which do not lie on top of the line
 	for (let e = 0; e < edges_vertices.length; e++) {
 		if (!overlap[e]) { continue; }
-		if (math.core.equivalentVector2(edges_origin[e], point)) {
+		if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
 			overlap[e] = true;
 			continue;
 		}
@@ -5589,11 +7375,14 @@ const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vecto
 	return overlap;
 };
 /**
- * @description return the indices of edges which overlap the segment
+ * @description Find all edges in a graph which lie parallel along a segment, the
+ * endpoints of the segments and the edges are inclusive.
  * @param {object} a FOLD graph
  * @param {number[]} point1, the first point of the segment
  * @param {number[]} point2, the second point of the segment
- * @returns {number[]} array of edge indices which overlap the segment
+ * @returns {number[]} array length matching number of edges containing a point
+ * if there is an intersection, and undefined if no intersection.
+ * @linkcode Origami ./src/graph/intersect.js 50
  */
 const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
@@ -5616,24 +7405,21 @@ const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_c
 			epsilon)) : undefined);
 };
 /**
- * this method compares every edge against every edge (n^2) to see if the
+ * @description This method compares every edge against every edge (n^2) to see if the
  * segments exclusively intersect each other (touching endpoints doesn't count)
- *
- * @param {object} FOLD graph. only requires { edges_vector, edges_origin }
+ * @param {FOLD} graph a FOLD graph. only requires { edges_vector, edges_origin }
  * if they don't exist this will build them from { vertices_coords, edges_vertices }
- *
- * @param {number} epsilon, optional
- *
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
  * no intersection, a point object in array form if yes, and this array is stored
  * in 2 PLACES! both [i][j] and [j][i], however it is stored by reference,
  * it is the same js object.
- *
  *     0  1  2  3
  * 0 [  , x,  ,  ]
  * 1 [ x,  ,  , x]
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
+ * @linkcode Origami ./src/graph/intersect.js 87
  */
 const makeEdgesEdgesIntersection = function ({
 	vertices_coords, edges_vertices, edges_vector, edges_origin
@@ -5645,7 +7431,7 @@ const makeEdgesEdgesIntersection = function ({
 		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	}
 	const edges_intersections = edges_vector.map(() => []);
-	const span = getEdgesEdgesSpan({ vertices_coords, edges_vertices }, epsilon);
+	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
 	for (let i = 0; i < edges_vector.length - 1; i += 1) {
 		for (let j = i + 1; j < edges_vector.length; j += 1) {
 			if (span[i][j] !== true) {
@@ -5669,7 +7455,7 @@ const makeEdgesEdgesIntersection = function ({
 	return edges_intersections;
 };
 /**
- * @description intersect a CONVEX face with a line and return the location
+ * @description intersect a convex face with a line and return the location
  * of the intersections as components of the graph. this is an EXCLUSIVE
  * intersection. line collinear to the edge counts as no intersection.
  * there are 5 cases:
@@ -5678,13 +7464,14 @@ const makeEdgesEdgesIntersection = function ({
  * - intersect two vertices (valid, or undefined if neighbors)
  * - intersect one vertex and one edge (valid)
  * - intersect two edges (valid)
- * @param {object} FOLD object
- * @param {number} the index of the face
- * @param {number[]} the vector component describing the line
- * @param {number[]} the point component describing the line
- * @param {number} epsilon, optional
- * @returns {object | undefined} "vertices" and "edges" keys, indices of the
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face the index of the face
+ * @param {number[]} vector the vector component describing the line
+ * @param {number[]} origin a point that lies along the line
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
+ * @linkcode Origami ./src/graph/intersect.js 139
  */
 const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array
@@ -5903,6 +7690,7 @@ const fragment_keep_keys = [
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
+ * @linkcode Origami ./src/graph/fragment.js 176
  */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
@@ -5954,49 +7742,40 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 /**
  * Rabbit Ear (c) Kraft
  */
-// maybe we can do this without copying the entire graph first. use the component arrays to bring over only what is necessary
-
-// todo: this is still an early sketch. needs to be completed
-
-const subgraph = (graph, components) => {
-	const remove_indices = {};
-	const sorted_components = {};
-	[_faces, _edges, _vertices].forEach(key => {
-		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
-		sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
-	});
-	Object.keys(sorted_components)
-		.forEach(key => sorted_components[key]
-			.forEach(i => remove_indices[key].splice(i, 1)));
-	// const subgraph = clone(graph);
-	Object.keys(remove_indices)
-		.forEach(key => removeGeometryIndices(graph, key, remove_indices[key]));
-	return graph;
-};
-
 /**
- * Rabbit Ear (c) Kraft
+ * @description For every vertex return a true if the vertex lies along a boundary
+ * edge, as defined by edges_assignment. If edges_assignment is not present,
+ * or does not contain boundary edges, this will return an empty array.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
+ * @linkcode Origami ./src/graph/boundary.js 16
  */
-/**
- * @description true false is a vertex on a boundary
- */
-const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
-	const vertices = {};
-	edges_vertices.forEach((v, i) => {
-		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-		if (!boundary) { return; }
-		vertices[v[0]] = true;
-		vertices[v[1]] = true;
-	});
-	return Object.keys(vertices).map(str => parseInt(str));
-};
+const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+	uniqueIntegers(edges_vertices
+		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+		.flat());
+// export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
+// 	// assign vertices to a hash table to make sure they are unique.
+// 	const vertices = {};
+// 	edges_vertices.forEach((v, i) => {
+// 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
+// 		if (!boundary) { return; }
+// 		vertices[v[0]] = true;
+// 		vertices[v[1]] = true;
+// 	});
+// 	return Object.keys(vertices).map(str => parseInt(str));
+// };
+
 const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
- * @description get the boundary as two arrays of vertices and edges
- * by walking the boundary edges as defined by edges_assignment.
- * if edges_assignment contains errors (or doesn't exist) this will fail.
- * @param {object} a FOLD graph
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
+ * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
+ * If edges_assignment doesn't exist, or contains errors, this will not work, and you
+ * will need the more robust algorithm getPlanarBoundary() which walks the graph, but
+ * only works in 2D.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {object} with "vertices" and "edges" with arrays of indices.
+ * @linkcode Origami ./src/graph/boundary.js 43
  */
 const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
@@ -6036,15 +7815,16 @@ const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	};
 };
 /**
- * @description get the boundary as two arrays of vertices and edges
+ * @description Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.
- * @param {object} a FOLD graph
- *  (vertices_coords, vertices_vertices, edges_vertices)
- *  (vertices edges only required in case vertices_vertices needs to be built)
+ * @param {FOLD} graph a FOLD graph
+ * (vertices_coords, vertices_vertices, edges_vertices)
+ * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
+ * @linkcode Origami ./src/graph/boundary.js 92
  */
 const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
 	if (!vertices_vertices) {
@@ -6131,12 +7911,15 @@ var boundary = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
+ * @name transform
+ * @memberof graph
  * @description apply an affine transform to a graph; this includes
  * modifying the position of any key ending with "_coords" and multiplying
  * any matrix in keys that end with "_matrix".
  * @param {FOLD} graph a FOLD graph
- * @param {number[]} 3x4 matrix as a 12 number array
- * @returns {object} the same input graph, modified
+ * @param {number[]} matrix a 3x4 matrix as a 12 number array
+ * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 15
  */
 const apply_matrix_to_graph = function (graph, matrix) {
 	// apply to anything with a coordinate value
@@ -6154,11 +7937,14 @@ const apply_matrix_to_graph = function (graph, matrix) {
 	return graph;
 };
 /**
+ * @name scale
+ * @memberof graph
  * @description apply a uniform affine scale to a graph.
  * @param {FOLD} graph a FOLD graph
- * @param {number} the scale amount
+ * @param {number} scale the scale amount
  * @param {number[]} optional. an array or series of numbers, the center of scale.
- * @returns {object} the same input graph, modified.
+ * @returns {FOLD} the same input graph, modified.
+ * @linkcode Origami ./src/graph/affine.js 40
  */
 const transform_scale = (graph, scale, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -6167,10 +7953,13 @@ const transform_scale = (graph, scale, ...args) => {
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
+ * @name translate
+ * @memberof graph
  * @description apply a translation to a graph.
- * @param {object} a FOLD graph
+ * @param {FOLD} graph a FOLD graph
  * @param {number[]} optional. an array or series of numbers, the translation vector
- * @returns {object} the same input graph, modified
+ * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 55
  */
 const transform_translate = (graph, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -6179,11 +7968,14 @@ const transform_translate = (graph, ...args) => {
 	return apply_matrix_to_graph(graph, matrix);
 };
 /**
+ * @name rotateZ
+ * @memberof graph
  * @description apply a rotation to a graph around the +Z axis.
- * @param {object} a FOLD graph
+ * @param {FOLD} graph a FOLD graph
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
- * @returns {object} the same input graph, modified
+ * @returns {FOLD} the same input graph, modified
+ * @linkcode Origami ./src/graph/affine.js 71
  */
 const transform_rotateZ = (graph, angle, ...args) => {
 	const vector = math.core.getVector(...args);
@@ -6213,10 +8005,12 @@ var transform = {
 //   .filter(v => graph.faces_vertices[face1].indexOf(v) !== -1)
 
 /**
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @param {number[]}, list of vertex indices. one entry from faces_vertices
- * @returns {number[]}, indices of vertices that are shared between faces
- *  and keep the vertices in the same order as the winding order of face a.
+ * @description given two faces, get the vertices which are shared between the two faces.
+ * @param {number[]} face_a_vertices the faces_vertices entry for face A
+ * @param {number[]} face_b_vertices the faces_vertices entry for face B
+ * @returns {number[]} indices of vertices that are shared between faces maintaining
+ * the vertices in the same order as the winding order of face A.
+ * @linkcode Origami ./src/graph/faceSpanningTree.js 16
  */
 // todo: this was throwing errors in the case of weird nonconvex faces with
 // single edges poking in. the "already_added" was added to fix this.
@@ -6252,6 +8046,15 @@ const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 // except for the first level. the root level has no reference to the
 // parent face, or the edge_vertices shared between them
 // root_face will become the root node
+/**
+ * @description Make a minimum spanning tree of a graph that edge-adjacent faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the face index to be the root node
+ * @returns {object[][]} a tree arranged as an array containin arrays of nodes. each inner
+ * array contains all nodes at that depth (0, 1, 2...) each node contains:
+ * "face" {number} "parent" {number} "edge_vertices" {number[]}
+ * @linkcode Origami ./src/graph/faceSpanningTree.js 59
+ */
 const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) => {
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
@@ -6309,12 +8112,13 @@ var faceSpanningTree = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given a FOLD object and a set of 2x3 matrices, one per face,
+ * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
  * @param {object} FOLD graph with vertices_coords, faces_vertices, and
  * if vertices_faces does not exist it will be built.
  * @param {number[][]} an array of 2x3 matrices. one per face.
  * @returns {number[][]} a new set of vertices_coords, transformed.
+ * @linkcode Origami ./src/graph/facesMatrix.js 21
  */
 const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
 	if (!vertices_faces) {
@@ -6332,13 +8136,15 @@ const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_v
 };
 const unassigned_angle = { U: true, u: true };
 /**
- * This traverses an face-adjacency tree (edge-adjacent faces),
- * and recursively applies the affine transform that represents a fold
- * across the edge between the faces
- *
- * Flat/Mark creases are ignored!
- * the difference between the matrices of two faces separated by
- * a mark crease is the identity matrix.
+ * @description Create a transformation matrix for every face by virtually folding
+ * the graph along all of the creases (this works in 3D too). This traverses
+ * a face-adjacency tree (edge-adjacent faces) and recursively applies the
+ * affine transform that represents a fold across the edge between the faces.
+ * "flat" creases are ignored.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
+ * @linkcode Origami ./src/graph/facesMatrix.js 47
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
 const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
@@ -6378,36 +8184,43 @@ const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edg
 			}));
 	return faces_matrix;
 };
+const assignment_is_folded = {
+	M: true, m: true, V: true, v: true, U: true, u: true,
+	F: false, f: false, B: false, b: false,
+};
 /**
- * @description this is assuming the crease pattern contains flat folds only.
- * for every edge, give us a boolean:
- * - "true" if the edge is folded, valley or mountain, or unassigned
+ * @description For every edge, give us a boolean:
+ * - "true" if the edge is folded, valley or mountain, or unassigned.
  * - "false" if the edge is not folded, flat or boundary.
- * 
  * "unassigned" is considered folded so that an unsolved crease pattern
  * can be fed into here and we still compute the folded state.
  * However, if there is no edges_assignments, and we have to use edges_foldAngle,
  * the "unassigned" trick will no longer work, only +/- non zero numbers get
  * counted as folded edges (true).
- * 
  * For this reason, treating "unassigned" as a folded edge, this method's
  * functionality is better considered to be specific to makeFacesMatrix2,
  * instead of a generalized method. 
+ * @param {FOLD} graph a FOLD graph
+ * @returns {boolean[]} for every edge, is it folded? or has the potential to be folded?
+ * "unassigned"=yes
+ * @linkcode Origami ./src/graph/facesMatrix.js 106
  */
-const assignment_is_folded = {
-	M: true, m: true, V: true, v: true, U: true, u: true,
-	F: false, f: false, B: false, b: false,
-};
-const makeEdgesIsFlatFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
 	if (edges_assignment === undefined) {
 		return edges_foldAngle === undefined
 			? edges_vertices.map(_ => true)
-			: edges_foldAngle.map(angle => angle < 0 || angle > 0);
+			: edges_foldAngle.map(angle => angle < -math.core.EPSILON || angle > math.core.EPSILON);
 	}
 	return edges_assignment.map(a => assignment_is_folded[a]);  
 };
 /**
- * @description 2D matrices, for flat-folded origami
+ * @description This ignores any 3D data, and treats all creases as flat-folded.
+ * This will generate a 2D matrix for every face by virtually folding the graph
+ * at every edge according to the assignment or foldAngle.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
+ * @linkcode Origami ./src/graph/facesMatrix.js 123
  */
 const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
 	if (!edges_foldAngle) {
@@ -6418,7 +8231,7 @@ const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, ed
 			edges_foldAngle = Array(edges_vertices.length).fill(0);
 		}
 	}
-	const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const faces_matrix = faces_vertices.map(() => math.core.identity2x3);
 	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
@@ -6445,7 +8258,7 @@ var facesMatrix = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	multiplyVerticesFacesMatrix2: multiplyVerticesFacesMatrix2,
 	makeFacesMatrix: makeFacesMatrix,
-	makeEdgesIsFlatFolded: makeEdgesIsFlatFolded,
+	makeEdgesIsFolded: makeEdgesIsFolded,
 	makeFacesMatrix2: makeFacesMatrix2
 });
 
@@ -6453,10 +8266,15 @@ var facesMatrix = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description this method works in both 2D and 3D
+ * @description Fold a graph along its edges and return the position
+ * of the folded vertices. This method works in both 2D and 3D
  * unassigned edges are treated as flat fold (mountain/valley 180deg)
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 23
  */
 const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
 	faces_matrix = makeFacesMatrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
@@ -6476,13 +8294,18 @@ const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_verti
 		.map((coord, i) => math.core.multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
 /**
- * @description this method works for 2D only (no z value).
+ * @description Fold a graph along its edges and return the position of the folded
+ * vertices. this method works for 2D only (no z value).
  * if a edges_assignment is "U", assumed to be folded ("V" or "M").
- * also, if no edge foldAngle or assignments exist, assume all edges are folded.
+ * Finally, if no edge foldAngle or assignments exist, this method will
+ * assume all edges are flat-folded (except boundary) and will fold everything.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} [root_face=0] the index of the face that will remain in place
+ * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 51
  */
-// export const makeVerticesCoordsFlatFolded = makeVerticesCoordsFolded;
 const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
-	const edges_is_folded = makeEdgesIsFlatFolded({ edges_vertices, edges_foldAngle, edges_assignment });
+	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
 	faces_vertices[root_face]
 		.forEach(v => { vertices_coords_folded[v] = [...vertices_coords[v]]; });
@@ -6541,24 +8364,35 @@ var verticesCoordsFolded = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * true/false: which face shares color with root face
- * the root face (and any similar-color face) will be marked as true
- *
- * this face coloring skips marks joining the two faces separated by it.
- * it relates directly to if a face is flipped or not (determinant > 0)
+ * @description For every face, return a boolean indicating if the face has
+ * been flipped over or not (false=flipped), by using the faces_matrix and
+ * checking the determinant.
+ * @param {number[][]} faces_matrix for every face, a 3x4 transform matrix
+ * @returns {boolean[]} true if a face is counter-clockwise.
+ * @linkcode Origami ./src/graph/facesWinding.js 10
  */
 const makeFacesWindingFromMatrix = faces_matrix => faces_matrix
 	.map(m => m[0] * m[4] - m[1] * m[3])
 	.map(c => c >= 0);
-// the 2D matrix
+/**
+ * @description For every face, return a boolean indicating if the face has
+ * been flipped over or not (false=flipped), by using a faces_matrix containing
+ * 2D matrices.
+ * @param {number[][]} faces_matrix for every face, a 2x3 transform matrix
+ * @returns {boolean[]} true if a face is counter-clockwise.
+ * @linkcode Origami ./src/graph/facesWinding.js 21
+ */
 const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
 	.map(m => m[0] * m[3] - m[1] * m[2])
 	.map(c => c >= 0);
-
-// cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 /**
- * @returns {boolean[]} true if a face is counter-clockwise. this should also
- * mean a true face is upright, false face is flipped.
+ * @description For every face, return a boolean if the face's vertices are
+ * in counter-clockwise winding. For origami models, this translates to
+ * true meaning the face is upright, false meaning the face is flipped over.
+ * @param {FOLD} graph a FOLD graph
+ * @returns {boolean[]} true if a face is counter-clockwise.
+ * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+ * @linkcode Origami ./src/graph/facesWinding.js 33
  */
 const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
 	return faces_vertices
@@ -6588,6 +8422,7 @@ var facesWinding = /*#__PURE__*/Object.freeze({
  * do not share vertices.
  * @param {FOLD} graph a FOLD graph
  * @returns {FOLD} a new FOLD graph with exploded faces
+ * @linkcode Origami ./src/graph/explodeFaces.js 15
  */
 const explodeFaces = (graph) => {
 	const vertices_coords = graph.faces_vertices
@@ -6610,6 +8445,7 @@ const explodeFaces = (graph) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [shrink=0.333] a scale factor for a shrinking transform
  * @returns {FOLD} a new FOLD graph with exploded faces
+ * @linkcode Origami ./src/graph/explodeFaces.js 38
  */
 const explodeShrinkFaces = ({ vertices_coords, faces_vertices }, shrink = 0.333) => {
 	const graph = explodeFaces({ vertices_coords, faces_vertices });
@@ -6654,10 +8490,12 @@ var explodeFacesMethods = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * @returns index of nearest vertex in vertices_ arrays or
- * this is the only one of the nearest_ functions that works in 3-dimensions
- *
- * todo: improve with space partitioning
+ * @description Iterate through all vertices in a graph and find the one nearest to a provided point. This is the only of the "nearest" graph operations that works in 3D.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest vertex
+ * @returns {number} the index of the nearest vertex
+ * @todo improve with space partitioning
+ * @linkcode Origami ./src/graph/nearest.js 12
  */
 const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
@@ -6672,8 +8510,11 @@ const nearestVertex = ({ vertices_coords }, point) => {
 	return nearest ? nearest.i : undefined;
 };
 /**
- * returns index of nearest edge in edges_ arrays or
- *  undefined if there are no vertices_coords or edges_vertices
+ * @description Iterate through all edges in a graph and find the one nearest to a provided point.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest edge
+ * @returns {number|undefined} the index of the nearest edge, or undefined if there are no vertices_coords or edges_vertices
+ * @linkcode Origami ./src/graph/nearest.js 31
  */
 const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
@@ -6687,7 +8528,12 @@ const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	return math.core.smallestComparisonSearch(point, nearest_points, math.core.distance);
 };
 /**
- * from a planar perspective, ignoring z components
+ * @description Iterate through all faces in a graph and find one that encloses a point.
+ * This method assumes the graph is in 2D, it ignores any z components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the enclosing face
+ * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
+ * @linkcode Origami ./src/graph/nearest.js 50
  */
 const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
@@ -6697,7 +8543,15 @@ const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 		.shift();
 	return (face === undefined ? undefined : face.i);
 };
-
+/**
+ * @description Iterate through all faces in a graph and find one nearest to a point.
+ * This method assumes the graph is in 2D, it ignores any z components.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number[]} point the point to find the nearest face
+ * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
+ * @todo make this work if edges_faces is not defined (not hard)
+ * @linkcode Origami ./src/graph/nearest.js 67
+ */
 const nearestFace = (graph, point) => {
 	const face = faceContainingPoint(graph, point);
 	if (face !== undefined) { return face; }
@@ -6741,6 +8595,7 @@ var nearest = /*#__PURE__*/Object.freeze({
  * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
  * @param {object} o
  * @returns {object} a deep copy of the input
+ * @linkcode Origami ./src/general/clone.js 14
  */
 const clone = function (o) {
 	let newO;
@@ -6776,11 +8631,12 @@ const clone = function (o) {
  * will also compare against every existing vertex, only adding non-duplicate
  * vertices, as determined by an epsilon.
  * @param {FOLD} graph a FOLD graph, modified in place.
- * @param {number[][]} vertices_coords, array of points to be added to the graph
+ * @param {number[][]} vertices_coords array of points to be added to the graph
  * @param {number} [epsilon=1e-6] optional epsilon to merge similar vertices
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
+ * @linkcode Origami ./src/graph/add/addVertices.js 15
  */
 const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }
@@ -6811,11 +8667,12 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description given an edge, uncover the adjacent faces
- * @param {object} FOLD graph
- * @param {number} index of the edge in the graph
+ * @description Given an edge, uncover the adjacent faces.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} edge index of the edge in the graph
  * {number[]} indices of the two vertices making up the edge
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
+ * @linkcode Origami ./src/graph/find.js 10
  */
 const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
 	// easiest case, if edges_faces already exists.
@@ -7172,6 +9029,7 @@ const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, face
  * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove"
+ * @linkcode Origami ./src/graph/splitEdge/index.js 39
  */
 const splitEdge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// make sure old_edge is a valid index
@@ -7532,18 +9390,19 @@ const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description divide a CONVEX face into two polygons with a straight line cut.
+ * @description divide a **convex** face into two polygons with a straight line cut.
  * if the line ends exactly along existing vertices, they will be
  * used, otherwise, new vertices will be added (splitting edges).
- * @param {object} graph a FOLD object, modified in place
+ * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} face index of face to split
- * @param {number[]} vector the vector component describing the cutting line
- * @param {number[]} point the point component describing the cutting line
+ * @param {number[]} vector the vector component of the cutting line
+ * @param {number[]} point the point component of the cutting line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
+ * @linkcode Origami ./src/graph/splitFace/index.js 28
  */
-const splitConvexFace = (graph, face, vector, point, epsilon) => {
+const splitFace = (graph, face, vector, point, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex
 	const intersect = intersectConvexFaceLine(graph, face, vector, point, epsilon);
 	// if no intersection exists, return undefined.
@@ -7590,6 +9449,7 @@ const splitConvexFace = (graph, face, vector, point, epsilon) => {
  * @description a graph which includes faces, edges, and vertices, and additional
  * origami-specific information like fold angles of edges and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
+ * @linkcode Origami ./src/classes/graph.js 49
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -7601,10 +9461,10 @@ Graph.prototype.constructor = Graph;
 const graphMethods = Object.assign({
 	// count,
 	clean,
-	validate,
+	validate: validate$1,
 	populate,
 	fragment,
-	subgraph,
+	// subgraph,
 	// assign,
 	// convert snake_case to camelCase
 	addVertices: addVertices,
@@ -7625,7 +9485,7 @@ Object.keys(graphMethods).forEach(key => {
  */
 Graph.prototype.splitFace = function (face, ...args) {
 	const line = math.core.getLine(...args);
-	return splitConvexFace(this, face, line.vector, line.origin);
+	return splitFace(this, face, line.vector, line.origin);
 };
 /**
  * @returns {this} a deep copy of this object
@@ -7813,17 +9673,23 @@ var GraphProto = Graph.prototype;
  * Rabbit Ear (c) Kraft
  */
 
-// convex poly only!
-const clip = function (
-	{vertices_coords, vertices_edges, edges_vertices, edges_assignment, boundaries_vertices},
-	line) {
-	if (!boundaries_vertices) {
-		boundaries_vertices = getBoundary({
-			vertices_edges, edges_vertices, edges_assignment
-		}).vertices;
-	}
-	return math.polygon(boundaries_vertices.map(v => vertices_coords[v]))
-		.clip(line);
+/**
+ * @description Clip a line inside the boundaries of a graph, resulting in one segment
+ * or undefined. The line can be a line, ray, or segment.
+ * @param {FOLD} graph a FOLD graph
+ * @param {RayLine|number[][]} line a line or a segment
+ * @returns {number[][]|undefined} a segment, a pair of two points,
+ * or undefined if no intersection
+ * @linkcode Origami ./src/graph/clip.js 14
+ */
+const clip = function (graph, line) {
+	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
+	const vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
+	const origin = line.origin ? line.origin : line[0];
+  const fn_line = line.domain_function ? line.domain_function : math.core.includeL;
+	return math.core.clipLineConvexPolygon(polygon, vector, origin,
+		math.core.include,
+		fn_line);
 };
 
 /**
@@ -7928,8 +9794,8 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 /**
  * @description Add a segment to a planar graph and maintain planarity.
  * If endpoints lie within an epsilon to existing vertices, they will be used.
- * If edges are crossed by the new edge, all edges will be segmented and
- * new vertices will be added. Finally, all faces will be rebuilt.
+ * If edges are crossed by the new edge, these edges will be segmented and
+ * new vertices will be added. Finally, all intersected faces will be rebuilt.
  * If the graph contains the arrays edges_assignment or edges_foldAngle,
  * the corresponding new edge indices will be appended with "U" and 0.
  * @param {FOLD} graph a planar FOLD graph, modified in place.
@@ -7937,6 +9803,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @param {number[]} point2 a 2D point as an array of numbers
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
  * @returns {number[]} the indices of the new edge(s) composing the segment.
+ * @linkcode Origami ./src/graph/add/addPlanarSegment.js 120
  */
 const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.
@@ -8191,6 +10058,7 @@ const join_faces = (graph, faces, edge, vertices) => {
  * @param {object} graph a FOLD graph
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
+ * @linkcode Origami ./src/graph/remove/removePlanarEdge.js 93
  */
 const removePlanarEdge = (graph, edge) => {
 	// the edge's vertices, sorted large to small.
@@ -8295,6 +10163,7 @@ const getOppositeVertices = (graph, vertex, edges) => {
  * @param {object} graph a FOLD graph
  * @param {number} edge the index of the edge to be removed
  * @returns {undefined}
+ * @linkcode Origami ./src/graph/remove/removePlanarVertex.js 24
  */
 const removePlanarVertex = (graph, vertex) => {
 	const edges = graph.vertices_edges[vertex];
@@ -8362,6 +10231,7 @@ const removePlanarVertex = (graph, vertex) => {
  *  even and odd indices and sum the two categories, returning two sums.
  * @param {number[]} numbers one list of numbers
  * @returns {number[]} one array of two sums, even and odd indices
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 10
  */
 const alternatingSum = (numbers) => [0, 1]
 	.map(even_odd => numbers
@@ -8374,6 +10244,7 @@ const alternatingSum = (numbers) => [0, 1]
  * @returns {number[]} one array of two numbers. if both alternating sets sum
  *  to the same, the result will be [0, 0]. if the first set is 2 more than the
  *  second, the result will be [1, -1]. (not [2, 0] or something with a 2 in it)
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 23
  */
 const alternatingSumDifference = (sectors) => {
 	const halfsum = sectors.reduce((a, b) => a + b, 0) / 2;
@@ -8389,6 +10260,7 @@ const alternatingSumDifference = (sectors) => {
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[]} radians the angle of the edges in radians, like vectors around a vertex. pre-sorted.
  * @returns {number[]} for every sector either one vector (as an angle in radians) or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 39
  */
 const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
@@ -8412,6 +10284,7 @@ const kawasakiSolutionsRadians = (radians) => radians
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
  * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 63
  */
 const kawasakiSolutionsVectors = (vectors) => {
 	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
@@ -8454,6 +10327,7 @@ const maekawa_signs = { M:-1, m:-1, V:1, v:1};
  * todo: this assumes that valley/mountain folds are flat folded.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
+ * @linkcode Origami ./src/singleVertex/validate.js 34
  */
 const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
@@ -8480,6 +10354,7 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
+ * @linkcode Origami ./src/singleVertex/validate.js 61
  */
 const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {
@@ -8636,7 +10511,7 @@ CreasePattern.prototype.removeEdge = function (edge) {
 };
 
 CreasePattern.prototype.validate = function (epsilon) {
-	const valid = validate(this, epsilon);
+	const valid = validate$1(this, epsilon);
 	valid.vertices.kawasaki = validateKawasaki(this, epsilon);
 	valid.vertices.maekawa = validateMaekawa(this);
 	if (this.edges_foldAngle) {
@@ -8748,14 +10623,14 @@ const face_snapshot = (graph, face) => ({
  * @param {string} assignment (M/V/F) a FOLD spec encoding of the direction of the fold
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to faces/edges.
- * algorithm outline:
- * Because we want to return the new modified origami in crease pattern form,
+ * @algorithm Because we want to return the new modified origami in crease pattern form,
  * as we iterate through the faces, splitting faces which cross the crease
  * line, we have to be modifying the crease pattern, as opposed to modifying
  * a folded form then unfolding the vertices, which would be less precise.
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
+ * @linkcode Origami ./src/graph/flatFold/index.js 84
  */
 const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
@@ -8832,7 +10707,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 			// values from it to complete the 2 new faces which replace it.
 			const face = face_snapshot(graph, i);
 			// split the polygon (if possible), get back a summary of changes.
-			const change = splitConvexFace(
+			const change = splitFace(
 				graph,
 				i,
 				face.crease.vector,
@@ -8929,6 +10804,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
  * create a single-face graph with a unit square boundary.
  * @prototype Graph
  * @param {FOLD} [graph] an optional FOLD object
+ * @linkcode Origami ./src/classes/origami.js 13
  */
 const Origami = {};
 Origami.prototype = Object.create(GraphProto);
@@ -8945,14 +10821,16 @@ var OrigamiProto = Origami.prototype;
 /**
  * Rabbit Ear (c) Kraft
  */
+/**
+ * @description Check a FOLD object's frame_classes for the presence of "foldedForm".
+ * @param {FOLD} graph a FOLD object
+ * @returns {boolean} true if the graph is folded.
+ * @linkcode Origami ./src/graph/query.js 8
+ */
 const isFoldedForm = (graph) => {
 	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
 		|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
 };
-
-	// const isFoldedForm = typeof graph.frame_classes === K.object
-	//   && graph.frame_classes !== null
-	//   && !(graph.frame_classes.includes(K.creasePattern));
 
 var query = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -8962,7 +10840,15 @@ var query = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
-
+/**
+ * @description Return an ExF matrix (number of: E=edges, F=faces), relating every edge
+ * to every face. Value will contain true if the edge and face overlap each other, excluding
+ * the space around the edge's endpoints, and the edges of the face.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ * @linkcode Origami ./src/graph/overlap.js 18
+ */
 const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -9030,10 +10916,13 @@ const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, 
 //   return matrix;
 // };
 /**
- * @description compare every face to every face, do they overlap?
- * return the result in the form of a matrix, an array of arrays
- * of booleans, where both halves of the matrix are filled,
- * matrix[i][j] === matrix[j][i].
+ * @description Compare every face to every face to answer: do the two faces overlap?
+ * Return the result in the form of a matrix, an array of arrays of booleans,
+ * where both halves of the matrix are filled, matrix[i][j] === matrix[j][i].
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
+ * @linkcode Origami ./src/graph/overlap.js 93
  */
 const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
@@ -9059,547 +10948,15 @@ var overlap = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
-
-// todo, should epsilon be multiplied by 2?
-
 /**
- * @description make an array of objects where each object represents one
- * fold line, and contains all the tacos and tortillas sharing the fold line.
- * @returns {object[]} array of taco objects. each taco object represents one
- * fold location shared by multiple tacos. each taco object contains keys:
- * "both", "left", "right" where the values are an array of pairs of faces,
- * the pairs of adjacent faces around the taco edge. "left": [ [2,3] [6,0] ]
- */
-const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
-	// center of each face, will be used to see if a taco faces left or right
-	const faces_center = folded_faces
-		.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
-	const locations = [];
-	// gather all fold locations that match, add them to the same group.
-	// for every fold location, make one of these objects where the pairs are
-	// the two adjacent faces on either side of the crease line.
-	// {
-	//   min: -0.1,
-	//   max: 0.1,
-	//   pairs: [ [2,3], [0,1] ],
-	// };
-	folded_faces.forEach((ends, i) => {
-		if (!ends) { return; }
-		// if the strip is not circular, skip the final round and don't wrap around
-		if (!is_circular && i === folded_faces.length - 1) { return; }
-		const fold_end = ends[1];
-		const min = fold_end - (epsilon * 2);
-		const max = fold_end + (epsilon * 2);
-		const faces = [i, (i+1) % folded_faces.length];
-		// which side of the crease is the face on?
-		// false = left (-), true = right (+)
-		const sides = faces
-			.map(f => faces_center[f])
-			.map(center => center > fold_end);
-		// place left tacos at index 1, right at 2, and neither (tortillas) at 0
-		const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
-		// todo: this searches every time. could be improved with a sorted array.
-		const match = locations
-			.filter(el => el.min < fold_end && el.max > fold_end)
-			.shift();
-		const entry = { faces, taco_type };
-		if (match) {
-			match.pairs.push(entry);
-		} else {
-			locations.push({ min, max, pairs: [entry] });
-		}
-	});
-	// ignore stacks which have only one taco. we know they pass the test.
-	// technically we can also filter out after they have been separated
-	// as we can ignore the case with 1 left and 1 right. it always passes too.
-	// but these will get ignored in the next function anyway
-	return locations
-		.map(el => el.pairs)
-		.filter(pairs => pairs.length > 1)
-		.map(pairs => ({
-			both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
-			left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
-			right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
-		}));
-};
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * @description given two indices, return a copy of the array between them,
- * excluding the elements at the indices themselves.
- * @returns {any[]} the subarray exclusively between the two indices.
- */
-const between = (arr, i, j) => (i < j)
-	? arr.slice(i + 1, j)
-	: arr.slice(j + 1, i);
-/**
- * because this test is meant to run during the intermediate steps while
- * the a strip is being assembled, the strip may eventually be circular,
- * but currently it isn't.
- * 
- * @params {[number, number][]} for every sector, "start" and "end" of each sector
- * this is the output of having run "foldStripWithAssignments"
- * @param {number[]} layers_face, index is z-layer, value is the sector/face.
- * @param {boolean} do assignments contain a boundary? (to test for loop around)
- * @returns {boolean} does a violation occur. "false" means all good.
- */
-const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
-	// for every sector/face, the value is its index in the layers_face array
-	const faces_layer = invertMap(layers_face);
-	// for every sector, the location of the end of the sector after folding
-	// (the far end, the second end visited by the walk)
-	const fold_location = faces_folded
-		.map(ends => ends ? ends[1] : undefined);
-	// for every sector, the location of the end which lies nearest to -Infinity
-	const faces_mins = faces_folded
-		.map(ends => ends ? Math.min(...ends) : undefined)
-		.map(n => n + epsilon);
-	// for every sector, the location of the end which lies nearest to +Infinity
-	const faces_maxs = faces_folded
-		.map(ends => ends ? Math.max(...ends) : undefined)
-		.map(n => n - epsilon);
-	// we can't test the loop back around when j==end and i==0 because they only
-	// connect after the piece has been completed,
-	// but we do need to test it when that happens
-	// const max = layers_face.length + (layers_face.length === sectors.length ? 0 : -1);
-	// const faces_array_circular = is_circular
-	//   && faces_layer.length === faces_folded.length;
-	const max = faces_layer.length + (is_circular ? 0 : -1);
-	// iterate through all the faces, take each face together with the next face,
-	// establish the fold line between them, then check the layer stacking and
-	// gather all faces that exist between this pair of faces, test each
-	// of them to see if they cross through this pair's fold line.
-	for (let i = 0; i < max; i += 1) {
-		// this is the next face in the folding sequence
-		const j = (i + 1) % faces_layer.length;
-		// if two adjacent faces are in the same layer, they will not be causing an
-		// overlap, at least not at their crease (because there is no crease).
-		if (faces_layer[i] === faces_layer[j]) { continue; }
-		// todo consider prebuilding a table of comparing fold locations with face mins and maxs
-		// result of between contains both numbers and arrays: [5,[0,1],2,[3,4]]
-		// the reduce will bring everything to the top level: [5,0,1,2,3,4]
-		const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
-			.flat();
-		// check if the fold line is (below/above) ALL of the sectors between it
-		// it will be above if
-		const all_below_min = layers_between
-			.map(index => fold_location[i] < faces_mins[index])
-			.reduce((a, b) => a && b, true);
-		const all_above_max = layers_between
-			.map(index => fold_location[i] > faces_maxs[index])
-			.reduce((a, b) => a && b, true);
-		if (!all_below_min && !all_above_max) { return false; }
-	}
-	return true;
-};
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * @description test a stack of tacos (all left or right) for self-intersection.
- * for a collection of tacos which all point in the same direction,
- * all pairs of faces in a taco-taco stack have a shared edge,
- * give each pair a unique identifier (simplest, a unique integer 0...n),
- * now we refer to each face simply by its pair identifier. so now a face
- * layer stack would appear like: [1, 1, 0, 5, 5, 0] (which is a valid stack).
- * a bad layer stack would be: [1, 5, 1, 5].
- * @param {number[]} stacking order of each face where each face is
- * encoded as its pair number identifier.
- * @returns {boolean} true if the taco stack passes this test. false if fails.
- */
-const validateTacoTacoFacePairs = (face_pair_stack) => {
-	// create a copy of "stack" that removes single faces currently missing
-	// their other pair partner. this removes boundary faces (with no adj. face)
-	// as well as stacks which are in the process of being constructed but not
-	// yet final
-	const pair_stack = removeSingleInstances(face_pair_stack);
-	const pairs = {};
-	let count = 0;
-	for (let i = 0; i < pair_stack.length; i++) {
-		if (pairs[pair_stack[i]] === undefined) {
-			count++;
-			pairs[pair_stack[i]] = count;
-		}
-		// if we have seen this layer pair already, it MUST be appearing
-		// in the correct order, that is, as it gets popped off the stack,
-		// it must be the next-most-recently added pair to the stack.
-		else if (pairs[pair_stack[i]] !== undefined) {
-			if (pairs[pair_stack[i]] !== count) { return false; }
-			count--;
-			pairs[pair_stack[i]] = undefined;
-		}
-	}
-	return true;
-};
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * @description given a layers_face (ensure that it is flat/only numbers)
- * convert a stack of taco_faces in the form of [[f1,f2], [f3,f4]]
- * into a flat array of the layers_face where each face is now an index
- * to the location of the pair the face is inside of in taco_faces.
- */
-const build_layers = (layers_face, faces_pair) => layers_face
-	.map(f => faces_pair[f])
-	.filter(a => a !== undefined);
-
-const validateLayerSolver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
-	// if the strip contains "F" assignments, layers_face will contain
-	// a mix of numbers and arrays of numbers, like: [1, 0, 5, [3, 4], 2]
-	// as [3,4] are on the same "layer".
-	// flatten this array so all numbers get pushed onto the top level, like:
-	// [1, 0, 5, [3, 4], 2] into [1, 0, 5, 3, 4, 2].
-	// now, this does create a layer preference between (3 and 4 in this example),
-	// but in this specific use case we can be guaranteed that only one of those
-	// will be used in the build_layers, as only one of a set of flat-
-	// strip faces can exist in one taco stack location.
-	const flat_layers_face = math.core.flattenArrays(layers_face);
-	// taco-tortilla intersections
-	if (!validateTacoTortillaStrip(
-		faces_folded, layers_face, circ_and_done, epsilon
-	)) { return false; }
-	// taco-taco intersections
-	for (let i = 0; i < taco_face_pairs.length; i++) {
-		const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
-		if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
-	}
-	return true;
-};
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * faces and assignments are fencepost aligned. assignments precedes faces.
- *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
- * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
- */
-/**
- * these are the only creases that change the direction of the paper
- */
-const change_map = { V: true, v: true, M: true, m: true };
-/**
- * @description convert a list of assignments into an array of
- * booleans stating if that face between the pair of assignments
- * has been flipped (true) or not (false). the first face is false.
- * 
- * another way of saying this is if a face is "false", the face is
- * moving to the right, if "true" moving to the left.
- */
-const assignmentsToFacesFlip = (assignments) => {
-	let counter = 0;
-	// because fencepost, and we are hard-coding the first face to be false,
-	// we don't need to append the first post back to the end of this slice.
-	const shifted_assignments = assignments.slice(1);
-	// globally, the location that each fold takes place along the +X
-	return [false].concat(shifted_assignments
-		.map(a => change_map[a] ? ++counter : counter)
-		.map(count => count % 2 === 1));
-};
-/**
- * model the movement of layers above or below the previous layer after a fold.
- * valley fold sets the paper above the previous sector (and mountain below),
- * but a valley fold AFTER a valley fold moves the paper below.
- */
-const up_down = { V: 1, v: 1, M: -1, m: -1 };
-const upOrDown = (mv, i) => i % 2 === 0
-	?  (up_down[mv] || 0)
-	: -(up_down[mv] || 0);
-/**
- * @description convert a list of assignments into an array of
- * numbers stating if that face between the pair of assignments
- * has been raised above or below the previous face in the +Z axis.
- * 
- * +1 means this face lies above the previous face, -1 below.
- * the first face implicitly starts at 0.
- * 
- * These values describe the relationship between the current index
- * and the next face (i + 1)%length index. and it describes the location
- * of the second of the pair.
- * index [0] indicates how face [1] is above/below face[0].
- * @returns {number[]} unit directionality. +1 for up, -1 down
- */
-const assignmentsToFacesVertical = (assignments) => {
-	let iterator = 0;
-	// because fencepost, we are relating assignments[1] to face[0]
-	return assignments
-		.slice(1)
-		.concat([assignments[0]])
-		.map(a => {
-			const updown = upOrDown(a, iterator);
-			iterator += up_down[a] === undefined ? 0 : 1;
-			return updown;
-		});
-};
-/**
- * @description Given an array of sectors (defined by length),
- * and a fenceposted-array of fold assignments, fold the sectors
- * along the numberline, returning each sector as a pair of numbers
- * that mark the two ends of the of the folded sector: [end1, end2].
- * The first sector is always starts at 0, and spans [0, sector].
- * 
- * When a boundary edge is encountered, the walk stops, no sectors after
- * the boundary will be included in the result. The algorithm will walk in
- * one direction, incrementing, starting at index "start", stopping at "end".
- * 
- * @returns array of sector positions. any sectors caught between
- * multiple boundaries will be undefined.
- */
-const foldStripWithAssignments = (faces, assignments) => {
-	// one number for each sector, locally, the movement away from 0.
-	const faces_end = assignmentsToFacesFlip(assignments)
-		.map((flip, i) => faces[i] * (flip ? -1 : 1));
-	// the cumulative position for each sector, stored as an array of 2:
-	// [ the start of the sector, the end of the sector ]
-	const cumulative = faces.map(() => undefined);
-	cumulative[0] = [0, faces_end[0]];
-	for (let i = 1; i < faces.length; i++) {
-		if (assignments[i] === "B" || assignments[i] === "b") { break; }
-		const prev = (i - 1 + faces.length) % faces.length;
-		const prev_end = cumulative[prev][1];
-		cumulative[i] = [prev_end, prev_end + faces_end[i]];
-	}
-	return cumulative;
-};
-
-var foldAssignments = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	assignmentsToFacesFlip: assignmentsToFacesFlip,
-	assignmentsToFacesVertical: assignmentsToFacesVertical,
-	foldStripWithAssignments: foldStripWithAssignments
-});
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * faces and assignments are fencepost aligned. assignments precedes faces.
- *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
- * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
- */
-const is_boundary = { "B": true, "b": true };
-/**
- * @description given an ordered set of faces and crease assignments
- * between the faces, this recursive algorithm finds every combination
- * of layer orderings that work without causing any self-intersections.
- * "faces" could be 1D lines, the term could be switched out here.
- * @param {number[]} ordered unsigned scalars, the length of paper between folds
- * @param {string[]} array of "M","V", assignment of fold between faces
- * @returns {number[][]} array of arrays. each inner array is a solution.
- * each solution is an ordering of faces_order, where each index is a
- * face and each value is the layer the face occupies.
- */
-const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
-	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
-	const faces_updown = assignmentsToFacesVertical(assignments);
-	// todo: we only really need to check index [0] and [length-1]
-	const is_circular = assignments
-		.map(a => !(is_boundary[a]))
-		.reduce((a, b) => a && b, true);
-	// if the sector contains no boundary (cuts), check if the folded state
-	// start and end line up, if not, it's clear no solution is possible.
-	if (is_circular) {
-		const start = faces_folded[0][0];
-		const end = faces_folded[faces_folded.length - 1][1];
-		if (Math.abs(start - end) > epsilon) { return []; }
-	}	// prepare tacos ahead of time, since we know the fold locations
-	// only grab the left and right tacos. return their adjacent faces in the
-	// form of which pair they are a part of, as an inverted array.
-	// taco-tortilla testing will happen using a different data structure.
-	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
-		.map(taco => [taco.left, taco.right]
-			.map(invertMap)
-			.filter(arr => arr.length > 1))
-		.reduce((a, b) => a.concat(b), []);
-	/**
-	 * @description Consectively visit each face from 0...n, recursively
-	 * inserting it above or below the current position (in all slots above
-	 * or below). At the beginning of the recusive function check if there is a
-	 * violation where the newly-inserted face is causing a self-intersection.
-	 * @param {number[]} layering is an inverted form of the final return value.
-	 * indices represent layers, from 0 to N, moving upwards in +Z space,
-	 * and faces will be inserted into layers as we search for a layer ordering.
-	 * @param {number} iteration count, relates directly to the face index
-	 * @param {number} layer, the +Z index layer currently being added to,
-	 * this is the splice index of layers_face we will be adding the face to.
-	 */
-	const recurse = (layers_face = [0], face = 0, layer = 0) => {
-		const next_face = face + 1;
-		// will the next face be above or below the current face's position?
-		const next_dir = faces_updown[face];
-		// because this test will run during the intermediate assembly of a strip.
-		// the strip may eventually be circular, but currently it isn't.
-		// set this boolean to be true only if we are also at the end.
-		const is_done = face >= ordered_scalars.length - 1;
-		// is circular AND is done (just added the final face)
-		const circ_and_done = is_circular && is_done;
-		// test for any self-intersections throughout the entire layering
-		if (!validateLayerSolver(
-			faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
-		)) {
-			return [];
-		}
-		// just before exit.
-		// the final crease must turn the correct direction back to the start.
-		if (circ_and_done) {
-			// next_dir is now indicating the direction from the final face to the
-			// first face, test if this also matches the orientation of the faces.
-			const faces_layer = invertMap(layers_face);
-			const first_face_layer = faces_layer[0];
-			const last_face_layer = faces_layer[face];
-			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
-			if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
-			// todo: what about === 0 ?
-		}    
-
-		// Exit case. all faces have been traversed.
-		if (is_done) { return [layers_face]; }
-		// Continue case.
-		// depending on the direction of the next face (above, below, same level),
-		// insert the face into one or many places, then repeat the recursive call.
-		// note: causing a self-intersection is possible, hence, check at beginning
-		if (next_dir === 0) {
-			// append the next face into this layer (making it an array if necessary)
-			// and repeat the recursion with no additional layers, just this one.
-			layers_face[layer] = [next_face].concat(layers_face[layer]);
-			// no need to call .slice() on layers_face. only one path forward.
-			return recurse(layers_face, next_face, layer);
-		}
-		// given our current position (layer) and next_dir (up or down),
-		// get the subarray that's either above or below the current layer.
-		// these are all the indices we will attempt to insert the new face.
-		// - below: [0, layer]. includes layer
-		// - above: (layer, length]. excludes layer. includes length (# of faces)
-		// this way all indices (including +1 at the end) are covered once.
-		// these are used in the splice() method, 0...Length, inserting an element
-		// will place the new element before the old element at that same index.
-		// so, we need +1 indices (at the end) to be able to append to the end.
-		const splice_layers = next_dir === 1
-			? Array.from(Array(layers_face.length - layer))
-				.map((_, i) => layer + i + 1)
-			: Array.from(Array(layer + 1))
-				.map((_, i) => i);
-		// recursively attempt to fit the next folded face at all possible layers.
-		// make a deep copy of the layers_face arrays.
-		const next_layers_faces = splice_layers.map(i => clone(layers_face));
-		// insert the next_face into all possible valid locations (above or below)
-		next_layers_faces
-			.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
-		// recursively call 
-		return next_layers_faces
-			.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
-			.reduce((a, b) => a.concat(b), []);
-	};
-	// after collecting all layers_face solutions, convert them into faces_layer
-	return recurse().map(invertMap);
-};
-
-/**
- * Rabbit Ear (c) Kraft
- */
-
-const makeVertexFacesLayer = ({
-	vertices_faces, vertices_sectors, vertices_edges, edges_assignment
-}, vertex, epsilon) => {
-	// vertices_faces will contain "undefined" for sectors outside the boundary
-	const faces = vertices_faces[vertex];
-	// valid ranges might return multiple occurences, assume the longest
-	// is the one we want. get that one.
-	const range = getLongestArray(circularArrayValidRanges(faces));
-	if (range === undefined) { return; }
-	// convert a range [start, end] into an array of indices, for example:
-	// [4,1] into [4,5,6,7,0,1]
-	while (range[1] < range[0]) { range[1] += faces.length; }
-	const indices = Array
-		.from(Array(range[1] - range[0] + 1))
-		.map((_, i) => (range[0] + i) % faces.length);
-	// use "indices" to get the sectors and assignments for the layer_solver
-	const sectors = indices
-		.map(i => vertices_sectors[vertex][i]);
-	const assignments = indices
-		.map(i => vertices_edges[vertex][i])
-		.map(edge => edges_assignment[edge]);
-	const sectors_layer = singleVertexSolver(sectors, assignments, epsilon);
-	// sectors_layer gives us solutions relating the sectors to indices 0...n
-	// relate these to the original faces, in 2 steps:
-	// 1. map back to vertices_faces, due to valid_array (avoiding undefineds)
-	// 2. map back to the faces in vertices_faces, instead of [0...n], a vertex's
-	// faces will be anywhere in the graph. like [25, 56, 43, 19...]
-	const faces_layer = sectors_layer
-		.map(invertMap)
-		.map(arr => arr
-			.map(face => typeof face !== "object"
-				? faces[indices[face]]
-				: face.map(f => faces[indices[f]])))
-		.map(invertMap);
-	// send along the starting, this face is positioned with its normal upwards.
-	faces_layer.face = faces[indices[0]];
-	return faces_layer;
-};
-
-/**
- * @description flip a faces_layer solution to reflect having turned
- * over the origami.
- * @param {number[][]} an array of one or more faces_layer solutions
- */
-const flip_solutions = solutions => {
-	const face = solutions.face;
-	const flipped = solutions
-		.map(invertMap)
-		.map(list => list.reverse())
-		.map(invertMap);
-	flipped.face = face;
-	return flipped;
-};
-/**
- * @description compute the faces_layer solutions for every vertex in the
- * graph, taking into considering which face the solver began with each
- * time, and for faces which are upsidedown, flip those solutions also,
- * this way all notion of "above/below" are global, not local to a face
- * according to that face's normal.
- * @param {object} a FOLD graph
- * @param {number} this face will remain fixed
- * @param {number} epsilon, HIGHLY recommended, like: 0.001
- */
-const makeVerticesFacesLayer = (graph, start_face = 0, epsilon) => {
-	if (!graph.vertices_sectors) {
-		graph.vertices_sectors = makeVerticesSectors(graph);
-	}
-	// root face, and all faces with the same color, will be false
-	const faces_coloring = makeFacesWinding(graph).map(c => !c);
-	// the faces_layer solutions for every vertex and its adjacent faces
-	const vertices_faces_layer = graph.vertices_sectors
-		.map((_, vertex) => makeVertexFacesLayer(graph, vertex, epsilon));
-	// is each face flipped or not? (should the result be flipped too.)
-	// if this face is flipped in the graph, flip the solution too.
-	const vertices_solutions_flip = vertices_faces_layer
-		.map(solution => faces_coloring[solution.face]);
-	return vertices_faces_layer
-		.map((solutions, i) => vertices_solutions_flip[i]
-			? flip_solutions(solutions)
-			: solutions);
-};
-
-var facesLayer = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	makeVertexFacesLayer: makeVertexFacesLayer,
-	makeVerticesFacesLayer: makeVerticesFacesLayer
-});
-
-/**
- * Rabbit Ear (c) Kraft
- */
-/**
- * @description todo: something something edges parallel
- * @param {object} fold a FOLD graph.
- * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns {boolean[][]} a boolean matrix containing true/false for all,
- * except the diagonal [i][i] which contains undefined.
+ * @description Create an NxN matrix (N number of edges) that relates edges to each other,
+ * inside each entry is true/false, true if the two edges are parallel within an epsilon.
+ * Both sides of the matrix are filled, the diagonal is left undefined.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} a boolean matrix, are two edges parallel?
+ * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
+ * @linkcode Origami ./src/graph/edgesEdges.js 14
  */
 const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {
@@ -9651,7 +11008,7 @@ const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector 
 // }
 
 /**
- * @description a subroutine for the two methods below.
+ * @description A subroutine for the two methods below.
  * given a matrix which was already worked on, consider only the true values,
  * compute the overlapLineLine method for each edge-pairs.
  * provide a comparison function (func) to specify inclusive/exclusivity.
@@ -9672,12 +11029,14 @@ const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
 	}
 };
 /**
- * @desecription find all edges which cross other edges. "cross" meaning
- * the segment overlaps the other segment, excluding the epsilon space
- * around the endpoints, and they are NOT parallel.
+ * @description Find all edges which cross other edges, "cross" meaning
+ * the segment overlaps the other segment in a non-parallel way. This also
+ * excludes the epsilon space around the endpoints so that adjacent edges
+ * are automatically considered not crossing. All parallel line pairs,
+ * even if overlapping, are marked false.
  * @param {object} fold a FOLD graph.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns todo something todo
+ * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
 const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
@@ -9703,11 +11062,12 @@ const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector 
 // the vector. converting it into 2 numbers, and now all you have to do is
 // test if these two numbers overlap other edges' two numbers.
 /**
- * @desecription find all edges which overlap one another, meaning
- * the segment overlaps the other segment and they ARE parallel.
- * @param {object} fold a FOLD graph.
- * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns todo something todo
+ * @description Find all edges which are parallel to each other AND they overlap.
+ * The epsilon space around vertices is not considered, so, edges must be
+ * truly overlapping for them to be true.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
 const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
 	if (!edges_vector) {
@@ -9745,7 +11105,7 @@ const make_groups_edges = (graph, epsilon) => {
 	// each index will be an edge, each value is a group, starting with 0,
 	// incrementing upwards. for all unique edges, array will be [0, 1, 2, 3...]
 	// if edges 0 and 3 share a group, array will be [0, 1, 2, 0, 3...]
-	const edges_group = makeUniqueSetsFromSelfRelationalArrays(overlapping_edges);
+	const edges_group = makeSelfRelationalArrayClusters(overlapping_edges);
 	// gather groups, but remove groups with only one edge, and from the
 	// remaining sets, remove any edges which lie on the boundary.
 	// finally, remove sets with only one edge (after removing).
@@ -9767,12 +11127,32 @@ var edgesEdges = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
+
+const subgraph = (graph, components) => {
+	const remove_indices = {};
+	const sorted_components = {};
+	[_faces, _edges, _vertices].forEach(key => {
+		remove_indices[key] = Array.from(Array(count[key](graph))).map((_, i) => i);
+		sorted_components[key] = uniqueSortedIntegers(components[key] || []).reverse();
+	});
+	Object.keys(sorted_components)
+		.forEach(key => sorted_components[key]
+			.forEach(i => remove_indices[key].splice(i, 1)));
+	const res = JSON.parse(JSON.stringify(graph));
+	Object.keys(remove_indices)
+		.forEach(key => removeGeometryIndices(res, key, remove_indices[key]));
+	return res;
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
 // import addVertices_splitEdges from "./add/addVertices_splitEdges";
 
 var graph_methods = Object.assign(Object.create(null), {
 	count,
 	countImplied,
-	validate,
+	validate: validate$1,
 	clean,
 	populate,
 	remove: removeGeometryIndices,
@@ -9780,9 +11160,9 @@ var graph_methods = Object.assign(Object.create(null), {
 	removePlanarVertex,
 	removePlanarEdge,
 	addVertices,
-	// addEdges,
+	addEdges,
 	splitEdge,
-	splitFace: splitConvexFace,
+	splitFace,
 	flatFold,
 	addPlanarSegment,
 	// assign,
@@ -9807,7 +11187,7 @@ var graph_methods = Object.assign(Object.create(null), {
 	verticesViolations,
 	edgesViolations,
 	vertices_collinear,
-	facesLayer,
+	// facesLayer,
 	edgesEdges,
 	verticesCoordsFolded,
 	faceSpanningTree,
@@ -9882,13 +11262,38 @@ const make_closed_polygon = (vertices_coords) => populate({
  * circle asks for # of sides, and also sets radius to be 1,
  *  instead of side-length to be 1.
  */
-Create.square = () =>
-	make_closed_polygon(make_rect_vertices_coords(1, 1));
+/**
+ * @description Create a new FOLD object which contains one square face,
+ * including vertices and boundary edges.
+ * @param {number} [scale=1] the length of the sides.
+ * @returns {FOLD} a FOLD object
+ */
+Create.square = (scale = 1) =>
+	make_closed_polygon(make_rect_vertices_coords(scale, scale));
+/**
+ * @description Create a new FOLD object which contains one rectangular face,
+ * including vertices and boundary edges.
+ * @param {number} [width=1] the width of the rectangle
+ * @param {number} [height=1] the height of the rectangle
+ * @returns {FOLD} a FOLD object
+ */
 Create.rectangle = (width = 1, height = 1) =>
 	make_closed_polygon(make_rect_vertices_coords(width, height));
+/**
+ * @description Create a new FOLD object with a regular-polygon shaped boundary.
+ * @param {number} [sides=3] the number of sides to the polygon
+ * @param {number} [radius=1] the circumradius
+ * @returns {FOLD} a FOLD object
+ */
+Create.polygon = (sides = 3, radius = 1) =>
+  make_closed_polygon(math.core.makePolygonCircumradius(sides, radius));
 // Create.circle = (sides = 90) =>
 // 	make_closed_polygon(math.core.makePolygon(sides));
 // origami bases. todo: more
+/**
+ * @description Create a kite base FOLD object, in crease pattern form.
+ * @returns {FOLD} a FOLD object
+ */
 Create.kite = () => populate({
 	vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
 	edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
@@ -10005,6 +11410,7 @@ const intersectionUD = (line1, line2) => {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 27
  */
 const normalAxiom1 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
@@ -10015,6 +11421,7 @@ const normalAxiom1 = (point1, point2) => {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 38
  */
 const normalAxiom2 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
@@ -10026,6 +11433,7 @@ const normalAxiom2 = (point1, point2) => {
  * @param {UniqueLine} line1 one 2D line in {vector, origin} form
  * @param {UniqueLine} line2 one 2D line in {vector, origin} form
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 50
  */
 const normalAxiom3 = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
@@ -10045,6 +11453,7 @@ const normalAxiom3 = (line1, line2) => {
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 70
  */
  const normalAxiom4 = (line, point) => {
 	const normal = math.core.rotate90(line.normal);
@@ -10058,6 +11467,7 @@ const normalAxiom3 = (line1, line2) => {
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 84
  */
 const normalAxiom5 = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.normal);
@@ -10148,6 +11558,7 @@ const polynomial = (degree, a, b, c, d) => {
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 175
  */
 const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -10189,6 +11600,7 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
  * @param {number[]} point the point to bring onto the line
  * @returns {UniqueLine | undefined} the line in {normal, distance} form
  * or undefined if the given lines are parallel
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 217
  */
 const normalAxiom7 = (line1, line2, point) => {
 	let normal = math.core.rotate90(line1.normal);
@@ -10237,6 +11649,7 @@ var AxiomsND = /*#__PURE__*/Object.freeze({
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 28
  */
 const axiom1 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
@@ -10247,6 +11660,7 @@ const axiom1 = (point1, point2) => ({
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 39
  */
 const axiom2 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(point2, point1)))),
@@ -10259,6 +11673,7 @@ const axiom2 = (point1, point2) => ({
  * @param {RayLine} line1 one 2D line in {vector, origin} form
  * @param {RayLine} line2 one 2D line in {vector, origin} form
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 52
  */
 const axiom3 = (line1, line2) => math.core.bisectLines2(
 	line1.vector, line1.origin, line2.vector, line2.origin
@@ -10269,6 +11684,7 @@ const axiom3 = (line1, line2) => math.core.bisectLines2(
  * @param {RayLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point
  * @returns {RayLine} the line in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 63
  */
 const axiom4 = (line, point) => ({
 	vector: math.core.rotate90(math.core.normalize2(line.vector)),
@@ -10281,6 +11697,7 @@ const axiom4 = (line, point) => ({
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 76
  */
 const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
 		math.core.distance2(point1, point2),
@@ -10300,8 +11717,9 @@ const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 96
  */
-const axiom6 = (line1, line2, point1, point2) => axiom6ud(
+const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
 	math.core.makeNormalDistanceLine(line1),
 	math.core.makeNormalDistanceLine(line2),
 	point1, point2).map(math.core.makeVectorOriginLine);
@@ -10316,6 +11734,7 @@ const axiom6 = (line1, line2, point1, point2) => axiom6ud(
  * @param {number[]} point the point to bring onto the line
  * @returns {RayLine | undefined} the line in {vector, origin} form
  * or undefined if the given lines are parallel
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 113
  */
 const axiom7 = (line1, line2, point) => {
 	const intersect = math.core.intersectLineLine(
@@ -10344,6 +11763,35 @@ var AxiomsVO = /*#__PURE__*/Object.freeze({
 });
 
 /**
+ * @description The core axiom methods return arrays for *some* of the axioms.
+ * Standardize the output so that all of them are inside arrays.
+ * @param {number} the axiom number
+ * @param {Line|Line[]} the solutions from having run the axiom method
+ * @returns {Line[]} the solution lines, now consistently inside an array.
+ */
+const arrayify = (axiomNumber, solutions) => {
+	switch (axiomNumber) {
+		case 3: case "3":
+		case 5: case "5":
+		case 6: case "6": return solutions;
+		default: return [solutions];
+	}
+};
+/**
+ * @description convert an array of solutions into the original state,
+ * which means for axiom 3, 5, 6 it remains an array,
+ * and for 1, 2, 4, 7 the first (only) element is returned.
+ */
+const unarrayify = (axiomNumber, solutions) => {
+	switch (axiomNumber) {
+		case 3: case "3":
+		case 5: case "5":
+		case 6: case "6": return solutions;
+		default: return solutions ? solutions[0] : undefined;
+	}
+};
+
+/**
  * Rabbit Ear (c) Kraft
  */
 
@@ -10357,6 +11805,7 @@ const reflectPoint = (foldLine, point) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
+ * @linkcode Origami ./src/axioms/validate.js 18
  */
 const validateAxiom1 = (params, boundary) => params.points
 	.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
@@ -10367,6 +11816,7 @@ const validateAxiom1 = (params, boundary) => params.points
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
+ * @linkcode Origami ./src/axioms/validate.js 29
  */
 const validateAxiom2 = validateAxiom1;
 /**
@@ -10375,10 +11825,11 @@ const validateAxiom2 = validateAxiom1;
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
+ * @linkcode Origami ./src/axioms/validate.js 38
  */
 const validateAxiom3 = (params, boundary, results) => {
 	const segments = params.lines
-		.map(line => math.core.clipLineInConvexPolygon(boundary,
+		.map(line => math.core.clipLineConvexPolygon(boundary,
 			line.vector,
 			line.origin,
 			math.core.include,
@@ -10400,7 +11851,7 @@ const validateAxiom3 = (params, boundary, results) => {
 	//       math.core.excludeL));
 	const results_clip = results.map(line => line === undefined
 		? undefined
-		: math.core.clipLineInConvexPolygon(boundary,
+		: math.core.clipLineConvexPolygon(boundary,
 			line.vector,
 			line.origin,
 			math.core.include,
@@ -10441,9 +11892,10 @@ const validateAxiom3 = (params, boundary, results) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
+ * @linkcode Origami ./src/axioms/validate.js 105
  */
 const validateAxiom4 = (params, boundary) => {
-	const intersect = math.core.intersect_line_line(
+	const intersect = math.core.intersectLineLine(
 		params.lines[0].vector,
 		params.lines[0].origin,
 		math.core.rotate90(params.lines[0].vector),
@@ -10461,6 +11913,7 @@ const validateAxiom4 = (params, boundary) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
+ * @linkcode Origami ./src/axioms/validate.js 126
  */
 const validateAxiom5 = (params, boundary, results) => {
 	if (results.length === 0) { return []; }
@@ -10478,6 +11931,7 @@ const validateAxiom5 = (params, boundary, results) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
+ * @linkcode Origami ./src/axioms/validate.js 144
  */
 const validateAxiom6 = function (params, boundary, results) {
 	if (results.length === 0) { return []; }
@@ -10498,6 +11952,7 @@ const validateAxiom6 = function (params, boundary, results) {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
+ * @linkcode Origami ./src/axioms/validate.js 165
  */
 const validateAxiom7 = (params, boundary, result) => {
 	// check if the point parameter is inside the polygon
@@ -10513,8 +11968,37 @@ const validateAxiom7 = (params, boundary, result) => {
 		params.lines[1].origin,
 		math.core.includeS,
 		math.core.includeL) !== undefined);
-	return [paramPointTest && reflectTest && paramLineTest];
+	// same test we do for axiom 4
+	const intersect = math.core.intersectLineLine(
+		params.lines[1].vector,
+		params.lines[1].origin,
+		result.vector,
+		result.origin,
+		math.core.includeL,
+		math.core.includeL);
+	const intersectInsideTest = intersect
+		? math.core.overlapConvexPolygonPoint(boundary, intersect, math.core.include)
+		: false;
+	return paramPointTest && reflectTest && paramLineTest && intersectInsideTest;
 };
+/**
+ * @description Validate an axiom, this will run one of the submethods ("validateAxiom1", ...).
+ * @param {number} number the axiom number, 1-7
+ * @param {AxiomParams} params the axiom parameters, lines and points in one object
+ * @param {number[][]} boundary an array of points, each point is an array of numbers
+ * @param {line[]} solutions the solutions from the axiom method (before validation)
+ * @returns {boolean} true if the solution is valid
+ * @linkcode Origami ./src/axioms/validate.js 201
+ */
+const validate = (number, params, boundary, results) => arrayify(number, [null,
+	validateAxiom1,
+	validateAxiom2,
+	validateAxiom3,
+	validateAxiom4,
+	validateAxiom5,
+	validateAxiom6,
+	validateAxiom7,
+][number](params, boundary, unarrayify(number, results)));
 
 var Validate = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -10524,7 +12008,8 @@ var Validate = /*#__PURE__*/Object.freeze({
 	validateAxiom4: validateAxiom4,
 	validateAxiom5: validateAxiom5,
 	validateAxiom6: validateAxiom6,
-	validateAxiom7: validateAxiom7
+	validateAxiom7: validateAxiom7,
+	validate: validate
 });
 
 const paramsVecsToNorms = (params) => ({
@@ -10532,19 +12017,14 @@ const paramsVecsToNorms = (params) => ({
 	lines: params.lines.map(math.core.makeVectorOriginLine),
 });
 /**
- * @description The core axiom methods return arrays for *some* of the axioms.
- * Standardize the output so that all of them are inside arrays.
- * @param {number} the axiom number
- * @param {Line|Line[]} the solutions from having run the axiom method
- * @returns {Line[]} the solution lines, now consistently inside an array.
+ * @description All axiom method arguments are ordered such that all lines are
+ * listed first, followed by all points. convert the axiom params object
+ * (with "points", "lines" keys) into a single flat array
  */
-const arrayify = (axiomNumber, solutions) => {
-	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return [solutions];
-	}
+const spreadParams = (params) => {
+	const lines = params.lines ? params.lines : [];
+	const points = params.points ? params.points : [];
+	return [...lines, ...points];
 };
 /**
  * @description Perform one of the seven origami axioms, and provide a boundary so that
@@ -10554,10 +12034,11 @@ const arrayify = (axiomNumber, solutions) => {
  * where the lines are only {RayLine} lines.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 29
  */
 const axiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(number,
-		AxiomsVO[`axiom${number}`](...params.lines, ...params.points));
+		AxiomsVO[`axiom${number}`](...spreadParams(params)));
 		// .filter(a => a !== undefined);
 		// .map(line => math.line(line));
 	if (boundary) {
@@ -10576,10 +12057,11 @@ const axiomInBoundary = (number, params = {}, boundary) => {
  * where the lines are only {UniqueLine} lines.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 52
  */
 const normalAxiomInBoundary = (number, params = {}, boundary) => {
 	const solutions = arrayify(number,
-		AxiomsND[`normalAxiom${number}`](...params.lines, ...params.points));
+		AxiomsND[`normalAxiom${number}`](...spreadParams(params)));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
 			.forEach((valid, i) => valid ? i : undefined)
@@ -10606,6 +12088,7 @@ var BoundaryAxioms = /*#__PURE__*/Object.freeze({
  * where the lines are either {RayLine} or {UniqueLine}.
  * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
+ * @linkcode Origami ./src/axioms/index.js 16
  */
 const axiom = (number, params = {}, boundary) => axiomInBoundary(number, params, boundary);
 
@@ -10633,7 +12116,7 @@ const boundary_for_arrows = ({ vertices_coords }) => math.core
 const widest_perp = (graph, foldLine, point) => {
 	const boundary = boundary_for_arrows(graph);
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineInConvexPolygon(boundary,
+		const foldSegment = math.core.clipLineConvexPolygon(boundary,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
@@ -10642,7 +12125,7 @@ const widest_perp = (graph, foldLine, point) => {
 	}
 	const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clipLineInConvexPolygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			perpVector,
 			point,
 			math.core.exclude,
@@ -10726,7 +12209,7 @@ const axiom_2_arrows = params => [
 const axiom_3_arrows = (params, graph) => {
 	const boundary = boundary_for_arrows(graph);
 	const segs = params.lines.map(l => math.core
-		.clipLineInConvexPolygon(boundary,
+		.clipLineConvexPolygon(boundary,
 			l.vector,
 			l.origin,
 			math.core.exclude,
@@ -10798,7 +12281,7 @@ Object.keys(arrow_functions).forEach(number => {
 
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineInConvexPolygon(polygon,
+		const foldSegment = math.core.clipLineConvexPolygon(polygon,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
@@ -10808,7 +12291,7 @@ const widest_perpendicular = (polygon, foldLine, point) => {
 	}
 	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
-		.clipLineInConvexPolygon(polygon,
+		.clipLineConvexPolygon(polygon,
 			perpVector,
 			point,
 			math.core.exclude,
@@ -10917,7 +12400,7 @@ const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 	tortilla_edge_indices.forEach(e => { matrix[e] = []; });
 	// console.log("clip", tortilla_edge_indices
 		// .map((e, ei) => faces_polygon
-		// 	.map((poly, f) => math.core.clipLineInConvexPolygon(
+		// 	.map((poly, f) => math.core.clipLineConvexPolygon(
 		// 		poly,
 		// 		edges_vector[ei],
 		// 		edges_coords[ei][0],
@@ -10926,7 +12409,7 @@ const makeTortillasFacesCrossing = (graph, edges_faces_side, epsilon) => {
 		// 		epsilon))));
 	const result = tortilla_edge_indices
 		.map((e, ei) => faces_polygon
-			.map((poly, f) => math.core.clipLineInConvexPolygon(
+			.map((poly, f) => math.core.clipLineConvexPolygon(
 				poly,
 				edges_vector[ei],
 				edges_coords[ei][0],
@@ -11232,7 +12715,7 @@ const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = m
 	for (let i = 0; i < matrix.length - 1; i++) {
 		for (let j = i + 1; j < matrix.length; j++) {
 			if (!overlap_matrix[i][j]) { continue; }
-			const polygon = math.core.intersectPolygonPolygon(polygons[i], polygons[j], epsilon);
+			const polygon = math.core.clipPolygonPolygon(polygons[i], polygons[j], epsilon);
 			if (polygon) { matrix[i][j] = polygon; }
 		}
 	}
@@ -11243,7 +12726,7 @@ const makeTransitivityTrios = (graph, overlap_matrix, faces_winding, epsilon = m
 			for (let k = j + 1; k < matrix.length; k++) {
 				if (i === k || j === k) { continue; }
 				if (!overlap_matrix[i][k] || !overlap_matrix[j][k]) { continue; }
-				const polygon = math.core.intersectPolygonPolygon(matrix[i][j], polygons[k], epsilon);
+				const polygon = math.core.clipPolygonPolygon(matrix[i][j], polygons[k], epsilon);
 				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
 			}
 		}
@@ -11819,6 +13302,7 @@ const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
 /**
  * @description a javascript re-implementation of Java's .hashCode()
  * https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+ * @linkcode Origami ./src/general/hashCode.js 7
  */
 const hashCode = (string) => {
 	let hash = 0;
@@ -12514,6 +13998,449 @@ const conditionsToMatrix = (conditions) => {
 /**
  * Rabbit Ear (c) Kraft
  */
+
+// todo, should epsilon be multiplied by 2?
+
+/**
+ * @description make an array of objects where each object represents one
+ * fold line, and contains all the tacos and tortillas sharing the fold line.
+ * @returns {object[]} array of taco objects. each taco object represents one
+ * fold location shared by multiple tacos. each taco object contains keys:
+ * "both", "left", "right" where the values are an array of pairs of faces,
+ * the pairs of adjacent faces around the taco edge. "left": [ [2,3] [6,0] ]
+ */
+const makeFoldedStripTacos = (folded_faces, is_circular, epsilon) => {
+	// center of each face, will be used to see if a taco faces left or right
+	const faces_center = folded_faces
+		.map((ends) => ends ? (ends[0] + ends[1]) / 2 : undefined);
+	const locations = [];
+	// gather all fold locations that match, add them to the same group.
+	// for every fold location, make one of these objects where the pairs are
+	// the two adjacent faces on either side of the crease line.
+	// {
+	//   min: -0.1,
+	//   max: 0.1,
+	//   pairs: [ [2,3], [0,1] ],
+	// };
+	folded_faces.forEach((ends, i) => {
+		if (!ends) { return; }
+		// if the strip is not circular, skip the final round and don't wrap around
+		if (!is_circular && i === folded_faces.length - 1) { return; }
+		const fold_end = ends[1];
+		const min = fold_end - (epsilon * 2);
+		const max = fold_end + (epsilon * 2);
+		const faces = [i, (i+1) % folded_faces.length];
+		// which side of the crease is the face on?
+		// false = left (-), true = right (+)
+		const sides = faces
+			.map(f => faces_center[f])
+			.map(center => center > fold_end);
+		// place left tacos at index 1, right at 2, and neither (tortillas) at 0
+		const taco_type = (!sides[0] && !sides[1]) * 1 + (sides[0] && sides[1]) * 2;
+		// todo: this searches every time. could be improved with a sorted array.
+		const match = locations
+			.filter(el => el.min < fold_end && el.max > fold_end)
+			.shift();
+		const entry = { faces, taco_type };
+		if (match) {
+			match.pairs.push(entry);
+		} else {
+			locations.push({ min, max, pairs: [entry] });
+		}
+	});
+	// ignore stacks which have only one taco. we know they pass the test.
+	// technically we can also filter out after they have been separated
+	// as we can ignore the case with 1 left and 1 right. it always passes too.
+	// but these will get ignored in the next function anyway
+	return locations
+		.map(el => el.pairs)
+		.filter(pairs => pairs.length > 1)
+		.map(pairs => ({
+			both: pairs.filter(el => el.taco_type === 0).map(el => el.faces),
+			left: pairs.filter(el => el.taco_type === 1).map(el => el.faces),
+			right: pairs.filter(el => el.taco_type === 2).map(el => el.faces),
+		}));
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+/**
+ * @description given two indices, return a copy of the array between them,
+ * excluding the elements at the indices themselves.
+ * @returns {any[]} the subarray exclusively between the two indices.
+ */
+const between = (arr, i, j) => (i < j)
+	? arr.slice(i + 1, j)
+	: arr.slice(j + 1, i);
+/**
+ * because this test is meant to run during the intermediate steps while
+ * the a strip is being assembled, the strip may eventually be circular,
+ * but currently it isn't.
+ * 
+ * @params {[number, number][]} for every sector, "start" and "end" of each sector
+ * this is the output of having run "foldStripWithAssignments"
+ * @param {number[]} layers_face, index is z-layer, value is the sector/face.
+ * @param {boolean} do assignments contain a boundary? (to test for loop around)
+ * @returns {boolean} does a violation occur. "false" means all good.
+ */
+const validateTacoTortillaStrip = (faces_folded, layers_face, is_circular = true, epsilon = math.core.EPSILON) => {
+	// for every sector/face, the value is its index in the layers_face array
+	const faces_layer = invertMap(layers_face);
+	// for every sector, the location of the end of the sector after folding
+	// (the far end, the second end visited by the walk)
+	const fold_location = faces_folded
+		.map(ends => ends ? ends[1] : undefined);
+	// for every sector, the location of the end which lies nearest to -Infinity
+	const faces_mins = faces_folded
+		.map(ends => ends ? Math.min(...ends) : undefined)
+		.map(n => n + epsilon);
+	// for every sector, the location of the end which lies nearest to +Infinity
+	const faces_maxs = faces_folded
+		.map(ends => ends ? Math.max(...ends) : undefined)
+		.map(n => n - epsilon);
+	// we can't test the loop back around when j==end and i==0 because they only
+	// connect after the piece has been completed,
+	// but we do need to test it when that happens
+	// const max = layers_face.length + (layers_face.length === sectors.length ? 0 : -1);
+	// const faces_array_circular = is_circular
+	//   && faces_layer.length === faces_folded.length;
+	const max = faces_layer.length + (is_circular ? 0 : -1);
+	// iterate through all the faces, take each face together with the next face,
+	// establish the fold line between them, then check the layer stacking and
+	// gather all faces that exist between this pair of faces, test each
+	// of them to see if they cross through this pair's fold line.
+	for (let i = 0; i < max; i += 1) {
+		// this is the next face in the folding sequence
+		const j = (i + 1) % faces_layer.length;
+		// if two adjacent faces are in the same layer, they will not be causing an
+		// overlap, at least not at their crease (because there is no crease).
+		if (faces_layer[i] === faces_layer[j]) { continue; }
+		// todo consider prebuilding a table of comparing fold locations with face mins and maxs
+		// result of between contains both numbers and arrays: [5,[0,1],2,[3,4]]
+		// the reduce will bring everything to the top level: [5,0,1,2,3,4]
+		const layers_between = between(layers_face, faces_layer[i], faces_layer[j])
+			.flat();
+		// check if the fold line is (below/above) ALL of the sectors between it
+		// it will be above if
+		const all_below_min = layers_between
+			.map(index => fold_location[i] < faces_mins[index])
+			.reduce((a, b) => a && b, true);
+		const all_above_max = layers_between
+			.map(index => fold_location[i] > faces_maxs[index])
+			.reduce((a, b) => a && b, true);
+		if (!all_below_min && !all_above_max) { return false; }
+	}
+	return true;
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+/**
+ * @description test a stack of tacos (all left or right) for self-intersection.
+ * for a collection of tacos which all point in the same direction,
+ * all pairs of faces in a taco-taco stack have a shared edge,
+ * give each pair a unique identifier (simplest, a unique integer 0...n),
+ * now we refer to each face simply by its pair identifier. so now a face
+ * layer stack would appear like: [1, 1, 0, 5, 5, 0] (which is a valid stack).
+ * a bad layer stack would be: [1, 5, 1, 5].
+ * @param {number[]} stacking order of each face where each face is
+ * encoded as its pair number identifier.
+ * @returns {boolean} true if the taco stack passes this test. false if fails.
+ */
+const validateTacoTacoFacePairs = (face_pair_stack) => {
+	// create a copy of "stack" that removes single faces currently missing
+	// their other pair partner. this removes boundary faces (with no adj. face)
+	// as well as stacks which are in the process of being constructed but not
+	// yet final
+	const pair_stack = removeSingleInstances(face_pair_stack);
+	const pairs = {};
+	let count = 0;
+	for (let i = 0; i < pair_stack.length; i++) {
+		if (pairs[pair_stack[i]] === undefined) {
+			count++;
+			pairs[pair_stack[i]] = count;
+		}
+		// if we have seen this layer pair already, it MUST be appearing
+		// in the correct order, that is, as it gets popped off the stack,
+		// it must be the next-most-recently added pair to the stack.
+		else if (pairs[pair_stack[i]] !== undefined) {
+			if (pairs[pair_stack[i]] !== count) { return false; }
+			count--;
+			pairs[pair_stack[i]] = undefined;
+		}
+	}
+	return true;
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+/**
+ * @description given a layers_face (ensure that it is flat/only numbers)
+ * convert a stack of taco_faces in the form of [[f1,f2], [f3,f4]]
+ * into a flat array of the layers_face where each face is now an index
+ * to the location of the pair the face is inside of in taco_faces.
+ */
+const build_layers = (layers_face, faces_pair) => layers_face
+	.map(f => faces_pair[f])
+	.filter(a => a !== undefined);
+
+const validateLayerSolver = (faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon) => {
+	// if the strip contains "F" assignments, layers_face will contain
+	// a mix of numbers and arrays of numbers, like: [1, 0, 5, [3, 4], 2]
+	// as [3,4] are on the same "layer".
+	// flatten this array so all numbers get pushed onto the top level, like:
+	// [1, 0, 5, [3, 4], 2] into [1, 0, 5, 3, 4, 2].
+	// now, this does create a layer preference between (3 and 4 in this example),
+	// but in this specific use case we can be guaranteed that only one of those
+	// will be used in the build_layers, as only one of a set of flat-
+	// strip faces can exist in one taco stack location.
+	const flat_layers_face = math.core.flattenArrays(layers_face);
+	// taco-tortilla intersections
+	if (!validateTacoTortillaStrip(
+		faces_folded, layers_face, circ_and_done, epsilon
+	)) { return false; }
+	// taco-taco intersections
+	for (let i = 0; i < taco_face_pairs.length; i++) {
+		const pair_stack = build_layers(flat_layers_face, taco_face_pairs[i]);
+		if (!validateTacoTacoFacePairs(pair_stack)) { return false; }
+	}
+	return true;
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+/**
+ * faces and assignments are fencepost aligned. assignments precedes faces.
+ *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
+ * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
+ */
+/**
+ * these are the only creases that change the direction of the paper
+ */
+const change_map = { V: true, v: true, M: true, m: true };
+/**
+ * @description convert a list of assignments into an array of
+ * booleans stating if that face between the pair of assignments
+ * has been flipped (true) or not (false). the first face is false.
+ * 
+ * another way of saying this is if a face is "false", the face is
+ * moving to the right, if "true" moving to the left.
+ */
+const assignmentsToFacesFlip = (assignments) => {
+	let counter = 0;
+	// because fencepost, and we are hard-coding the first face to be false,
+	// we don't need to append the first post back to the end of this slice.
+	const shifted_assignments = assignments.slice(1);
+	// globally, the location that each fold takes place along the +X
+	return [false].concat(shifted_assignments
+		.map(a => change_map[a] ? ++counter : counter)
+		.map(count => count % 2 === 1));
+};
+/**
+ * model the movement of layers above or below the previous layer after a fold.
+ * valley fold sets the paper above the previous sector (and mountain below),
+ * but a valley fold AFTER a valley fold moves the paper below.
+ */
+const up_down = { V: 1, v: 1, M: -1, m: -1 };
+const upOrDown = (mv, i) => i % 2 === 0
+	?  (up_down[mv] || 0)
+	: -(up_down[mv] || 0);
+/**
+ * @description convert a list of assignments into an array of
+ * numbers stating if that face between the pair of assignments
+ * has been raised above or below the previous face in the +Z axis.
+ * 
+ * +1 means this face lies above the previous face, -1 below.
+ * the first face implicitly starts at 0.
+ * 
+ * These values describe the relationship between the current index
+ * and the next face (i + 1)%length index. and it describes the location
+ * of the second of the pair.
+ * index [0] indicates how face [1] is above/below face[0].
+ * @returns {number[]} unit directionality. +1 for up, -1 down
+ */
+const assignmentsToFacesVertical = (assignments) => {
+	let iterator = 0;
+	// because fencepost, we are relating assignments[1] to face[0]
+	return assignments
+		.slice(1)
+		.concat([assignments[0]])
+		.map(a => {
+			const updown = upOrDown(a, iterator);
+			iterator += up_down[a] === undefined ? 0 : 1;
+			return updown;
+		});
+};
+/**
+ * @description Given an array of sectors (defined by length),
+ * and a fenceposted-array of fold assignments, fold the sectors
+ * along the numberline, returning each sector as a pair of numbers
+ * that mark the two ends of the of the folded sector: [end1, end2].
+ * The first sector is always starts at 0, and spans [0, sector].
+ * 
+ * When a boundary edge is encountered, the walk stops, no sectors after
+ * the boundary will be included in the result. The algorithm will walk in
+ * one direction, incrementing, starting at index "start", stopping at "end".
+ * 
+ * @returns array of sector positions. any sectors caught between
+ * multiple boundaries will be undefined.
+ */
+const foldStripWithAssignments = (faces, assignments) => {
+	// one number for each sector, locally, the movement away from 0.
+	const faces_end = assignmentsToFacesFlip(assignments)
+		.map((flip, i) => faces[i] * (flip ? -1 : 1));
+	// the cumulative position for each sector, stored as an array of 2:
+	// [ the start of the sector, the end of the sector ]
+	const cumulative = faces.map(() => undefined);
+	cumulative[0] = [0, faces_end[0]];
+	for (let i = 1; i < faces.length; i++) {
+		if (assignments[i] === "B" || assignments[i] === "b") { break; }
+		const prev = (i - 1 + faces.length) % faces.length;
+		const prev_end = cumulative[prev][1];
+		cumulative[i] = [prev_end, prev_end + faces_end[i]];
+	}
+	return cumulative;
+};
+
+var foldAssignments = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	assignmentsToFacesFlip: assignmentsToFacesFlip,
+	assignmentsToFacesVertical: assignmentsToFacesVertical,
+	foldStripWithAssignments: foldStripWithAssignments
+});
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
+/**
+ * faces and assignments are fencepost aligned. assignments precedes faces.
+ *       faces: |-----(0)-----(1)-----(2)---- ... -(n-2)-------(n-1)-|
+ * assignments: |-(0)-----(1)-----(2)-----(3) ... -------(n-1)-------|
+ */
+const is_boundary = { "B": true, "b": true };
+/**
+ * @description given an ordered set of faces and crease assignments
+ * between the faces, this recursive algorithm finds every combination
+ * of layer orderings that work without causing any self-intersections.
+ * "faces" could be 1D lines, the term could be switched out here.
+ * @param {number[]} ordered unsigned scalars, the length of paper between folds
+ * @param {string[]} array of "M","V", assignment of fold between faces
+ * @returns {number[][]} array of arrays. each inner array is a solution.
+ * each solution is an ordering of faces_order, where each index is a
+ * face and each value is the layer the face occupies.
+ */
+const singleVertexSolver = (ordered_scalars, assignments, epsilon = math.core.EPSILON) => {
+	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);
+	const faces_updown = assignmentsToFacesVertical(assignments);
+	// todo: we only really need to check index [0] and [length-1]
+	const is_circular = assignments
+		.map(a => !(is_boundary[a]))
+		.reduce((a, b) => a && b, true);
+	// if the sector contains no boundary (cuts), check if the folded state
+	// start and end line up, if not, it's clear no solution is possible.
+	if (is_circular) {
+		const start = faces_folded[0][0];
+		const end = faces_folded[faces_folded.length - 1][1];
+		if (Math.abs(start - end) > epsilon) { return []; }
+	}	// prepare tacos ahead of time, since we know the fold locations
+	// only grab the left and right tacos. return their adjacent faces in the
+	// form of which pair they are a part of, as an inverted array.
+	// taco-tortilla testing will happen using a different data structure.
+	const taco_face_pairs = makeFoldedStripTacos(faces_folded, is_circular, epsilon)
+		.map(taco => [taco.left, taco.right]
+			.map(invertMap)
+			.filter(arr => arr.length > 1))
+		.reduce((a, b) => a.concat(b), []);
+	/**
+	 * @description Consectively visit each face from 0...n, recursively
+	 * inserting it above or below the current position (in all slots above
+	 * or below). At the beginning of the recusive function check if there is a
+	 * violation where the newly-inserted face is causing a self-intersection.
+	 * @param {number[]} layering is an inverted form of the final return value.
+	 * indices represent layers, from 0 to N, moving upwards in +Z space,
+	 * and faces will be inserted into layers as we search for a layer ordering.
+	 * @param {number} iteration count, relates directly to the face index
+	 * @param {number} layer, the +Z index layer currently being added to,
+	 * this is the splice index of layers_face we will be adding the face to.
+	 */
+	const recurse = (layers_face = [0], face = 0, layer = 0) => {
+		const next_face = face + 1;
+		// will the next face be above or below the current face's position?
+		const next_dir = faces_updown[face];
+		// because this test will run during the intermediate assembly of a strip.
+		// the strip may eventually be circular, but currently it isn't.
+		// set this boolean to be true only if we are also at the end.
+		const is_done = face >= ordered_scalars.length - 1;
+		// is circular AND is done (just added the final face)
+		const circ_and_done = is_circular && is_done;
+		// test for any self-intersections throughout the entire layering
+		if (!validateLayerSolver(
+			faces_folded, layers_face, taco_face_pairs, circ_and_done, epsilon
+		)) {
+			return [];
+		}
+		// just before exit.
+		// the final crease must turn the correct direction back to the start.
+		if (circ_and_done) {
+			// next_dir is now indicating the direction from the final face to the
+			// first face, test if this also matches the orientation of the faces.
+			const faces_layer = invertMap(layers_face);
+			const first_face_layer = faces_layer[0];
+			const last_face_layer = faces_layer[face];
+			if (next_dir > 0 && last_face_layer > first_face_layer) { return []; }
+			if (next_dir < 0 && last_face_layer < first_face_layer) { return []; }
+			// todo: what about === 0 ?
+		}    
+
+		// Exit case. all faces have been traversed.
+		if (is_done) { return [layers_face]; }
+		// Continue case.
+		// depending on the direction of the next face (above, below, same level),
+		// insert the face into one or many places, then repeat the recursive call.
+		// note: causing a self-intersection is possible, hence, check at beginning
+		if (next_dir === 0) {
+			// append the next face into this layer (making it an array if necessary)
+			// and repeat the recursion with no additional layers, just this one.
+			layers_face[layer] = [next_face].concat(layers_face[layer]);
+			// no need to call .slice() on layers_face. only one path forward.
+			return recurse(layers_face, next_face, layer);
+		}
+		// given our current position (layer) and next_dir (up or down),
+		// get the subarray that's either above or below the current layer.
+		// these are all the indices we will attempt to insert the new face.
+		// - below: [0, layer]. includes layer
+		// - above: (layer, length]. excludes layer. includes length (# of faces)
+		// this way all indices (including +1 at the end) are covered once.
+		// these are used in the splice() method, 0...Length, inserting an element
+		// will place the new element before the old element at that same index.
+		// so, we need +1 indices (at the end) to be able to append to the end.
+		const splice_layers = next_dir === 1
+			? Array.from(Array(layers_face.length - layer))
+				.map((_, i) => layer + i + 1)
+			: Array.from(Array(layer + 1))
+				.map((_, i) => i);
+		// recursively attempt to fit the next folded face at all possible layers.
+		// make a deep copy of the layers_face arrays.
+		const next_layers_faces = splice_layers.map(i => clone(layers_face));
+		// insert the next_face into all possible valid locations (above or below)
+		next_layers_faces
+			.forEach((layers, i) => layers.splice(splice_layers[i], 0, next_face));
+		// recursively call 
+		return next_layers_faces
+			.map((layers, i) => recurse(layers, next_face, splice_layers[i]))
+			.reduce((a, b) => a.concat(b), []);
+	};
+	// after collecting all layers_face solutions, convert them into faces_layer
+	return recurse().map(invertMap);
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
 const get_unassigned_indices = (edges_assignment) => edges_assignment
 	.map((_, i) => i)
 	.filter(i => edges_assignment[i] === "U" || edges_assignment[i] === "u");
@@ -12528,6 +14455,7 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
  * @param {string[]} vertices_edges_assignments array of single characters FOLD spec edges assignments.
  * @returns {string[][]} array of arrays of strings, all permutations where "U"
  * assignments have been replaced with "V" or "M".
+ * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 18
  */
 const maekawaAssignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
@@ -12638,6 +14566,7 @@ const odd_assignment = (assignments) => {
  * @param {string[]} assignments an array of FOLD spec characters, "M" or "V".
  * @param {number} t the fold amount between 0 and 1.
  * @returns {number[]} four fold angles as numbers in an array.
+ * @linkcode Origami ./src/singleVertex/foldAngles4.js 23
  */
 const foldAngles4 = (sectors, assignments, t = 0) => {
 	const odd = odd_assignment(assignments);
@@ -12670,6 +14599,7 @@ const foldAngles4 = (sectors, assignments, t = 0) => {
  * @param {object} graph a FOLD object
  * @param {number} vertex the index of the vertex
  * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiGraph.js 19
  */
 const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
 	// to calculate Kawasaki's theorem, we need the 3 edges
@@ -12922,6 +14852,7 @@ var instructions = {
  * @description A multi-lingual raw-text reference containing a rudimentary
  * set of origami operations, the aim being to parameterize origami instructions
  * allowing us to be able to easily convert from one language to another.
+ * @linkcode Origami ./src/text/index.js 10
  */
 var text = {
 	axioms,
@@ -12940,173 +14871,6 @@ const use = function (library) {
 	}
 	library.linker(this);
 };
-
-/**
- * @typedef AxiomParams
- * @type {object}
- * @description The input to one of the seven axiom calculations. Depending on which axiom,
- * this will include up to two points and up to two lines, each inside their
- * respectively named arrays, where the order matters.
- * @property {RayLine[]} [lines] an array of lines
- * @property {number[][]} [points] an array of points
- * @example
- * {
- *   points: [[0.8, 0.5], [0.1, 0.15]],
- *   lines: [{vector: [0,1], origin: [0.5, 0.5]}]
- * }
- */
-
-/**
- * @typedef FOLD
- * @type {object}
- * @description A Javascript object representation of a FOLD file which follows the FOLD
- * specification in that it contains any number of the geometry arrays.
- * @property {number[][]} [vertices_coords] xy or xyz coordinates of the vertices
- * @property {number[][]} [vertices_vertices] for each vertex, all of its edge-adjacent vertices
- * @property {number[][]} [edges_vertices] each edge connects two vertex indices
- * @property {string[]} [edges_assignment] single-character fold assignment of each edge
- * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
- * @property {number[][]} [faces_vertices] each face defined by a sequence of vertex indices
- * @property {number[][]} [faces_edges] each face defined by a sequence of edge indices
- * @property {number[][]} [faces_faces] for each face, a list of faces which are edge-adjacent neighbors.
- * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
- * a linear sequence like diagram steps for example.
- * @example
- * {
- *   vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
- *   edges_vertices: [[0,1], [1,2], [2,3], [3,0], [0,2]],
- *   edges_assignment: ["B", "B", "B", "B", "V"],
- *   edges_foldAngle: [0, 0, 0, 0, 180],
- *   faces_vertices: [[0,1,2], [0,2,3]],
- * }
- */
-
-
-/**
- * @typedef BoundingBox
- * @type {object}
- * @description An n-dimensional axis-aligned bounding box that ecloses a space.
- * @property {number[]} min the corner point of the box that is a minima along all axes.
- * @property {number[]} max the corner point of the box that is a maxima along all axes.
- * @property {number[]} span the lengths of the box along all dimensions, the difference between the maxima and minima.
- * @example
- * {
- *   min: [-3, -10],
- *   max: [5, -1],
- *   span: [8, 9],
- * }
- */
-
-
-/**
- * @typedef RayLine
- * @type {object}
- * @property {number[]} vector - the line's direction vector
- * @property {number[]} origin - one point that intersects with the line
- * @example
- * {
- *   vector: [0.0, 1.0],
- *   origin: [0.5, 0.5]
- * }
- */
-
-/**
- * @typedef UniqueLine
- * @type {object}
- * @description This is a line parameterization which 
- * @property {number[]} u - the line's normal vector
- * @property {number} d - the shortest distance from the origin to the line
- */
-
-/**
- * 
- * Math primitives
- * 
- */
-
-/**
- * @typedef vector
- * @type {object}
- * @description a vector/point primitive. there is no limit to the number of dimensions.
- * @property {number[]} 0...n array indices for the individual vector values.
- */
-
-/**
- * @typedef matrix
- * @type {object}
- * @description a 3x4 matrix representing a transformation in 3D space, including a translation component.
- * @property {number[]} 0...11 array indices for the individual matrix values
- */
-
-/**
- * @typedef line
- * @type {object}
- * @description a line primitive
- * @property {number[]} vector a vector which represents the direction of the line
- * @property {number[]} origin a point that passes through the line
- */
-
-/**
- * @typedef ray
- * @type {object}
- * @description a ray primitive
- * @property {number[]} vector a vector which represents the direction of the line
- * @property {number[]} origin the origin of the ray
- */
-
-/**
- * @typedef segment
- * @type {object}
- * @description a segment primitive, defined by two endpoints
- * @property {number[]} 0 array index 0, the location of the first point
- * @property {number[]} 1 array index 1, the location of the second point
- * @property {number[]} vector a vector which represents the direction and length of the segment
- * @property {number[]} origin the first segment point
- */
-
-/**
- * @typedef rect
- * @type {object}
- * @description an axis-aligned rectangle primitive
- * @property {number} width
- * @property {number} height
- * @property {number[]} origin the bottom left corner (or top level for Y-down computer screens)
- */
-
-/**
- * @typedef circle
- * @type {object}
- * @description a circle primitive
- * @property {number} radius
- * @property {number[]} origin
- */
-
-/**
- * @typedef ellipse
- * @type {object}
- * @description a ellipse primitive
- * @property {number} rx radius in the primary axis
- * @property {number} ry radius in the secondary axis
- * @property {number} spin the angle of rotation through the center in radians
- * @property {number[]} origin the center of the ellipse
- * @property {number[][]} foci array of two points, each focus of the ellipse
- */
-
-/**
- * @typedef polygon
- * @type {object}
- * @description a polygon primitive
- * @property {number[][]} points a sequence of points, each point being an array of numbers
- */
-
-/**
- * @typedef polyline
- * @type {object}
- * @description a polyline primitive
- * @property {number[][]} points a sequence of points, each point being an array of numbers
- */
-
-const emptyTypeFunc = () => console.log("rabbit ear types");
 
 /**
  * Rabbit Ear (c) Kraft
@@ -13155,7 +14919,7 @@ const STYLE_FLAT = {
 const edgesAssignmentIndices = (graph) => {
 	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
 	const lowercase_assignment = graph[_edges_assignment]
-		.map(a => edgesAssignmentToLowercase[a]);
+		.map(a => a.toLowerCase());
 	graph[_edges_vertices]
 		.map((_, i) => lowercase_assignment[i] || "u")
 		.forEach((a, i) => assignment_indices[a].push(i));
@@ -13244,7 +15008,7 @@ const edgesLines = (graph, attributes = {}) => {
 	const edges_assignment = (graph.edges_assignment
 		? graph.edges_assignment
 		: makeEdgesAssignment(graph))
-		.map(assign => edgesAssignmentToLowercase[assign]);
+		.map(assign => assign.toLowerCase());
 	const groups_by_key = {};
 	["b", "m", "v", "f", "u"].forEach(k => {
 		const child_group = root.svg.g();
@@ -13617,6 +15381,7 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
+ * @linkcode Origami ./src/svg/index.js 96
  */
 const drawInto = (element, graph, options = {}) => {
 	const groups = DrawGroups(graph, options);
@@ -13638,6 +15403,7 @@ const drawInto = (element, graph, options = {}) => {
  * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
+ * @linkcode Origami ./src/svg/index.js 118
  */
 const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
 /**
@@ -15399,7 +17165,14 @@ const setOrigin = (el, a, b) => {
 };
 
 const fromPoints = (a, b, c, d) => [a, b, svg_distance2([a, b], [c, d])];
-
+/**
+ * @name circle
+ * @memberof svg
+ * @description Draw an SVG Circle element.
+ * @param {number} radius the radius of the circle
+ * @param {...number|number[]} center the center of the circle
+ * @returns {Element} an SVG node element
+ */
 var circleDef = {
 	circle: {
 		args: (a, b, c, d) => {
@@ -15660,7 +17433,16 @@ const fixNegatives = function (arr) {
 	});
 	return arr;
 };
-
+/**
+ * @name rect
+ * @memberof svg
+ * @description Draw an SVG Rect element.
+ * @param {number} x the x coordinate of the corner
+ * @param {number} y the y coordinate of the corner
+ * @param {number} width the length along the x dimension
+ * @param {number} height the length along the y dimension
+ * @returns {Element} an SVG node element
+ */
 var rectDef = {
 	rect: {
 		args: (a, b, c, d) => {
@@ -16419,7 +18201,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 const make_edges_geometry = function ({
 	vertices_coords, edges_vertices, edges_assignment, edges_coords, edges_vector
 }, scale=0.002, end_pad = 0) {
-	const { THREE } = RabbitEarWindow;
+	const { THREE } = RabbitEarWindow();
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(edge => edge.map(v => vertices_coords[v]));
 	}
@@ -16502,7 +18284,6 @@ var webgl = /*#__PURE__*/Object.freeze({
 /**
  * Rabbit Ear (c) Kraft
  */
-emptyTypeFunc();
 
 const ear = Object.assign(root, ObjectConstructors, {
 	math: math.core,
