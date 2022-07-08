@@ -38,10 +38,13 @@ const treeToList = (tree, expandPath = [], path=[], depth = 0) => {
 	return [liStart, ulStart, childrenList, ulEnd, liEnd].join("\n");
 };
 
-const makeHTMLTreeList = (topLevelTrees, expandPath) => {
+const makeHTMLTreeList = (topLevelTrees, expandPath, version = "") => {
 	const ulStart = `<ul id="tree-start">`
+	const liVersion = version && version !== "" ? `<li>${version}</li>` : undefined;
 	const ulEnd = `</ul>`
-	return [ulStart, ...topLevelTrees.map(tree => treeToList(tree, expandPath)), ulEnd].join("\n");
+	return [ulStart, liVersion, ...topLevelTrees.map(tree => treeToList(tree, expandPath)), ulEnd]
+		.filter(a => a !== undefined)
+		.join("\n");
 };
 
 module.exports = makeHTMLTreeList;

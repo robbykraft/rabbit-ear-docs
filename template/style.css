@@ -26,6 +26,7 @@ body {
 	display: flex;
 	flex-direction: row;
 }
+h1 { border-bottom: 1px solid; }
 /*ol { list-style: decimal; }*/
 /*ul { list-style: disc; }*/
 a { text-decoration: none; }
@@ -72,11 +73,11 @@ code.language-typescript {
 	vertical-align: text-bottom;
 }
 .body ul img{
-	width: 2rem;
-	height: 2rem;
+	width: 1.5rem;
+	height: 1.5rem;
 }
 .body ul .img {
-	width: 2rem;
+	width: 1.5rem;
 	text-align: center;
 	display: inline-block;
 }

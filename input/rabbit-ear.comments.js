@@ -1,4 +1,4 @@
-/* Rabbit Ear 0.9.3 alpha 2022-06-26 (c) Kraft, MIT License */
+/* Rabbit Ear 0.9.31 alpha 2022-07-08 (c) Kraft, MIT License */
 
 /**
  * Rabbit Ear (c) Kraft
@@ -8,7 +8,6 @@
 const _undefined = "undefined";
 const _number = "number";
 const _object = "object";
-const _class = "class";
 const _index = "index";
 
 const _vertices = "vertices";
@@ -57,7 +56,7 @@ const isWebWorker = typeof self === _object
 
 const errorMessages = [];
 
-errorMessages[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+errorMessages[10] = "\"error 010: window\" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )";
 
 /**
  * Rabbit Ear (c) Kraft
@@ -66,13 +65,13 @@ errorMessages[10] = `"error 010: window" not set. if using node/deno, include pa
 const windowContainer = { window: undefined };
 
 const buildDocument = (newWindow) => new newWindow.DOMParser()
-  .parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
+	.parseFromString("<!DOCTYPE html><title>.</title>", "text/html");
 
 const setWindow$1 = (newWindow) => {
-  // make sure window has a document. xmldom does not, and requires it be built.
-  if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
-  windowContainer.window = newWindow;
-  return windowContainer.window;
+	// make sure window has a document. xmldom does not, and requires it be built.
+	if (!newWindow.document) { newWindow.document = buildDocument(newWindow); }
+	windowContainer.window = newWindow;
+	return windowContainer.window;
 };
 // if we are in the browser, by default use the browser's "window".
 if (isBrowser$1) { windowContainer.window = window; }
@@ -81,10 +80,10 @@ if (isBrowser$1) { windowContainer.window = window; }
  * DOMParser, XMLSerializer, and document.
  */
 const RabbitEarWindow = () => {
-  if (windowContainer.window === undefined) {
-    throw errorMessages[10];
-  }
-  return windowContainer.window;
+	if (windowContainer.window === undefined) {
+		throw errorMessages[10];
+	}
+	return windowContainer.window;
 };
 
 /**
@@ -119,7 +118,8 @@ var root = Object.create(null);
  * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
  * @property {number[][]} [faces_vertices] each face defined by a sequence of vertex indices
  * @property {number[][]} [faces_edges] each face defined by a sequence of edge indices
- * @property {number[][]} [faces_faces] for each face, a list of faces which are edge-adjacent neighbors.
+ * @property {number[][]} [faces_faces] for each face, a list of faces which
+ * are edge-adjacent neighbors.
  * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
  * a linear sequence like diagram steps for example.
  * @example
@@ -132,14 +132,14 @@ var root = Object.create(null);
  * }
  */
 
-
 /**
  * @typedef BoundingBox
  * @type {object}
  * @description An n-dimensional axis-aligned bounding box that ecloses a space.
  * @property {number[]} min the corner point of the box that is a minima along all axes.
  * @property {number[]} max the corner point of the box that is a maxima along all axes.
- * @property {number[]} span the lengths of the box along all dimensions, the difference between the maxima and minima.
+ * @property {number[]} span the lengths of the box along all dimensions,
+ * the difference between the maxima and minima.
  * @example
  * {
  *   min: [-3, -10],
@@ -147,7 +147,6 @@ var root = Object.create(null);
  *   span: [8, 9],
  * }
  */
-
 
 /**
  * @typedef RayLine
@@ -165,9 +164,10 @@ var root = Object.create(null);
 /**
  * @typedef UniqueLine
  * @type {object}
- * @description This is a line parameterization which 
- * @property {number[]} u - the line's normal vector
- * @property {number} d - the shortest distance from the origin to the line
+ * @description This is a parameterization of an infinite line which gives each line a
+ * unique parameterization, making checking for duplicates easily.
+ * @property {number[]} normal - the line's normal vector
+ * @property {number} distance - the shortest distance from the origin to the line
  */
 
 /* Math (c) Kraft, MIT License */
@@ -187,29 +187,29 @@ var root = Object.create(null);
  * @description get the type of an object, which includes the custom types in this library.
  * @param {any} any object
  * @returns {string} the type name
- * @linkcode Math ./src/arguments/typeof.js 17
+ * @linkcode Math ./src/types/typeof.js 17
  */
 const typeOf = function (obj) {
-  switch (obj.constructor.name) {
-    case "vector":
-    case "matrix":
-    case "segment":
-    case "ray":
-    case "line":
-    case "circle":
-    case "ellipse":
-    case "rect":
-    case "polygon": return obj.constructor.name;
-  }
-  if (typeof obj === "object") {
-    if (obj.radius != null) { return "circle"; }
-    if (obj.width != null) { return "rect"; }
-    if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
-    // line ray segment
-    if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
-    if (obj.vector != null && obj.origin != null) { return "line"; } // or ray
-  }
-  return undefined;
+	switch (obj.constructor.name) {
+	case "vector":
+	case "matrix":
+	case "segment":
+	case "ray":
+	case "line":
+	case "circle":
+	case "ellipse":
+	case "rect":
+	case "polygon": return obj.constructor.name;
+	}
+	if (typeof obj === "object") {
+		if (obj.radius != null) { return "circle"; }
+		if (obj.width != null) { return "rect"; }
+		if (obj.x != null || typeof obj[0] === "number") { return "vector"; }
+		// line ray segment
+		if (obj[0] != null && obj[0].length && (typeof obj[0].x === "number" || typeof obj[0][0] === "number")) { return "segment"; }
+		if (obj.vector != null && obj.origin != null) { return "line"; } // or ray
+	}
+	return undefined;
 };
 
 /**
@@ -224,66 +224,67 @@ const typeOf = function (obj) {
  * force a vector into N-dimensions by adding 0s if they don't exist.
  */
 const resize = (d, v) => (v.length === d
-  ? v
-  : Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
+	? v
+	: Array(d).fill(0).map((z, i) => (v[i] ? v[i] : z)));
 /**
  * this makes the two vectors match in dimension.
  * the smaller array will be filled with 0s to match the length of the larger
  */
 const resizeUp = (a, b) => {
-  const size = a.length > b.length ? a.length : b.length;
-  return [a, b].map(v => resize(size, v));
+	const size = a.length > b.length ? a.length : b.length;
+	return [a, b].map(v => resize(size, v));
 };
 /**
  * this makes the two vectors match in dimension.
  * the larger array will be shrunk to match the length of the smaller
  */
 const resizeDown = (a, b) => {
-  const size = a.length > b.length ? b.length : a.length;
-  return [a, b].map(v => resize(size, v));
+	const size = a.length > b.length ? b.length : a.length;
+	return [a, b].map(v => resize(size, v));
 };
 
 const countPlaces = function (num) {
-  const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-  if (!m) { return 0; }
-  return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
+	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+	if (!m) { return 0; }
+	return Math.max(0, (m[1] ? m[1].length : 0) - (m[2] ? +m[2] : 0));
 };
 /**
  * @description clean floating point numbers, where 15.0000000000000002 becomes 15,
  * this method involves encoding and parsing so it is relatively expensive.
  * @param {number} num the floating point number to clean
- * @param {number} [places=15] the whole number of decimal places to keep, beyond this point can be considered to be noise.
+ * @param {number} [places=15] the whole number of decimal places to
+ * keep, beyond this point can be considered to be noise.
  * @returns {number} the cleaned floating point number
  */
 const cleanNumber = function (num, places = 15) {
-  if (typeof num !== "number") { return num; }
-  const crop = parseFloat(num.toFixed(places));
-  if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
-    return num;
-  }
-  return crop;
+	if (typeof num !== "number") { return num; }
+	const crop = parseFloat(num.toFixed(places));
+	if (countPlaces(crop) === Math.min(places, countPlaces(num))) {
+		return num;
+	}
+	return crop;
 };
 
-const isIterable = obj => obj != null
-  && typeof obj[Symbol.iterator] === "function";
+const isIterable = (obj) => obj != null
+	&& typeof obj[Symbol.iterator] === "function";
 /**
  * @description flatten only until the point of comma separated entities. recursive
  * @param {Array} args any array, intended to contain arrays of arrays.
  * @returns always an array
  */
 const semiFlattenArrays = function () {
-  switch (arguments.length) {
-    case undefined:
-    case 0: return Array.from(arguments);
-    // only if its an array (is iterable) and NOT a string
-    case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
-      ? semiFlattenArrays(...arguments[0])
-      : [arguments[0]];
-    default:
-      return Array.from(arguments).map(a => (isIterable(a)
-        ? [...semiFlattenArrays(a)]
-        : a));
-  }
+	switch (arguments.length) {
+	case undefined:
+	case 0: return Array.from(arguments);
+	// only if its an array (is iterable) and NOT a string
+	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
+		? semiFlattenArrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (isIterable(a)
+			? [...semiFlattenArrays(a)]
+			: a));
+	}
 };
 /**
  * totally flatten, recursive
@@ -291,256 +292,28 @@ const semiFlattenArrays = function () {
  * @returns an array, always.
  */
 const flattenArrays = function () {
-  switch (arguments.length) {
-    case undefined:
-    case 0: return Array.from(arguments);
-    // only if its an array (is iterable) and NOT a string
-    case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
-      ? flattenArrays(...arguments[0])
-      : [arguments[0]];
-    default:
-      return Array.from(arguments).map(a => (isIterable(a)
-        ? [...flattenArrays(a)]
-        : a)).reduce((a, b) => a.concat(b), []);
-  }
+	switch (arguments.length) {
+	case undefined:
+	case 0: return Array.from(arguments);
+	// only if its an array (is iterable) and NOT a string
+	case 1: return isIterable(arguments[0]) && typeof arguments[0] !== "string"
+		? flattenArrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (isIterable(a)
+			? [...flattenArrays(a)]
+			: a)).reduce((a, b) => a.concat(b), []);
+	}
 };
 
 var resizers = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  resize: resize,
-  resizeUp: resizeUp,
-  resizeDown: resizeDown,
-  cleanNumber: cleanNumber,
-  semiFlattenArrays: semiFlattenArrays,
-  flattenArrays: flattenArrays
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description this epsilon is used throughout the library
- * @linkcode Math ./src/core/constants.js 6
- */
-const EPSILON = 1e-6;
-/**
- * @description radians to degrees
- * @linkcode Math ./src/core/constants.js 11
- */
-const R2D = 180 / Math.PI;
-/**
- * @description degrees to radians
- * @linkcode Math ./src/core/constants.js 16
- */
-const D2R = Math.PI / 180;
-/**
- * @description pi x 2
- * @linkcode Math ./src/core/constants.js 21
- */
-const TWO_PI = Math.PI * 2;
-
-var constants = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  EPSILON: EPSILON,
-  R2D: R2D,
-  D2R: D2R,
-  TWO_PI: TWO_PI
-});
-
-/**
- * Math (c) Kraft
- */
-
-/**
- * common functions that get reused, especially inside of map/reduce etc...
- */
-/**
- * @description trivial method, returns true
- * @returns {boolean} true
- */
-const fnTrue = () => true;
-/**
- * @description multiply a parameter by itself
- * @param {number} n a number
- * @returns {number} a number
- * @linkcode Math ./src/arguments/functions.js 18
- */
-const fnSquare = n => n * n;
-/**
- * @description add two parameters
- * @param {number} a a number
- * @param {number} b a number
- * @returns {number} a number
- * @linkcode Math ./src/arguments/functions.js 26
- */
-const fnAdd = (a, b) => a + (b || 0);
-/**
- * @description is an input not undefined? using Javascript's triple equals !==
- * @param {any} a any input
- * @returns {boolean} true if the input is not undefined
- * @linkcode Math ./src/arguments/functions.js 33
- */
-const fnNotUndefined = a => a !== undefined;
-/**
- * @description boolean AND the two inputs
- * @param {any} a any input
- * @param {any} b any input
- * @returns {boolean} the AND of both inputs
- * @linkcode Math ./src/arguments/functions.js 41
- */
-const fnAnd = (a, b) => a && b;
-/**
- * @description concat the two arrays, resulting in one joined array
- * @param {Array} a any array input
- * @param {Array} b any array input
- * @returns {Array} one joined array
- * @linkcode Math ./src/arguments/functions.js 49
- */
-const fnCat = (a, b) => a.concat(b);
-/**
- * @description convert a 2D vector to an angle in radians
- * @param {number[]} v an input vector
- * @returns {number} the angle in radians
- * @linkcode Math ./src/arguments/functions.js 56
- */
-const fnVec2Angle = v => Math.atan2(v[1], v[0]);
-/**
- * @description convert an angle in radians to a 2D vector
- * @param {number} a the angle in radians
- * @returns {number[]} a 2D vector
- * @linkcode Math ./src/arguments/functions.js 63
- */
-const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
-/**
- * @description are two inputs equal using Javascript's triple equals.
- * @param {any} a any input
- * @param {any} b any input
- * @returns {boolean} true if the inputs are equal
- * @linkcode Math ./src/arguments/functions.js 71
- */
-const fnEqual = (a, b) => a === b;
-/**
- * @description are two inputs equal within an epsilon of each other
- * @param {number} a any number input
- * @param {number} b any number input
- * @returns {boolean} true if the numbers are near each other
- * @linkcode Math ./src/arguments/functions.js 79
- */
-const fnEpsilonEqual = (a, b) => Math.abs(a - b) < EPSILON;
-/**
- * @description are two vectors equal to each other within an epsilon. This method
- * uses a fast rectangle-area around each vector.
- * @param {number[]} a an array of numbers
- * @param {number[]} b an array of numbers
- * @returns {boolean} true if the vectors are similar within an epsilon
- * @linkcode Math ./src/arguments/functions.js 88
- */
-const fnEpsilonEqualVectors = (a, b) => {
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    if (!fnEpsilonEqual(a[i] || 0, b[i] || 0)) { return false; }
-  }
-  return true;
-};
-// export const fnEpsilonEqualVectors = (a, b) => a
-//   .map((_, n) => fnEpsilonEqual(a[n], b[n]))
-//   .reduce(fnAnd, true);
-/**
- * @description the inclusive test used in intersection algorithms, returns
- * true if the number is positive, including the epsilon between -epsilon and 0.
- * @returns {boolean} -Infinity...{false}...-epsilon...{true}...+Infinity
- * @linkcode Math ./src/arguments/functions.js 103
- */
-const include = (n, epsilon = EPSILON) => n > -epsilon;
-/**
- * @description the exclusive test used in intersection algorithms, returns
- * true if the number is positive, excluding the epsilon between 0 and +epsilon.
- * @returns {boolean} -Infinity...{false}...+epsilon...{true}...+Infinity
- * @linkcode Math ./src/arguments/functions.js 110
- */
-const exclude = (n, epsilon = EPSILON) => n > epsilon;
-/**
- * @description the function parameter for an inclusive line
- * @linkcode Math ./src/arguments/functions.js 115
- */
-const includeL = fnTrue;
-/**
- * @description the function parameter for an exclusive line
- * @linkcode Math ./src/arguments/functions.js 120
- */
-const excludeL = fnTrue;
-/**
- * @description the function parameter for an inclusive ray
- * @linkcode Math ./src/arguments/functions.js 125
- */
-const includeR = include;
-/**
- * @description the function parameter for an exclusive ray
- * @linkcode Math ./src/arguments/functions.js 130
- */
-const excludeR = exclude;
-/**
- * @description the function parameter for an inclusive segment
- * @linkcode Math ./src/arguments/functions.js 135
- */
-const includeS = (t, e = EPSILON) => t > -e && t < 1 + e;
-/**
- * @description the function parameter for an exclusive segment
- * @linkcode Math ./src/arguments/functions.js 140
- */
-const excludeS = (t, e = EPSILON) => t > e && t < 1 - e;
-/**
- * @description These clamp functions process lines/rays/segments intersections.
- * The line method allows all values.
- * @param {number} t the length along the vector
- * @returns {number} the clamped input value
- * @linkcode Math ./src/arguments/functions.js 148
- */
-const lineLimiter = dist => dist;
-/**
- * @description These clamp functions process lines/rays/segments intersections.
- * The ray method clamps values below -epsilon to be 0.
- * @param {number} t the length along the vector
- * @returns {number} the clamped input value
- * @linkcode Math ./src/arguments/functions.js 156
- */
-const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
-/**
- * @description These clamp functions process lines/rays/segments intersections.
- * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
- * @param {number} t the length along the vector
- * @returns {number} the clamped input value
- * @linkcode Math ./src/arguments/functions.js 164
- */
-const segmentLimiter = (dist) => {
-  if (dist < -EPSILON) { return 0; }
-  if (dist > 1 + EPSILON) { return 1; }
-  return dist;
-};
-
-var functions = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  fnTrue: fnTrue,
-  fnSquare: fnSquare,
-  fnAdd: fnAdd,
-  fnNotUndefined: fnNotUndefined,
-  fnAnd: fnAnd,
-  fnCat: fnCat,
-  fnVec2Angle: fnVec2Angle,
-  fnToVec2: fnToVec2,
-  fnEqual: fnEqual,
-  fnEpsilonEqual: fnEpsilonEqual,
-  fnEpsilonEqualVectors: fnEpsilonEqualVectors,
-  include: include,
-  exclude: exclude,
-  includeL: includeL,
-  excludeL: excludeL,
-  includeR: includeR,
-  excludeR: excludeR,
-  includeS: includeS,
-  excludeS: excludeS,
-  lineLimiter: lineLimiter,
-  rayLimiter: rayLimiter,
-  segmentLimiter: segmentLimiter
+	__proto__: null,
+	resize: resize,
+	resizeUp: resizeUp,
+	resizeDown: resizeDown,
+	cleanNumber: cleanNumber,
+	semiFlattenArrays: semiFlattenArrays,
+	flattenArrays: flattenArrays
 });
 
 /**
@@ -558,161 +331,238 @@ var Constructors = Object.create(null);
  * Math (c) Kraft
  */
 /**
- * @description the identity matrix for 2x2 matrices
- * @linkcode Math ./src/core/matrix2.js 6
+ * @description this epsilon is used throughout the library
+ * @linkcode Math ./src/algebra/constants.js 6
  */
-const identity2x2 = [1, 0, 0, 1];
+const EPSILON = 1e-6;
 /**
- * @description the identity matrix for 2x3 matrices (zero translation)
- * @linkcode Math ./src/core/matrix2.js 11
+ * @description radians to degrees
+ * @linkcode Math ./src/algebra/constants.js 11
  */
-const identity2x3 = identity2x2.concat(0, 0);
+const R2D = 180 / Math.PI;
+/**
+ * @description degrees to radians
+ * @linkcode Math ./src/algebra/constants.js 16
+ */
+const D2R = Math.PI / 180;
+/**
+ * @description pi x 2
+ * @linkcode Math ./src/algebra/constants.js 21
+ */
+const TWO_PI = Math.PI * 2;
 
-/**
- * @param {number[]} vector, in array form
- * @param {number[]} matrix, in array form
- * @returns {number[]} vector, the input vector transformed by the matrix
- * @linkcode Math ./src/core/matrix2.js 19
- */
-const multiplyMatrix2Vector2 = (matrix, vector) => [
-  matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
-  matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5]
-];
-/**
- * @param line in point-vector form, matrix
- * @returns transformed line in point-vector form
- * @linkcode Math ./src/core/matrix2.js 28
- */
-const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
-  vector: [
-    matrix[0] * vector[0] + matrix[2] * vector[1],
-    matrix[1] * vector[0] + matrix[3] * vector[1]
-  ],
-  origin: [
-    matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
-    matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5]
-  ],
+var constants = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	EPSILON: EPSILON,
+	R2D: R2D,
+	D2R: D2R,
+	TWO_PI: TWO_PI
 });
+
 /**
- * @param {number[]} matrix, matrix, left/right order matches what you'd see on a page.
- * @returns {number[]} matrix
- * @linkcode Math ./src/core/matrix2.js 43
+ * Math (c) Kraft
  */
-const multiplyMatrices2 = (m1, m2) => [
-  m1[0] * m2[0] + m1[2] * m2[1],
-  m1[1] * m2[0] + m1[3] * m2[1],
-  m1[0] * m2[2] + m1[2] * m2[3],
-  m1[1] * m2[2] + m1[3] * m2[3],
-  m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
-  m1[1] * m2[4] + m1[3] * m2[5] + m1[5]
-];
 /**
- * @description calculate the determinant of a 2x3 or 2x2 matrix.
- * in the case of 2x3, the translation component is ignored.
- * @param {number[]} matrix one matrix in array form
- * @returns {number} the determinant of the matrix
- * @linkcode Math ./src/core/matrix2.js 58
+ * common functions that get reused, especially inside of map/reduce etc...
  */
-const determinant2 = m => m[0] * m[3] - m[1] * m[2];
 /**
- * @description invert a 2x3 matrix
- * @param {number[]} matrix one matrix in array form
- * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
- * @linkcode Math ./src/core/matrix2.js 65
+ * @description trivial method, returns true
+ * @returns {boolean} true
+ * @linkcode Math ./src/algebra/functions.js 11
  */
-const invertMatrix2 = (m) => {
-  const det = determinant2(m);
-  if (Math.abs(det) < 1e-6 || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])) {
-    return undefined;
-  }
-  return [
-    m[3] / det,
-    -m[1] / det,
-    -m[2] / det,
-    m[0] / det,
-    (m[2] * m[5] - m[3] * m[4]) / det,
-    (m[1] * m[4] - m[0] * m[5]) / det
-  ];
+const fnTrue = () => true;
+/**
+ * @description multiply a parameter by itself
+ * @param {number} n a number
+ * @returns {number} a number
+ * @linkcode Math ./src/algebra/functions.js 18
+ */
+const fnSquare = n => n * n;
+/**
+ * @description add two parameters
+ * @param {number} a a number
+ * @param {number} b a number
+ * @returns {number} a number
+ * @linkcode Math ./src/algebra/functions.js 26
+ */
+const fnAdd = (a, b) => a + (b || 0);
+/**
+ * @description is an input not undefined? using Javascript's triple equals !==
+ * @param {any} a any input
+ * @returns {boolean} true if the input is not undefined
+ * @linkcode Math ./src/algebra/functions.js 33
+ */
+const fnNotUndefined = a => a !== undefined;
+/**
+ * @description boolean AND the two inputs
+ * @param {any} a any input
+ * @param {any} b any input
+ * @returns {boolean} the AND of both inputs
+ * @linkcode Math ./src/algebra/functions.js 41
+ */
+const fnAnd = (a, b) => a && b;
+/**
+ * @description concat the two arrays, resulting in one joined array
+ * @param {Array} a any array input
+ * @param {Array} b any array input
+ * @returns {Array} one joined array
+ * @linkcode Math ./src/algebra/functions.js 49
+ */
+const fnCat = (a, b) => a.concat(b);
+/**
+ * @description Convert a 2D vector to an angle in radians.
+ * @param {number[]} v an input vector
+ * @returns {number} the angle in radians
+ * @linkcode Math ./src/algebra/functions.js 56
+ */
+const fnVec2Angle = v => Math.atan2(v[1], v[0]);
+/**
+ * @description Convert an angle in radians to a 2D vector.
+ * @param {number} a the angle in radians
+ * @returns {number[]} a 2D vector
+ * @linkcode Math ./src/algebra/functions.js 63
+ */
+const fnToVec2 = a => [Math.cos(a), Math.sin(a)];
+/**
+ * @description Are two inputs equal using Javascript's triple equals?
+ * @param {any} a any input
+ * @param {any} b any input
+ * @returns {boolean} true if the inputs are equal
+ * @linkcode Math ./src/algebra/functions.js 71
+ */
+const fnEqual = (a, b) => a === b;
+/**
+ * @description Are two inputs equal within an epsilon of each other?
+ * @param {number} a any number input
+ * @param {number} b any number input
+ * @returns {boolean} true if the numbers are near each other
+ * @linkcode Math ./src/algebra/functions.js 79
+ */
+const fnEpsilonEqual = (a, b, epsilon = EPSILON) => Math.abs(a - b) < epsilon;
+/**
+ * @description Sort two numbers within an epsilon of each other, so that "1": a < b,
+ * "-1": a > b, and "0": a ~= b (epsilon equal).
+ * @param {number} a any number
+ * @param {number} b any number
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number} -1, 0, +1
+ * @linkcode Math ./src/algebra/functions.js 89
+ */
+const fnEpsilonSort = (a, b, epsilon = EPSILON) => (
+	fnEpsilonEqual(a, b, epsilon) ? 0 : Math.sign(b - a)
+);
+/**
+ * @description are two vectors equal to each other within an epsilon. This method
+ * uses a fast rectangle-area around each vector.
+ * @param {number[]} a an array of numbers
+ * @param {number[]} b an array of numbers
+ * @returns {boolean} true if the vectors are similar within an epsilon
+ * @linkcode Math ./src/algebra/functions.js 100
+ */
+const fnEpsilonEqualVectors = (a, b, epsilon = EPSILON) => {
+	for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+		if (!fnEpsilonEqual(a[i] || 0, b[i] || 0, epsilon)) { return false; }
+	}
+	return true;
 };
 /**
- * @param {number} x, y
- * @returns {number[]} matrix
- * @linkcode Math ./src/core/matrix2.js 84
+ * @description the inclusive test used in intersection algorithms, returns
+ * true if the number is positive, including the epsilon between -epsilon and 0.
+ * @returns {boolean} -Infinity...{false}...-epsilon...{true}...+Infinity
+ * @linkcode Math ./src/algebra/functions.js 112
  */
-const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
+const include = (n, epsilon = EPSILON) => n > -epsilon;
 /**
- * @param ratio of scale, optional origin homothetic center (0,0 default)
- * @returns {number[]} matrix
- * @linkcode Math ./src/core/matrix2.js 90
+ * @description the exclusive test used in intersection algorithms, returns
+ * true if the number is positive, excluding the epsilon between 0 and +epsilon.
+ * @returns {boolean} -Infinity...{false}...+epsilon...{true}...+Infinity
+ * @linkcode Math ./src/algebra/functions.js 119
  */
-const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
-  x,
-  0,
-  0,
-  y,
-  x * -origin[0] + origin[0],
-  y * -origin[1] + origin[1]
-];
+const exclude = (n, epsilon = EPSILON) => n > epsilon;
 /**
- * @param angle of rotation, origin of transformation
- * @returns {number[]} matrix
- * @linkcode Math ./src/core/matrix2.js 103
+ * @description the function parameter for an inclusive line
+ * @linkcode Math ./src/algebra/functions.js 124
  */
-const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  return [
-    cos,
-    sin,
-    -sin,
-    cos,
-    origin[0],
-    origin[1]
-  ];
-};
+const includeL = fnTrue;
 /**
- * remember vector comes before origin. origin comes last, so that it's easy
- * to leave it empty and make a reflection through the origin.
- * @param line in vector-origin form
- * @returns matrix
- * @linkcode Math ./src/core/matrix2.js 122
+ * @description the function parameter for an exclusive line
+ * @linkcode Math ./src/algebra/functions.js 129
  */
-const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
-  // the line of reflection passes through origin, runs along vector
-  const angle = Math.atan2(vector[1], vector[0]);
-  const cosAngle = Math.cos(angle);
-  const sinAngle = Math.sin(angle);
-  const cos_Angle = Math.cos(-angle);
-  const sin_Angle = Math.sin(-angle);
-  const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-  const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-  const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-  const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-  const tx = origin[0] + a * -origin[0] + -origin[1] * c;
-  const ty = origin[1] + b * -origin[0] + -origin[1] * d;
-  return [a, b, c, d, tx, ty];
+const excludeL = fnTrue;
+/**
+ * @description the function parameter for an inclusive ray
+ * @linkcode Math ./src/algebra/functions.js 134
+ */
+const includeR = include;
+/**
+ * @description the function parameter for an exclusive ray
+ * @linkcode Math ./src/algebra/functions.js 139
+ */
+const excludeR = exclude;
+/**
+ * @description the function parameter for an inclusive segment
+ * @linkcode Math ./src/algebra/functions.js 144
+ */
+const includeS = (t, e = EPSILON) => t > -e && t < 1 + e;
+/**
+ * @description the function parameter for an exclusive segment
+ * @linkcode Math ./src/algebra/functions.js 149
+ */
+const excludeS = (t, e = EPSILON) => t > e && t < 1 - e;
+/**
+ * @description These clamp functions process lines/rays/segments intersections.
+ * The line method allows all values.
+ * @param {number} t the length along the vector
+ * @returns {number} the clamped input value
+ * @linkcode Math ./src/algebra/functions.js 157
+ */
+const lineLimiter = dist => dist;
+/**
+ * @description These clamp functions process lines/rays/segments intersections.
+ * The ray method clamps values below -epsilon to be 0.
+ * @param {number} t the length along the vector
+ * @returns {number} the clamped input value
+ * @linkcode Math ./src/algebra/functions.js 165
+ */
+const rayLimiter = dist => (dist < -EPSILON ? 0 : dist);
+/**
+ * @description These clamp functions process lines/rays/segments intersections.
+ * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
+ * @param {number} t the length along the vector
+ * @returns {number} the clamped input value
+ * @linkcode Math ./src/algebra/functions.js 173
+ */
+const segmentLimiter = (dist) => {
+	if (dist < -EPSILON) { return 0; }
+	if (dist > 1 + EPSILON) { return 1; }
+	return dist;
 };
 
-//               __                                           _
-//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
-//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
-// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
-// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
-//                                                     /___/
-
-var matrix2 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  identity2x2: identity2x2,
-  identity2x3: identity2x3,
-  multiplyMatrix2Vector2: multiplyMatrix2Vector2,
-  multiplyMatrix2Line2: multiplyMatrix2Line2,
-  multiplyMatrices2: multiplyMatrices2,
-  determinant2: determinant2,
-  invertMatrix2: invertMatrix2,
-  makeMatrix2Translate: makeMatrix2Translate,
-  makeMatrix2Scale: makeMatrix2Scale,
-  makeMatrix2Rotate: makeMatrix2Rotate,
-  makeMatrix2Reflect: makeMatrix2Reflect
+var functions = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	fnTrue: fnTrue,
+	fnSquare: fnSquare,
+	fnAdd: fnAdd,
+	fnNotUndefined: fnNotUndefined,
+	fnAnd: fnAnd,
+	fnCat: fnCat,
+	fnVec2Angle: fnVec2Angle,
+	fnToVec2: fnToVec2,
+	fnEqual: fnEqual,
+	fnEpsilonEqual: fnEpsilonEqual,
+	fnEpsilonSort: fnEpsilonSort,
+	fnEpsilonEqualVectors: fnEpsilonEqualVectors,
+	include: include,
+	exclude: exclude,
+	includeL: includeL,
+	excludeL: excludeL,
+	includeR: includeR,
+	excludeR: excludeR,
+	includeS: includeS,
+	excludeS: excludeS,
+	lineLimiter: lineLimiter,
+	rayLimiter: rayLimiter,
+	segmentLimiter: segmentLimiter
 });
 
 /**
@@ -725,14 +575,14 @@ var matrix2 = /*#__PURE__*/Object.freeze({
  * vectors are assumed to be Javascript Arrays objects /
  * contain the Javascript Array prototype, as these methods depend
  * on the use of "map", "reduce" and other Array functions.
- * 
+ *
  * ({x: y:} vectors as Javascript Objects will not work)
- * 
+ *
  * many of these operations can handle vectors of arbitrary dimension
  * in which case there are two vectors as input, it will be noted that
  * "dimensions match first parameter", you should verify that the second
  * parameter is at least as long as the first (okay if it is longer)
- * 
+ *
  * when a function name ends with a number (magnitude2) the input vector's
  * dimension is assumed to be this number.
  */
@@ -741,53 +591,53 @@ var matrix2 = /*#__PURE__*/Object.freeze({
  * @description compute the magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 32
+ * @linkcode Math ./src/algebra/vectors.js 32
  */
 const magnitude = v => Math.sqrt(v
-  .map(fnSquare)
-  .reduce(fnAdd, 0));
+	.map(fnSquare)
+	.reduce(fnAdd, 0));
 /**
  * @description compute the magnitude a 2D vector
  * @param {number[]} v one 2D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 41
+ * @linkcode Math ./src/algebra/vectors.js 41
  */
 const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 /**
  * @description compute the square-magnitude an n-dimensional vector
  * @param {number[]} v one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 48
+ * @linkcode Math ./src/algebra/vectors.js 48
  */
 const magSquared = v => v
-  .map(fnSquare)
-  .reduce(fnAdd, 0);
+	.map(fnSquare)
+	.reduce(fnAdd, 0);
 /**
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching the input vector
- * @linkcode Math ./src/core/algebra.js 57
+ * @linkcode Math ./src/algebra/vectors.js 57
  */
 const normalize = (v) => {
-  const m = magnitude(v);
-  return m === 0 ? v : v.map(c => c / m);
+	const m = magnitude(v);
+	return m === 0 ? v : v.map(c => c / m);
 };
 /**
  * @description normalize the input vector and return a new vector as a copy
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 67
+ * @linkcode Math ./src/algebra/vectors.js 67
  */
 const normalize2 = (v) => {
-  const m = magnitude2(v);
-  return m === 0 ? v : [v[0] / m, v[1] / m];
+	const m = magnitude2(v);
+	return m === 0 ? v : [v[0] / m, v[1] / m];
 };
 /**
  * @description scale an input vector by one number, return a copy.
  * @param {number[]} v one vector, n-dimensions
  * @param {number} s one scalar
  * @returns {number[]} one vector
- * @linkcode Math ./src/core/algebra.js 78
+ * @linkcode Math ./src/algebra/vectors.js 78
  */
 const scale = (v, s) => v.map(n => n * s);
 /**
@@ -795,23 +645,25 @@ const scale = (v, s) => v.map(n => n * s);
  * @param {number[]} v one 2D vector
  * @param {number} s one scalar
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 86
+ * @linkcode Math ./src/algebra/vectors.js 86
  */
 const scale2 = (v, s) => [v[0] * s, v[1] * s];
 /**
- * @description add two vectors and return the sum as another vector, do not modify the input vectors.
+ * @description add two vectors and return the sum as another vector,
+ * do not modify the input vectors.
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/core/algebra.js 94
+ * @linkcode Math ./src/algebra/vectors.js 95
  */
 const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 /**
- * @description add two vectors and return the sum as another vector, do not modify the input vectors.
+ * @description add two vectors and return the sum as another vector,
+ * do not modify the input vectors.
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 102
+ * @linkcode Math ./src/algebra/vectors.js 104
  */
 const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
 /**
@@ -819,7 +671,7 @@ const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/core/algebra.js 110
+ * @linkcode Math ./src/algebra/vectors.js 112
  */
 const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 /**
@@ -827,7 +679,7 @@ const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 118
+ * @linkcode Math ./src/algebra/vectors.js 120
  */
 const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
 /**
@@ -835,17 +687,17 @@ const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 126
+ * @linkcode Math ./src/algebra/vectors.js 128
  */
 const dot = (v, u) => v
-  .map((_, i) => v[i] * u[i])
-  .reduce(fnAdd, 0);
+	.map((_, i) => v[i] * u[i])
+	.reduce(fnAdd, 0);
 /**
  * @description compute the dot product of two 2D vectors.
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 136
+ * @linkcode Math ./src/algebra/vectors.js 138
  */
 const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
 /**
@@ -853,7 +705,7 @@ const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one vector, dimension matching first parameter
- * @linkcode Math ./src/core/algebra.js 144
+ * @linkcode Math ./src/algebra/vectors.js 146
  */
 const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 /**
@@ -861,22 +713,23 @@ const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one 2D vector
- * @linkcode Math ./src/core/algebra.js 152
+ * @linkcode Math ./src/algebra/vectors.js 154
  */
 const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
 /**
- * @description the average of N number of vectors, similar to midpoint, but can accept more than 2 inputs
+ * @description the average of N number of vectors, similar to midpoint,
+ * but can accept more than 2 inputs
  * @param {number[]} ...args any number of input vectors
  * @returns {number[]} one vector, dimension matching first parameter
- * @linkcode Math ./src/core/algebra.js 159
+ * @linkcode Math ./src/algebra/vectors.js 162
  */
 const average = function () {
-  if (arguments.length === 0) { return []; }
-  const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
-  const sum = Array(dimension).fill(0);
-  Array.from(arguments)
-    .forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
-  return sum.map(n => n / arguments.length);
+	if (arguments.length === 0) { return []; }
+	const dimension = (arguments[0].length > 0) ? arguments[0].length : 0;
+	const sum = Array(dimension).fill(0);
+	Array.from(arguments)
+		.forEach(vec => sum.forEach((_, i) => { sum[i] += vec[i] || 0; }));
+	return sum.map(n => n / arguments.length);
 };
 /**
  * @description linear interpolate between two vectors
@@ -884,18 +737,19 @@ const average = function () {
  * @param {number[]} u one vector, n-dimensions
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {number[]} one vector, dimensions matching first parameter
- * @linkcode Math ./src/core/algebra.js 175
+ * @linkcode Math ./src/algebra/vectors.js 178
  */
 const lerp = (v, u, t) => {
-  const inv = 1.0 - t;
-  return v.map((n, i) => n * inv + (u[i] || 0) * t);
+	const inv = 1.0 - t;
+	return v.map((n, i) => n * inv + (u[i] || 0) * t);
 };
 /**
- * @description the determinant of the matrix of the 2 vectors (possible bad name, 2D cross product is undefined)
+ * @description the determinant of the matrix of the 2 vectors
+ * (possible bad name, 2D cross product is undefined)
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar; the determinant; the magnitude of the vector
- * @linkcode Math ./src/core/algebra.js 186
+ * @linkcode Math ./src/algebra/vectors.js 190
  */
 const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
 /**
@@ -903,67 +757,67 @@ const cross2 = (v, u) => v[0] * u[1] - v[1] * u[0];
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number[]} one 3D vector
- * @linkcode Math ./src/core/algebra.js 194
+ * @linkcode Math ./src/algebra/vectors.js 198
  */
 const cross3 = (v, u) => [
-  v[1] * u[2] - v[2] * u[1],
-  v[2] * u[0] - v[0] * u[2],
-  v[0] * u[1] - v[1] * u[0],
+	v[1] * u[2] - v[2] * u[1],
+	v[2] * u[0] - v[0] * u[2],
+	v[0] * u[1] - v[1] * u[0],
 ];
 /**
  * @description compute the distance between two vectors
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 206
+ * @linkcode Math ./src/algebra/vectors.js 210
  */
 const distance = (v, u) => Math.sqrt(v
-  .map((_, i) => (v[i] - u[i]) ** 2)
-  .reduce(fnAdd, 0));
+	.map((_, i) => (v[i] - u[i]) ** 2)
+	.reduce(fnAdd, 0));
 /**
  * @description compute the distance between two 2D vectors
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 216
+ * @linkcode Math ./src/algebra/vectors.js 220
  */
 const distance2 = (v, u) => {
-  const p = v[0] - u[0];
-  const q = v[1] - u[1];
-  return Math.sqrt((p * p) + (q * q));
+	const p = v[0] - u[0];
+	const q = v[1] - u[1];
+	return Math.sqrt((p * p) + (q * q));
 };
 /**
  * @description compute the distance between two 3D vectors
  * @param {number[]} v one 3D vector
  * @param {number[]} u one 3D vector
  * @returns {number} one scalar
- * @linkcode Math ./src/core/algebra.js 228
+ * @linkcode Math ./src/algebra/vectors.js 232
  */
 const distance3 = (v, u) => {
-  const a = v[0] - u[0];
-  const b = v[1] - u[1];
-  const c = v[2] - u[2];
-  return Math.sqrt((a * a) + (b * b) + (c * c));
+	const a = v[0] - u[0];
+	const b = v[1] - u[1];
+	const c = v[2] - u[2];
+	return Math.sqrt((a * a) + (b * b) + (c * c));
 };
 /**
  * @description return a copy of the input vector where each element's sign flipped
  * @param {number[]} v one vector, n-dimensions
  * @returns {number[]} one vector, dimensions matching input parameter
- * @linkcode Math ./src/core/algebra.js 240
+ * @linkcode Math ./src/algebra/vectors.js 244
  */
 const flip = v => v.map(n => -n);
 /**
  * @description return a copy of the input vector rotated 90 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 247
+ * @linkcode Math ./src/algebra/vectors.js 251
  */
 const rotate90 = v => [-v[1], v[0]];
 /**
  * @description return a copy of the input vector rotated 270 degrees counter-clockwise
  * @param {number[]} v one 2D vector
  * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/algebra.js 254
+ * @linkcode Math ./src/algebra/vectors.js 258
  */
 const rotate270 = v => [v[1], -v[0]];
 /**
@@ -971,62 +825,62 @@ const rotate270 = v => [v[1], -v[0]];
  * @param {number[]} v one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} is the magnitude of the vector smaller than the epsilon?
- * @linkcode Math ./src/core/algebra.js 262
+ * @linkcode Math ./src/algebra/vectors.js 266
  */
 const degenerate = (v, epsilon = EPSILON) => v
-  .map(n => Math.abs(n))
-  .reduce(fnAdd, 0) < epsilon;
+	.map(n => Math.abs(n))
+	.reduce(fnAdd, 0) < epsilon;
 /**
  * @description check if two vectors are parallel to each other within an epsilon
  * @param {number[]} v one vector, n-dimensions
  * @param {number[]} u one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
- * @linkcode Math ./src/core/algebra.js 273
+ * @linkcode Math ./src/algebra/vectors.js 277
  */
 const parallel = (v, u, epsilon = EPSILON) => 1 - Math
-  .abs(dot(normalize(v), normalize(u))) < epsilon;
+	.abs(dot(normalize(v), normalize(u))) < epsilon;
 /**
  * @description check if two 2D vectors are parallel to each other within an epsilon
  * @param {number[]} v one 2D vector
  * @param {number[]} u one 2D vector
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
- * @linkcode Math ./src/core/algebra.js 283
+ * @linkcode Math ./src/algebra/vectors.js 287
  */
 const parallel2 = (v, u, epsilon = EPSILON) => Math
-  .abs(cross2(v, u)) < epsilon;
+	.abs(cross2(v, u)) < epsilon;
 
 var algebra = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  magnitude: magnitude,
-  magnitude2: magnitude2,
-  magSquared: magSquared,
-  normalize: normalize,
-  normalize2: normalize2,
-  scale: scale,
-  scale2: scale2,
-  add: add,
-  add2: add2,
-  subtract: subtract,
-  subtract2: subtract2,
-  dot: dot,
-  dot2: dot2,
-  midpoint: midpoint,
-  midpoint2: midpoint2,
-  average: average,
-  lerp: lerp,
-  cross2: cross2,
-  cross3: cross3,
-  distance: distance,
-  distance2: distance2,
-  distance3: distance3,
-  flip: flip,
-  rotate90: rotate90,
-  rotate270: rotate270,
-  degenerate: degenerate,
-  parallel: parallel,
-  parallel2: parallel2
+	__proto__: null,
+	magnitude: magnitude,
+	magnitude2: magnitude2,
+	magSquared: magSquared,
+	normalize: normalize,
+	normalize2: normalize2,
+	scale: scale,
+	scale2: scale2,
+	add: add,
+	add2: add2,
+	subtract: subtract,
+	subtract2: subtract2,
+	dot: dot,
+	dot2: dot2,
+	midpoint: midpoint,
+	midpoint2: midpoint2,
+	average: average,
+	lerp: lerp,
+	cross2: cross2,
+	cross3: cross3,
+	distance: distance,
+	distance2: distance2,
+	distance3: distance3,
+	flip: flip,
+	rotate90: rotate90,
+	rotate270: rotate270,
+	degenerate: degenerate,
+	parallel: parallel,
+	parallel2: parallel2
 });
 
 /**
@@ -1034,34 +888,34 @@ var algebra = /*#__PURE__*/Object.freeze({
  */
 /**
  * @description the identity matrix for 3x3 matrices
- * @linkcode Math ./src/core/matrix3.js 14
+ * @linkcode Math ./src/algebra/matrix3.js 14
  */
 const identity3x3 = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 /**
  * @description the identity matrix for 3x4 matrices (zero translation)
- * @linkcode Math ./src/core/matrix3.js 19
+ * @linkcode Math ./src/algebra/matrix3.js 19
  */
 const identity3x4 = Object.freeze(identity3x3.concat(0, 0, 0));
 /**
  * @description test if a 3x4 matrix is the identity matrix within an epsilon
  * @param {number[]} matrix a 3x4 matrix
  * @returns {boolean} true if the matrix is the identity matrix
- * @linkcode Math ./src/core/matrix3.js 26
+ * @linkcode Math ./src/algebra/matrix3.js 26
  */
 const isIdentity3x4 = m => identity3x4
-  .map((n, i) => Math.abs(n - m[i]) < EPSILON)
-  .reduce((a, b) => a && b, true);
+	.map((n, i) => Math.abs(n - m[i]) < EPSILON)
+	.reduce((a, b) => a && b, true);
 /**
  * @description multiply one 3D vector by a 3x4 matrix
  * @param {number[]} matrix one matrix in array form
  * @param {number[]} vector in array form
  * @returns {number[]} the transformed vector
- * @linkcode Math ./src/core/matrix3.js 36
+ * @linkcode Math ./src/algebra/matrix3.js 36
  */
 const multiplyMatrix3Vector3 = (m, vector) => [
-  m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
-  m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
-  m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11]
+	m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
+	m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2] + m[10],
+	m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2] + m[11],
 ];
 /**
  * @description multiply one 3D line by a 3x4 matrix
@@ -1069,87 +923,87 @@ const multiplyMatrix3Vector3 = (m, vector) => [
  * @param {number[]} vector the vector of the line
  * @param {number[]} origin the origin of the line
  * @returns {object} transformed line in point-vector form
- * @linkcode Math ./src/core/matrix3.js 49
+ * @linkcode Math ./src/algebra/matrix3.js 49
  */
 const multiplyMatrix3Line3 = (m, vector, origin) => ({
-  vector: [
-    m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
-    m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
-    m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2]
-  ],
-  origin: [
-    m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
-    m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
-    m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11]
-  ],
+	vector: [
+		m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2],
+		m[1] * vector[0] + m[4] * vector[1] + m[7] * vector[2],
+		m[2] * vector[0] + m[5] * vector[1] + m[8] * vector[2],
+	],
+	origin: [
+		m[0] * origin[0] + m[3] * origin[1] + m[6] * origin[2] + m[9],
+		m[1] * origin[0] + m[4] * origin[1] + m[7] * origin[2] + m[10],
+		m[2] * origin[0] + m[5] * origin[1] + m[8] * origin[2] + m[11],
+	],
 });
 /**
  * @description multiply two 3x4 matrices together
  * @param {number[]} matrix the first matrix
  * @param {number[]} matrix the second matrix
  * @returns {number[]} one matrix, the product of the two
- * @linkcode Math ./src/core/matrix3.js 68
+ * @linkcode Math ./src/algebra/matrix3.js 68
  */
 const multiplyMatrices3 = (m1, m2) => [
-  m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
-  m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
-  m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
-  m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
-  m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
-  m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
-  m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
-  m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
-  m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
-  m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
-  m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
-  m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11]
+	m1[0] * m2[0] + m1[3] * m2[1] + m1[6] * m2[2],
+	m1[1] * m2[0] + m1[4] * m2[1] + m1[7] * m2[2],
+	m1[2] * m2[0] + m1[5] * m2[1] + m1[8] * m2[2],
+	m1[0] * m2[3] + m1[3] * m2[4] + m1[6] * m2[5],
+	m1[1] * m2[3] + m1[4] * m2[4] + m1[7] * m2[5],
+	m1[2] * m2[3] + m1[5] * m2[4] + m1[8] * m2[5],
+	m1[0] * m2[6] + m1[3] * m2[7] + m1[6] * m2[8],
+	m1[1] * m2[6] + m1[4] * m2[7] + m1[7] * m2[8],
+	m1[2] * m2[6] + m1[5] * m2[7] + m1[8] * m2[8],
+	m1[0] * m2[9] + m1[3] * m2[10] + m1[6] * m2[11] + m1[9],
+	m1[1] * m2[9] + m1[4] * m2[10] + m1[7] * m2[11] + m1[10],
+	m1[2] * m2[9] + m1[5] * m2[10] + m1[8] * m2[11] + m1[11],
 ];
 /**
  * @description calculate the determinant of a 3x4 or 3x3 matrix.
  * in the case of 3x4, the translation component is ignored.
  * @param {number[]} matrix one matrix in array form
  * @returns {number} the determinant of the matrix
- * @linkcode Math ./src/core/matrix3.js 89
+ * @linkcode Math ./src/algebra/matrix3.js 89
  */
 const determinant3 = m => (
-    m[0] * m[4] * m[8]
-  - m[0] * m[7] * m[5]
-  - m[3] * m[1] * m[8]
-  + m[3] * m[7] * m[2]
-  + m[6] * m[1] * m[5]
-  - m[6] * m[4] * m[2]
+	m[0] * m[4] * m[8]
+	- m[0] * m[7] * m[5]
+	- m[3] * m[1] * m[8]
+	+ m[3] * m[7] * m[2]
+	+ m[6] * m[1] * m[5]
+	- m[6] * m[4] * m[2]
 );
 /**
  * @description invert a 3x4 matrix
  * @param {number[]} matrix one matrix in array form
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
- * @linkcode Math ./src/core/matrix3.js 103
+ * @linkcode Math ./src/algebra/matrix3.js 103
  */
 const invertMatrix3 = (m) => {
-  const det = determinant3(m);
-  if (Math.abs(det) < 1e-6 || isNaN(det)
-    || !isFinite(m[9]) || !isFinite(m[10]) || !isFinite(m[11])) {
-    return undefined;
-  }
-  const inv = [
-    m[4] * m[8] - m[7] * m[5],
-    -m[1] * m[8] + m[7] * m[2],
-    m[1] * m[5] - m[4] * m[2],
-    -m[3] * m[8] + m[6] * m[5],
-    m[0] * m[8] - m[6] * m[2],
-    -m[0] * m[5] + m[3] * m[2],
-    m[3] * m[7] - m[6] * m[4],
-    -m[0] * m[7] + m[6] * m[1],
-    m[0] * m[4] - m[3] * m[1],
-    -m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
-      - m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
-    m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
-      + m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
-    -m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
-      - m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4]
-  ];
-  const invDet = 1.0 / det;
-  return inv.map(n => n * invDet);
+	const det = determinant3(m);
+	if (Math.abs(det) < 1e-6 || Number.isNaN(det)
+		|| !Number.isFinite(m[9]) || !Number.isFinite(m[10]) || !Number.isFinite(m[11])) {
+		return undefined;
+	}
+	const inv = [
+		m[4] * m[8] - m[7] * m[5],
+		-m[1] * m[8] + m[7] * m[2],
+		m[1] * m[5] - m[4] * m[2],
+		-m[3] * m[8] + m[6] * m[5],
+		m[0] * m[8] - m[6] * m[2],
+		-m[0] * m[5] + m[3] * m[2],
+		m[3] * m[7] - m[6] * m[4],
+		-m[0] * m[7] + m[6] * m[1],
+		m[0] * m[4] - m[3] * m[1],
+		-m[3] * m[7] * m[11] + m[3] * m[8] * m[10] + m[6] * m[4] * m[11]
+			- m[6] * m[5] * m[10] - m[9] * m[4] * m[8] + m[9] * m[5] * m[7],
+		m[0] * m[7] * m[11] - m[0] * m[8] * m[10] - m[6] * m[1] * m[11]
+			+ m[6] * m[2] * m[10] + m[9] * m[1] * m[8] - m[9] * m[2] * m[7],
+		-m[0] * m[4] * m[11] + m[0] * m[5] * m[10] + m[3] * m[1] * m[11]
+			- m[3] * m[2] * m[10] - m[9] * m[1] * m[5] + m[9] * m[2] * m[4],
+	];
+	const invDet = 1.0 / det;
+	return inv.map(n => n * invDet);
 };
 /**
  * @description make a 3x4 matrix representing a translation in 3D
@@ -1157,47 +1011,53 @@ const invertMatrix3 = (m) => {
  * @param {number} [y=0] the y component of the translation
  * @param {number} [z=0] the z component of the translation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 137
+ * @linkcode Math ./src/algebra/matrix3.js 137
  */
 const makeMatrix3Translate = (x = 0, y = 0, z = 0) => identity3x3.concat(x, y, z);
 
 // i0 and i1 direct which columns and rows are filled
 // sgn manages right hand rule
 const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
-  const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  mat[i0*3 + i0] = cos;
-  mat[i0*3 + i1] = (sgn ? +1 : -1) * sin;
-  mat[i1*3 + i0] = (sgn ? -1 : +1) * sin;
-  mat[i1*3 + i1] = cos;
-  return mat;
+	const mat = identity3x3.concat([0, 1, 2].map(i => origin[i] || 0));
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	mat[i0 * 3 + i0] = cos;
+	mat[i0 * 3 + i1] = (sgn ? +1 : -1) * sin;
+	mat[i1 * 3 + i0] = (sgn ? -1 : +1) * sin;
+	mat[i1 * 3 + i1] = cos;
+	return mat;
 };
 
 /**
- * @description make a 3x4 matrix representing a rotation in 3D around the x-axis (allowing you to specify the center of rotation if needed).
+ * @description make a 3x4 matrix representing a rotation in 3D around the x-axis
+ * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 159
+ * @linkcode Math ./src/algebra/matrix3.js 160
  */
-const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 1, 2, true);
+const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate(angle, origin, 1, 2, true));
 /**
- * @description make a 3x4 matrix representing a rotation in 3D around the y-axis (allowing you to specify the center of rotation if needed).
+ * @description make a 3x4 matrix representing a rotation in 3D around the y-axis
+ * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 167
+ * @linkcode Math ./src/algebra/matrix3.js 170
  */
-const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 2, false);
+const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate(angle, origin, 0, 2, false));
 /**
- * @description make a 3x4 matrix representing a rotation in 3D around the z-axis (allowing you to specify the center of rotation if needed).
+ * @description make a 3x4 matrix representing a rotation in 3D around the z-axis
+ * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 175
+ * @linkcode Math ./src/algebra/matrix3.js 180
  */
-const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle, origin, 0, 1, true);
+const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => (
+	singleAxisRotate(angle, origin, 0, 1, true));
 /**
  * @description make a 3x4 matrix representing a rotation in 3D
  * around a given vector and around a given center of rotation.
@@ -1205,42 +1065,67 @@ const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => singleAxisRotate(angle
  * @param {number[]} [vector=[0,0,1]] the axis of rotation
  * @param {number[]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 185
+ * @linkcode Math ./src/algebra/matrix3.js 191
  */
 const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
-  const pos = [0, 1, 2].map(i => origin[i] || 0);
-  const [x, y, z] = resize(3, normalize(vector));
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  const t = 1 - c;
-  const trans     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
-  const trans_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
-  return multiplyMatrices3(trans_inv, multiplyMatrices3([
-    t * x * x + c,     t * y * x + z * s, t * z * x - y * s,
-    t * x * y - z * s, t * y * y + c,     t * z * y + x * s,
-    t * x * z + y * s, t * y * z - x * s, t * z * z + c,
-    0, 0, 0], trans));
+	const pos = [0, 1, 2].map(i => origin[i] || 0);
+	const [x, y, z] = resize(3, normalize(vector));
+	const c = Math.cos(angle);
+	const s = Math.sin(angle);
+	const t = 1 - c;
+	const trans = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+	const trans_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
+	return multiplyMatrices3(trans_inv, multiplyMatrices3([
+		t * x * x + c,     t * y * x + z * s, t * z * x - y * s,
+		t * x * y - z * s, t * y * y + c,     t * z * y + x * s,
+		t * x * z + y * s, t * y * z - x * s, t * z * z + c,
+		0, 0, 0], trans));
 };
+// leave this in for legacy, testing. eventually this can be removed.
+// const makeMatrix3RotateOld = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
+// 	// normalize inputs
+// 	const vec = resize(3, normalize(vector));
+// 	const pos = [0, 1, 2].map(i => origin[i] || 0);
+// 	const [a, b, c] = vec;
+// 	const cos = Math.cos(angle);
+// 	const sin = Math.sin(angle);
+// 	const d = Math.sqrt((vec[1] * vec[1]) + (vec[2] * vec[2]));
+// 	const b_d = Math.abs(d) < 1e-6 ? 0 : b / d;
+// 	const c_d = Math.abs(d) < 1e-6 ? 1 : c / d;
+// 	const t     = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
+// 	const t_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
+// 	const rx     = [1, 0, 0, 0, c_d, b_d, 0, -b_d, c_d, 0, 0, 0];
+// 	const rx_inv = [1, 0, 0, 0, c_d, -b_d, 0, b_d, c_d, 0, 0, 0];
+// 	const ry     = [d, 0, a, 0, 1, 0, -a, 0, d, 0, 0, 0];
+// 	const ry_inv = [d, 0, -a, 0, 1, 0, a, 0, d, 0, 0, 0];
+// 	const rz     = [cos, sin, 0, -sin, cos, 0, 0, 0, 1, 0, 0, 0];
+// 	return multiplyMatrices3(t_inv,
+// 		multiplyMatrices3(rx_inv,
+// 			multiplyMatrices3(ry_inv,
+// 				multiplyMatrices3(rz,
+// 					multiplyMatrices3(ry,
+// 						multiplyMatrices3(rx, t))))));
+// };
 /**
  * @description make a 3x4 matrix representing a uniform scale.
  * @param {number} [scale=1] the uniform scale value
  * @param {number[]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 231
+ * @linkcode Math ./src/algebra/matrix3.js 237
  */
 const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
-  scale,
-  0,
-  0,
-  0,
-  scale,
-  0,
-  0,
-  0,
-  scale,
-  scale * -origin[0] + origin[0],
-  scale * -origin[1] + origin[1],
-  scale * -origin[2] + origin[2]
+	scale,
+	0,
+	0,
+	0,
+	scale,
+	0,
+	0,
+	0,
+	scale,
+	scale * -origin[0] + origin[0],
+	scale * -origin[1] + origin[1],
+	scale * -origin[2] + origin[2],
 ];
 /**
  * @description make a 3x4 representing a reflection across a line in the XY plane
@@ -1248,22 +1133,22 @@ const makeMatrix3Scale = (scale = 1, origin = [0, 0, 0]) => [
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
- * @linkcode Math ./src/core/matrix3.js 253
+ * @linkcode Math ./src/algebra/matrix3.js 259
  */
 const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
-  // the line of reflection passes through origin, runs along vector
-  const angle = Math.atan2(vector[1], vector[0]);
-  const cosAngle = Math.cos(angle);
-  const sinAngle = Math.sin(angle);
-  const cos_Angle = Math.cos(-angle);
-  const sin_Angle = Math.sin(-angle);
-  const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
-  const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
-  const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
-  const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
-  const tx = origin[0] + a * -origin[0] + -origin[1] * c;
-  const ty = origin[1] + b * -origin[0] + -origin[1] * d;
-  return [a, b, 0, c, d, 0, 0, 0, 1, tx, ty, 0];
+	// the line of reflection passes through origin, runs along vector
+	const angle = Math.atan2(vector[1], vector[0]);
+	const cosAngle = Math.cos(angle);
+	const sinAngle = Math.sin(angle);
+	const cos_Angle = Math.cos(-angle);
+	const sin_Angle = Math.sin(-angle);
+	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+	return [a, b, 0, c, d, 0, 0, 0, 1, tx, ty, 0];
 };
 
 /**
@@ -1284,22 +1169,22 @@ const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {
 //                                                     /___/
 
 var matrix3 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  identity3x3: identity3x3,
-  identity3x4: identity3x4,
-  isIdentity3x4: isIdentity3x4,
-  multiplyMatrix3Vector3: multiplyMatrix3Vector3,
-  multiplyMatrix3Line3: multiplyMatrix3Line3,
-  multiplyMatrices3: multiplyMatrices3,
-  determinant3: determinant3,
-  invertMatrix3: invertMatrix3,
-  makeMatrix3Translate: makeMatrix3Translate,
-  makeMatrix3RotateX: makeMatrix3RotateX,
-  makeMatrix3RotateY: makeMatrix3RotateY,
-  makeMatrix3RotateZ: makeMatrix3RotateZ,
-  makeMatrix3Rotate: makeMatrix3Rotate,
-  makeMatrix3Scale: makeMatrix3Scale,
-  makeMatrix3ReflectZ: makeMatrix3ReflectZ
+	__proto__: null,
+	identity3x3: identity3x3,
+	identity3x4: identity3x4,
+	isIdentity3x4: isIdentity3x4,
+	multiplyMatrix3Vector3: multiplyMatrix3Vector3,
+	multiplyMatrix3Line3: multiplyMatrix3Line3,
+	multiplyMatrices3: multiplyMatrices3,
+	determinant3: determinant3,
+	invertMatrix3: invertMatrix3,
+	makeMatrix3Translate: makeMatrix3Translate,
+	makeMatrix3RotateX: makeMatrix3RotateX,
+	makeMatrix3RotateY: makeMatrix3RotateY,
+	makeMatrix3RotateZ: makeMatrix3RotateZ,
+	makeMatrix3Rotate: makeMatrix3Rotate,
+	makeMatrix3Scale: makeMatrix3Scale,
+	makeMatrix3ReflectZ: makeMatrix3ReflectZ
 });
 
 /**
@@ -1309,8 +1194,8 @@ var matrix3 = /*#__PURE__*/Object.freeze({
  * @returns {object} in form { point:[], vector:[] }
 */
 const vectorOriginForm = (vector, origin) => ({
-  vector: vector || [],
-  origin: origin || []
+	vector: vector || [],
+	origin: origin || [],
 });
 /**
  * search function arguments for a valid n-dimensional vector
@@ -1319,18 +1204,18 @@ const vectorOriginForm = (vector, origin) => ({
  * @returns {number[]} vector in array form, or empty array for bad inputs
 */
 const getVector = function () {
-  // todo, incorporate constructors.vector check to all indices. and below
-  if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
-  let list = flattenArrays(arguments); // .filter(fnNotUndefined);
-  if (list.length > 0
-    && typeof list[0] === "object"
-    && list[0] !== null
-    && !isNaN(list[0].x)) {
-    list = ["x", "y", "z"]
-      .map(c => list[0][c])
-      .filter(fnNotUndefined);
-  }
-  return list.filter(n => typeof n === "number");
+	// todo, incorporate constructors.vector check to all indices. and below
+	if (arguments[0] instanceof Constructors.vector) { return arguments[0]; }
+	let list = flattenArrays(arguments); // .filter(fnNotUndefined);
+	if (list.length > 0
+		&& typeof list[0] === "object"
+		&& list[0] !== null
+		&& !Number.isNaN(list[0].x)) {
+		list = ["x", "y", "z"]
+			.map(c => list[0][c])
+			.filter(fnNotUndefined);
+	}
+	return list.filter(n => typeof n === "number");
 };
 
 /**
@@ -1340,65 +1225,65 @@ const getVector = function () {
  * @returns {number[]} vector in array form, or empty array for bad inputs
 */
 const getVectorOfVectors = function () {
-  return semiFlattenArrays(arguments)
-    .map(el => getVector(el));
+	return semiFlattenArrays(arguments)
+		.map(el => getVector(el));
 };
 
 /**
  * @returns {number[]} segment in array form [[a1, a2], [b1, b2]]
 */
 const getSegment = function () {
-  if (arguments[0] instanceof Constructors.segment) {
-    return arguments[0];
-  }
-  const args = semiFlattenArrays(arguments);
-  if (args.length === 4) {
-    return [
-      [args[0], args[1]],
-      [args[2], args[3]]
-    ];
-  }
-  return args.map(el => getVector(el));
+	if (arguments[0] instanceof Constructors.segment) {
+		return arguments[0];
+	}
+	const args = semiFlattenArrays(arguments);
+	if (args.length === 4) {
+		return [
+			[args[0], args[1]],
+			[args[2], args[3]],
+		];
+	}
+	return args.map(el => getVector(el));
 };
 
 // this works for rays to interchangably except for that it will not
 // typecast a line into a ray, it will stay a ray type.
 const getLine$1 = function () {
-  const args = semiFlattenArrays(arguments);
-  if (args.length === 0) { return vectorOriginForm([], []); }
-  if (args[0] instanceof Constructors.line
-    || args[0] instanceof Constructors.ray
-    || args[0] instanceof Constructors.segment) { return args[0]; }
-  if (args[0].constructor === Object && args[0].vector !== undefined) {
-    return vectorOriginForm(args[0].vector || [], args[0].origin || []);
-  }
-  return typeof args[0] === "number"
-    ? vectorOriginForm(getVector(args))
-    : vectorOriginForm(...args.map(a => getVector(a)));
+	const args = semiFlattenArrays(arguments);
+	if (args.length === 0) { return vectorOriginForm([], []); }
+	if (args[0] instanceof Constructors.line
+		|| args[0] instanceof Constructors.ray
+		|| args[0] instanceof Constructors.segment) { return args[0]; }
+	if (args[0].constructor === Object && args[0].vector !== undefined) {
+		return vectorOriginForm(args[0].vector || [], args[0].origin || []);
+	}
+	return typeof args[0] === "number"
+		? vectorOriginForm(getVector(args))
+		: vectorOriginForm(...args.map(a => getVector(a)));
 };
 
 const getRay = getLine$1;
 
 const getRectParams = (x = 0, y = 0, width = 0, height = 0) => ({
-  x, y, width, height
+	x, y, width, height,
 });
 
 const getRect = function () {
-  if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
-  const list = flattenArrays(arguments); // .filter(fnNotUndefined);
-  if (list.length > 0
-    && typeof list[0] === "object"
-    && list[0] !== null
-    && !isNaN(list[0].width)) {
-    return getRectParams(...["x", "y", "width", "height"]
-      .map(c => list[0][c])
-      .filter(fnNotUndefined));
-  }
-  const numbers = list.filter(n => typeof n === "number");
-  const rect_params = numbers.length < 4
-    ? [, , ...numbers]
-    : numbers;
-  return getRectParams(...rect_params);
+	if (arguments[0] instanceof Constructors.rect) { return arguments[0]; }
+	const list = flattenArrays(arguments); // .filter(fnNotUndefined);
+	if (list.length > 0
+		&& typeof list[0] === "object"
+		&& list[0] !== null
+		&& !Number.isNaN(list[0].width)) {
+		return getRectParams(...["x", "y", "width", "height"]
+			.map(c => list[0][c])
+			.filter(fnNotUndefined));
+	}
+	const numbers = list.filter(n => typeof n === "number");
+	const rectParams = numbers.length < 4
+		? [, , ...numbers]
+		: numbers;
+	return getRectParams(...rectParams);
 };
 
 /**
@@ -1412,40 +1297,41 @@ const getCircleParams = (radius = 1, ...args) => ({
 
 const getCircle = function () {
 	if (arguments[0] instanceof Constructors.circle) { return arguments[0]; }
-  const vectors = getVectorOfVectors(arguments);
-  const numbers = flattenArrays(arguments).filter(a => typeof a === "number");
-  if (arguments.length === 2) {
-    if (vectors[1].length === 1) {
+	const vectors = getVectorOfVectors(arguments);
+	const numbers = flattenArrays(arguments).filter(a => typeof a === "number");
+	if (arguments.length === 2) {
+		if (vectors[1].length === 1) {
 			return getCircleParams(vectors[1][0], ...vectors[0]);
-    } else if (vectors[0].length === 1) {
+		}
+		if (vectors[0].length === 1) {
 			return getCircleParams(vectors[0][0], ...vectors[1]);
-    } else if (vectors[0].length > 1 && vectors[1].length > 1) {
+		}
+		if (vectors[0].length > 1 && vectors[1].length > 1) {
 			return getCircleParams(distance2(...vectors), ...vectors[0]);
-    }
-  }
-  else {
-    switch (numbers.length) {
-      case 0: return getCircleParams(1, 0, 0, 0);
-      case 1: return getCircleParams(numbers[0], 0, 0, 0);
-      default: return getCircleParams(numbers.pop(), ...numbers);
-    }
-  }
+		}
+	} else {
+		switch (numbers.length) {
+		case 0: return getCircleParams(1, 0, 0, 0);
+		case 1: return getCircleParams(numbers[0], 0, 0, 0);
+		default: return getCircleParams(numbers.pop(), ...numbers);
+		}
+	}
 	return getCircleParams(1, 0, 0, 0);
 };
 
-const maps_3x4 = [
-  [0, 1, 3, 4, 9, 10],
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  [0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11]
+const maps3x4 = [
+	[0, 1, 3, 4, 9, 10],
+	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+	[0, 1, 2, undefined, 3, 4, 5, undefined, 6, 7, 8, undefined, 9, 10, 11],
 ];
-[11, 7, 3].forEach(i => delete maps_3x4[2][i]);
+[11, 7, 3].forEach(i => delete maps3x4[2][i]);
 
 const matrixMap3x4 = len => {
-  let i;
-  if (len < 8) i = 0;
-  else if (len < 13) i = 1;
-  else i = 2;
-  return maps_3x4[i];
+	let i;
+	if (len < 8) i = 0;
+	else if (len < 13) i = 1;
+	else i = 2;
+	return maps3x4[i];
 };
 
 /**
@@ -1454,12 +1340,12 @@ const matrixMap3x4 = len => {
  * @returns {number[]} array of 12 numbers, or undefined if bad inputs
 */
 const getMatrix3x4 = function () {
-  const mat = flattenArrays(arguments);
-  const matrix = [...identity3x4];
-  matrixMap3x4(mat.length)
-    // .filter((_, i) => mat[i] != null)
-    .forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
-  return matrix;
+	const mat = flattenArrays(arguments);
+	const matrix = [...identity3x4];
+	matrixMap3x4(mat.length)
+		// .filter((_, i) => mat[i] != null)
+		.forEach((n, i) => { if (mat[i] != null) { matrix[n] = mat[i]; } });
+	return matrix;
 };
 
 /**
@@ -1477,1128 +1363,16 @@ const getMatrix3x4 = function () {
 // };
 
 var getters = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  getVector: getVector,
-  getVectorOfVectors: getVectorOfVectors,
-  getSegment: getSegment,
-  getLine: getLine$1,
-  getRay: getRay,
-  getRectParams: getRectParams,
-  getRect: getRect,
-  getCircle: getCircle,
-  getMatrix3x4: getMatrix3x4
-});
-
-/**
- * Math (c) Kraft
- */
-
-// const arraySimilarityTest = (list, compFunc) => Array
-//   .from(Array(list.length - 1))
-//   .map((_, i) => compFunc(list[0], list[i + 1]))
-//   .reduce(fnAnd, true);
-/**
- * @description check whether an array of numbers are all similar to each other within an epsilon
- * @param {...number|number[]} args a sequence of numbers or an array of numbers
- * @returns {boolean} true if all numbers are similar within an epsilon
- */
-// export const equivalentNumbers = function () {
-//   if (arguments.length === 0) { return false; }
-//   if (arguments.length === 1 && arguments[0] !== undefined) {
-//     return equivalentNumbers(...arguments[0]);
-//   }
-//   return arraySimilarityTest(arguments, fnEpsilonEqual);
-// };
-// export const equivalentVectors = (a, b) => {
-//   const vecs = resizeUp(a, b);
-//   return vecs[0]
-//     .map((_, i) => Math.abs(vecs[0][i] - vecs[1][i]) < EPSILON)
-//     .reduce((u, v) => u && v, true);
-// };
-/**
- * @description this method compares two vectors and is permissive with trailing zeros,
- * for example, [1, 2] and [1, 2, 0] is true. however, [1, 2] and [1, 2, 3] is false
- * @param {...number[]|number[][]} args a sequence of number arrays or an array of array of numbers.
- * @returns {boolean} true if all vectors are equivalent
- */
-// export const equivalentVectors = function () {
-//   const args = Array.from(arguments);
-//   const length = args.map(a => a.length).reduce((a, b) => a > b ? a : b);
-//   const vecs = args.map(a => resize(length, a));
-//   return Array.from(Array(arguments.length - 1))
-//     .map((_, i) => vecs[0]
-//       .map((_, n) => Math.abs(vecs[0][n] - vecs[i + 1][n]) < EPSILON)
-//       .reduce(fnAnd, true))
-//     .reduce(fnAnd, true);
-// };
-// export const equivalent_arrays = function (...args) {
-//   const list = semiFlattenArrays(args);
-//   if (list.length === 0) { return false; }
-//   if (list.length === 1 && list[0] !== undefined) {
-//     return equivalentVectors(...list[0]);
-//   }
-//   const dimension = list[0].length;
-//   const dim_array = Array.from(Array(dimension));
-//   return Array
-//     .from(Array(list.length - 1))
-//     .map((element, i) => dim_array
-//       .map((_, di) => Math.abs(list[i][di] - list[i + 1][di]) < EPSILON)
-//       .reduce((prev, curr) => prev && curr, true))
-//     .reduce((prev, curr) => prev && curr, true)
-//   && Array
-//     .from(Array(list.length - 1))
-//     .map((_, i) => list[0].length === list[i + 1].length)
-//     .reduce((a, b) => a && b, true);
-// };
-
-// const equivalent_across_arrays = function (...args) {
-//   const list = args;
-//   const dimension = list[0].length;
-//   const dim_array = Array.from(Array(dimension));
-//   return Array
-//     .from(Array(list.length - 1))
-//     .map((element, i) => dim_array
-//       .map((_, di) => Math.abs(list[i][di] - list[i + 1][di]) < EPSILON)
-//       .reduce((prev, curr) => prev && curr, true))
-//     .reduce((prev, curr) => prev && curr, true)
-//   && Array
-//     .from(Array(list.length - 1))
-//     .map((_, i) => list[0].length === list[i + 1].length)
-//     .reduce((a, b) => a && b, true);
-// };
-
-/**
- * @param {*} comma-separated sequence of either
- *   1. boolean
- *   2. number
- *   3. arrays of numbers (vectors)
- * @returns {boolean} if set is equivalent
- */
-// export const equivalent = function () {
-//   const list = semiFlattenArrays(...arguments);
-//   if (list.length < 1) { return false; }
-//   const typeofList = typeof list[0];
-//   // array contains undefined, cannot compare
-//   if (typeofList === "undefined") { return false; }
-//   switch (typeofList) {
-//     case "number":
-//       return arraySimilarityTest(list, fnEpsilonEqual);
-//     case "boolean":
-//     case "string":
-//       return arraySimilarityTest(list, fnEqual);
-//     case "object":
-//       if (list[0].constructor === Array) { return equivalentVectors(...list); }
-//       return arraySimilarityTest(list, (a, b) => JSON.stringify(a) === JSON.stringify(b));
-//     default: return undefined;
-//   }
-// };
-
-var equal = /*#__PURE__*/Object.freeze({
-  __proto__: null
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description sort an array of 2D points along a 2D vector.
- * @param {number[][]} points array of points (which are arrays of numbers)
- * @param {number[]} vector one 2D vector
- * @returns {number[][]} the same points, sorted.
- * @linkcode Math ./src/core/sort.js 9
- */
-const sortPointsAlongVector2 = (points, vector) => points
-	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
-	.sort((a, b) => a.d - b.d)
-	.map(a => a.point);
-
-var sort$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  sortPointsAlongVector2: sortPointsAlongVector2
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description find the one item in the set which minimizes the function when compared against an object.
- * @param {any} obj the single item to test against the set
- * @param {any[]} array the set of items to test against
- * @param {function} compare_func a function which takes two items (which match
- * the type of the first parameter), execution of this function should return a scalar.
- * @returns {number[]} the index from the set which minimizes the compare function
- * @linkcode Math ./src/core/nearest.js 27
- */
-const smallestComparisonSearch = (obj, array, compare_func) => {
-  const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
-  let index;
-  let smallest_value = Infinity;
-  for (let i = 0; i < objs.length; i += 1) {
-    if (objs[i].d < smallest_value) {
-      index = i;
-      smallest_value = objs[i].d;
-    }
-  }
-  return index;
-};
-/**
- * @description find the one point in an array of 2D points closest to a 2D point.
- * @param {number[]} point the 2D point to test nearness to
- * @param {number[][]} array_of_points an array of 2D points to test against
- * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/core/nearest.js 46
- */
-const nearestPoint2 = (point, array_of_points) => {
-  // todo speed up with partitioning
-  const index = smallestComparisonSearch(point, array_of_points, distance2);
-  return index === undefined ? undefined : array_of_points[index];
-};
-/**
- * @description find the one point in an array of points closest to a point.
- * @param {number[]} point the point to test nearness to
- * @param {number[][]} array_of_points an array of points to test against
- * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/core/nearest.js 58
- */
-const nearestPoint = (point, array_of_points) => {
-  // todo speed up with partitioning
-  const index = smallestComparisonSearch(point, array_of_points, distance);
-  return index === undefined ? undefined : array_of_points[index];
-};
-/**
- * @description find the nearest point on a line, ray, or segment.
- * @param {number[]} vector the vector of the line
- * @param {number[]} origin a point that the line passes through
- * @param {number[]} point the point to test nearness to
- * @param {function} limiterFunc a clamp function to bound a calculation between 0 and 1
- * for segments, greater than 0 for rays, or unbounded for lines.
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[]} a point
- * @linkcode Math ./src/core/nearest.js 74
- */
-const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
-  origin = resize(vector.length, origin);
-  point = resize(vector.length, point);
-  const magSq = magSquared(vector);
-  const vectorToPoint = subtract(point, origin);
-  const dotProd = dot(vector, vectorToPoint);
-  const dist = dotProd / magSq;
-  // limit depending on line, ray, segment
-  const d = limiterFunc(dist, epsilon);
-  return add(origin, scale(vector, d))
-};
-/**
- * @description given a polygon and a point, in 2D, find a point on the boundary of the polygon
- * that is closest to the provided point.
- * @param {number[][]} polygon an array of points (which are arrays of numbers)
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
- * @linkcode Math ./src/core/nearest.js 93
- */
-const nearestPointOnPolygon = (polygon, point) => {
-  const v = polygon
-    .map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
-  return polygon
-    .map((p, i) => nearestPointOnLine(v[i], p, point, segmentLimiter))
-    .map((p, i) => ({ point: p, i, distance: distance(p, point) }))
-    .sort((a, b) => a.distance - b.distance)
-    .shift();
-};
-/**
- * @description find the nearest point on the boundary of a circle to another point
- * that is closest to the provided point.
- * @param {number} radius the radius of the circle
- * @param {number[]} origin the origin of the circle as an array of numbers.
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
- * @linkcode Math ./src/core/nearest.js 111
- */
-const nearestPointOnCircle = (radius, origin, point) => add(
-  origin, scale(normalize(subtract(point, origin)), radius)
-);
-
-var nearest$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  smallestComparisonSearch: smallestComparisonSearch,
-  nearestPoint2: nearestPoint2,
-  nearestPoint: nearestPoint,
-  nearestPointOnLine: nearestPointOnLine,
-  nearestPointOnPolygon: nearestPointOnPolygon,
-  nearestPointOnCircle: nearestPointOnCircle
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- * measurements involving vectors and radians
- */
-/**
- * @description check if the first parameter is counter-clockwise between A and B.
- * floor and ceiling can be unbounded, this method takes care of 0-2pi wrap around.
- * @param {number} angle angle in radians
- * @param {number} floor angle in radians, lower bound
- * @param {number} ceiling angle in radians, upper bound
- * @returns {boolean} is the angle between floor and ceiling
- * @linkcode Math ./src/core/radial.js 37
- */
-const isCounterClockwiseBetween = (angle, floor, ceiling) => {
-  while (ceiling < floor) { ceiling += TWO_PI; }
-  while (angle > floor) { angle -= TWO_PI; }
-  while (angle < floor) { angle += TWO_PI; }
-  return angle < ceiling;
-};
-/**
- * @description There are 2 interior angles between 2 vectors (as an angle in radians),
- * A-to-B clockwise, and A-to-B counter-clockwise. Get the clockwise one from A to B.
- * @param {number} a vector as an angle in radians
- * @param {number} b vector as an angle in radians
- * @returns {number} interior angle in radians
- * @linkcode Math ./src/core/radial.js 51
- */
-const clockwiseAngleRadians = (a, b) => {
-  // this is on average 50 to 100 times faster than clockwiseAngle2
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const a_b = a - b;
-  return (a_b >= 0)
-    ? a_b
-    : TWO_PI - (b - a);
-};
-/**
- * @description There are 2 interior angles between 2 vectors (as an angle in radians),
- * A-to-B clockwise, and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
- * @param {number} a vector as an angle in radians
- * @param {number} b vector as an angle in radians
- * @returns {number} interior angle in radians, counter-clockwise from a to b
- * @linkcode Math ./src/core/radial.js 70
- */
-const counterClockwiseAngleRadians = (a, b) => {
-  // this is on average 50 to 100 times faster than counterClockwiseAngle2
-  while (a < 0) { a += TWO_PI; }
-  while (b < 0) { b += TWO_PI; }
-  while (a > TWO_PI) { a -= TWO_PI; }
-  while (b > TWO_PI) { b -= TWO_PI; }
-  const b_a = b - a;
-  return (b_a >= 0)
-    ? b_a
-    : TWO_PI - (a - b);
-};
-/**
- * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
- * and A-to-B counter-clockwise. Get the clockwise one from A to B.
- * @param {number[]} a vector as an array of two numbers
- * @param {number[]} b vector as an array of two numbers
- * @returns {number} interior angle in radians, clockwise from a to b
- * @linkcode Math ./src/core/radial.js 89
- */
-const clockwiseAngle2 = (a, b) => {
-  const dotProduct = b[0] * a[0] + b[1] * a[1];
-  const determinant = b[0] * a[1] - b[1] * a[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-/**
- * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
- * and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
- * @param {number[]} a vector as an array of two numbers
- * @param {number[]} b vector as an array of two numbers
- * @returns {number} interior angle in radians, counter-clockwise from a to b
- * @linkcode Math ./src/core/radial.js 104
- */
-const counterClockwiseAngle2 = (a, b) => {
-  const dotProduct = a[0] * b[0] + a[1] * b[1];
-  const determinant = a[0] * b[1] - a[1] * b[0];
-  let angle = Math.atan2(determinant, dotProduct);
-  if (angle < 0) { angle += TWO_PI; }
-  return angle;
-};
-/**
- * this calculates an angle bisection between the pair of vectors
- * clockwise from the first vector to the second
- *
- *     a  x
- *       /     . bisection
- *      /   .
- *     / .
- *     --------x  b
- */
-/**
- * @description calculate the angle bisection clockwise from the first vector to the second.
- * @param {number[]} a one 2D vector
- * @param {number[]} b one 2D vector
- * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/radial.js 128
- */
-const clockwiseBisect2 = (a, b) => fnToVec2(
-  fnVec2Angle(a) - clockwiseAngle2(a, b) / 2
-);
-/**
- * @description calculate the angle bisection counter-clockwise from the first vector to the second.
- * @param {number[]} a one 2D vector
- * @param {number[]} b one 2D vector
- * @returns {number[]} one 2D vector
- * @linkcode Math ./src/core/radial.js 138
- */
-const counterClockwiseBisect2 = (a, b) => fnToVec2(
-  fnVec2Angle(a) + counterClockwiseAngle2(a, b) / 2
-);
-/**
- * @description subsect into n-divisions the angle clockwise from one angle to the next
- * @param {number} divisions number of angles minus 1, 
- * @param {number} angleA one angle in radians
- * @param {number} angleB one angle in radians
- * @returns {number[]} array of angles in radians
- * @linkcode Math ./src/core/radial.js 149
- */
-const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
-  const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * (i + 1));
-};
-/**
- * @description subsect into n-divisions the angle counter-clockwise from one angle to the next
- * @param {number} divisions number of angles minus 1, 
- * @param {number} angleA one angle in radians
- * @param {number} angleB one angle in radians
- * @returns {number[]} array of angles in radians
- * @linkcode Math ./src/core/radial.js 162
- */
-const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
-  const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
-  return Array.from(Array(divisions - 1))
-    .map((_, i) => angleA + angle * (i + 1));
-};
-/**
- * @description subsect into n-divisions the angle clockwise from one vector to the next
- * @param {number} divisions number of angles minus 1, 
- * @param {number[]} vectorA one vector in array form
- * @param {number[]} vectorB one vector in array form
- * @returns {number[][]} array of vectors (which are arrays of numbers)
- * @linkcode Math ./src/core/radial.js 175
- */
-const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return clockwiseSubsectRadians(divisions, angleA, angleB)
-    .map(fnToVec2);
-};
-/**
- * @description subsect into n-divisions the angle counter-clockwise from one vector to the next
- * @param {number} divisions number of angles minus 1, 
- * @param {number[]} vectorA one vector in array form
- * @param {number[]} vectorB one vector in array form
- * @returns {number[][]} array of vectors (which are arrays of numbers)
- * @linkcode Math ./src/core/radial.js 189
- */
-const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
-  const angleA = Math.atan2(vectorA[1], vectorA[0]);
-  const angleB = Math.atan2(vectorB[1], vectorB[0]);
-  return counterClockwiseSubsectRadians(divisions, angleA, angleB)
-    .map(fnToVec2);
-};
-/**
- * @description given two lines, find two lines which bisect the given lines,
- * if the given lines have an intersection, or return one line if they are parallel.
- * @param {number[]} vectorA the vector of the first line, as an array of numbers
- * @param {number[]} originA the origin of the first line, as an array of numbers
- * @param {number[]} vectorB the vector of the first line, as an array of numbers
- * @param {number[]} originB the origin of the first line, as an array of numbers
- * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
- * @returns {object[]} an array of objects with "vector" and "origin" keys defining a line
- * @linkcode Math ./src/core/radial.js 206
- */
-const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
-  const determinant = cross2(vectorA, vectorB);
-  const dotProd = dot(vectorA, vectorB);
-  const bisects = determinant > -epsilon
-    ? [counterClockwiseBisect2(vectorA, vectorB)]
-    : [clockwiseBisect2(vectorA, vectorB)];
-  bisects[1] = determinant > -epsilon
-    ? rotate90(bisects[0])
-    : rotate270(bisects[0]);
-  const numerator = (originB[0] - originA[0]) * vectorB[1] - vectorB[0] * (originB[1] - originA[1]);
-  const t = numerator / determinant;
-  const normalized = [vectorA, vectorB].map(vec => normalize(vec));
-  const isParallel = Math.abs(cross2(...normalized)) < epsilon;
-  const origin = isParallel
-    ? midpoint(originA, originB)
-    : [originA[0] + vectorA[0] * t, originA[1] + vectorA[1] * t];
-  const solution = bisects.map(vector => ({ vector, origin }));
-  if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
-  return solution;
-};
-/**
- * @description sort an array of angles in radians by getting an array of
- * reference indices to the input array, instead of an array of angles.
- *
- * maybe there is such thing as an absolute radial origin (x axis?)
- * but this chooses the first element as the first element
- * and sort everything else counter-clockwise around it.
- *
- * @param {number[]|...number} args array or sequence of angles in radians
- * @returns {number[]} array of indices of the input array, indicating
- * the counter-clockwise sorted arrangement.
- * @linkcode Math ./src/core/radial.js 239
- */
-const counterClockwiseOrderRadians = function () {
-  const radians = Array.from(arguments).flat();
-  const counter_clockwise = radians
-    .map((_, i) => i)
-    .sort((a, b) => radians[a] - radians[b]);
-  return counter_clockwise
-    .slice(counter_clockwise.indexOf(0), counter_clockwise.length)
-    .concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
-};
-/**
- * @description sort an array of vectors by getting an array of
- * reference indices to the input array, instead of a sorted array of vectors.
- * @param {number[][]} args array of vectors (which are arrays of numbers)
- * @returns {number[]} array of indices of the input array, indicating
- * the counter-clockwise sorted arrangement.
- * @linkcode Math ./src/core/radial.js 256
- */
-const counterClockwiseOrder2 = function () {
-  return counterClockwiseOrderRadians(
-    semiFlattenArrays(arguments).map(fnVec2Angle)
-  );
-};
-/**
- * @description given an array of angles, return the sector angles between
- * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[]|...number} args array or sequence of angles in radians
- * @returns {number[]} array of sector angles in radians
- * @linkcode Math ./src/core/radial.js 268
- */
-const counterClockwiseSectorsRadians = function () {
-  const radians = Array.from(arguments).flat();
-  const ordered = counterClockwiseOrderRadians(radians)
-    .map(i => radians[i]);
-  return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
-    .map(pair => counterClockwiseAngleRadians(pair[0], pair[1]));
-};
-/**
- * @description given an array of vectors, return the sector angles between
- * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
- * @returns {number[]} array of sector angles in radians
- * @linkcode Math ./src/core/radial.js 282
- */
-const counterClockwiseSectors2 = function () {
-  return counterClockwiseSectorsRadians(
-    getVectorOfVectors(arguments).map(fnVec2Angle)
-  );
-};
-/**
- * subsect the angle between two lines, can handle parallel lines
- */
-// export const subsect = function (divisions, pointA, vectorA, pointB, vectorB) {
-//   const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
-//   if (Math.abs(denominator) < EPSILON) { /* parallel */
-//     const solution = [midpoint(pointA, pointB), [vectorA[0], vectorA[1]]];
-//     const array = [solution, solution];
-//     const dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
-//     delete array[(dot > 0 ? 1 : 0)];
-//     return array;
-//   }
-//   const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
-//   const t = numerator / denominator;
-//   const x = pointA[0] + vectorA[0] * t;
-//   const y = pointA[1] + vectorA[1] * t;
-//   const bisects = bisect_vectors(vectorA, vectorB);
-//   bisects[1] = [-bisects[0][1], bisects[0][0]];
-//   return bisects.map(el => [[x, y], el]);
-// };
-
-var radial = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  isCounterClockwiseBetween: isCounterClockwiseBetween,
-  clockwiseAngleRadians: clockwiseAngleRadians,
-  counterClockwiseAngleRadians: counterClockwiseAngleRadians,
-  clockwiseAngle2: clockwiseAngle2,
-  counterClockwiseAngle2: counterClockwiseAngle2,
-  clockwiseBisect2: clockwiseBisect2,
-  counterClockwiseBisect2: counterClockwiseBisect2,
-  clockwiseSubsectRadians: clockwiseSubsectRadians,
-  counterClockwiseSubsectRadians: counterClockwiseSubsectRadians,
-  clockwiseSubsect2: clockwiseSubsect2,
-  counterClockwiseSubsect2: counterClockwiseSubsect2,
-  bisectLines2: bisectLines2,
-  counterClockwiseOrderRadians: counterClockwiseOrderRadians,
-  counterClockwiseOrder2: counterClockwiseOrder2,
-  counterClockwiseSectorsRadians: counterClockwiseSectorsRadians,
-  counterClockwiseSectors2: counterClockwiseSectors2
-});
-
-/**
- * Math (c) Kraft
- */
-/**
- *  Boolean tests
- *  collinearity, overlap, contains
- */
-const overlapLinePoint = (vector, origin, point, func = excludeL, epsilon = EPSILON) => {
-  const p2p = subtract(point, origin);
-  const lineMagSq = magSquared(vector);
-  const lineMag = Math.sqrt(lineMagSq);
-  // the line is degenerate
-  if (lineMag < epsilon) { return false; }
-  const cross = cross2(p2p, vector.map(n => n / lineMag));
-  const proj = dot(p2p, vector) / lineMagSq;
-  return Math.abs(cross) < epsilon && func(proj, epsilon / lineMag);
-};
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description Find the intersection of two lines. Lines can be lines/rays/segments,
- * and can be inclusve or exclusive in terms of their endpoints and the epsilon value.
- * @param {number[]} vector array of 2 numbers, the first line's vector
- * @param {number[]} origin array of 2 numbers, the first line's origin
- * @param {number[]} vector array of 2 numbers, the second line's vector
- * @param {number[]} origin array of 2 numbers, the second line's origin
- * @param {function} [aFunction=includeL] first line's boolean test normalized value lies collinear
- * @param {function} [bFunction=includeL] second line's boolean test normalized value lies collinear
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {number[]|undefined} one 2D point or undefined
- * @linkcode Math ./src/intersection/intersect-line-line.js 27
-*/
-const intersectLineLine = (
-  aVector, aOrigin,
-  bVector, bOrigin,
-  aFunction = includeL,
-  bFunction = includeL,
-  epsilon = EPSILON
-) => {
-  // a normalized determinant gives consistent values across all epsilon ranges
-  const det_norm = cross2(normalize(aVector), normalize(bVector));
-  // lines are parallel
-  if (Math.abs(det_norm) < epsilon) { return undefined; }
-  const determinant0 = cross2(aVector, bVector);
-  const determinant1 = -determinant0;
-  const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
-  const b2a = [-a2b[0], -a2b[1]];
-  const t0 = cross2(a2b, bVector) / determinant0;
-  const t1 = cross2(b2a, aVector) / determinant1;
-  if (aFunction(t0, epsilon / magnitude(aVector))
-    && bFunction(t1, epsilon / magnitude(bVector))) {
-    return add(aOrigin, scale(aVector, t0));
-  }
-  return undefined;
-};
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description Calculates the circumcircle which lies on three points.
- * @param {number[]} a one 2D point as an array of numbers
- * @param {number[]} b one 2D point as an array of numbers
- * @param {number[]} c one 2D point as an array of numbers
- * @returns {circle} one circle with keys "radius" (number) and "origin" (number[])
- * @example
- * var centroid = polygon.centroid()
- * @linkcode Math ./src/core/geometry.js 44
- */
-const circumcircle = function (a, b, c) {
-  const A = b[0] - a[0];
-  const B = b[1] - a[1];
-  const C = c[0] - a[0];
-  const D = c[1] - a[1];
-  const E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
-  const F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
-  const G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
-  if (Math.abs(G) < EPSILON) {
-    const minx = Math.min(a[0], b[0], c[0]);
-    const miny = Math.min(a[1], b[1], c[1]);
-    const dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
-    const dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
-    return {
-      origin: [minx + dx, miny + dy],
-      radius: Math.sqrt(dx * dx + dy * dy),
-    };
-  }
-  const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
-  const dx = origin[0] - a[0];
-  const dy = origin[1] - a[1];
-  return {
-    origin,
-    radius: Math.sqrt(dx * dx + dy * dy),
-  };
-};
-/**
- * @description Calculates the signed area of a polygon. This requires the polygon be non-self-intersecting.
- * @param {number[][]} points an array of 2D points, which are arrays of numbers
- * @returns {number} the area of the polygon
- * @example
- * var area = polygon.signedArea()
- * @linkcode Math ./src/core/geometry.js 78
- */
-const signedArea = points => 0.5 * points
-  .map((el, i, arr) => {
-    const next = arr[(i + 1) % arr.length];
-    return el[0] * next[1] - next[0] * el[1];
-  }).reduce(fnAdd, 0);
-/**
- * @description Calculates the centroid or the center of mass of the polygon.
- * @param {number[][]} points an array of 2D points, which are arrays of numbers
- * @returns {number[]} one 2D point as an array of numbers
- * @example
- * var centroid = polygon.centroid()
- * @linkcode Math ./src/core/geometry.js 91
- */
-const centroid = (points) => {
-  const sixthArea = 1 / (6 * signedArea(points));
-  return points.map((el, i, arr) => {
-    const next = arr[(i + 1) % arr.length];
-    const mag = el[0] * next[1] - next[0] * el[1];
-    return [(el[0] + next[0]) * mag, (el[1] + next[1]) * mag];
-  }).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-    .map(c => c * sixthArea);
-};
-/**
- * @description Make an axis-aligned bounding box that encloses a set of points.
- * the optional padding is used to make the bounding box inclusive / exclusive
- * by adding padding on all sides, or inset in the case of negative number.
- * (positive=inclusive boundary, negative=exclusive boundary)
- * @param {number[][]} points an array of unsorted points, in any dimension
- * @param {number} [padding=0] optionally add padding around the box
- * @returns {BoundingBox} an object where "min" and "max" are two points and "span" is the lengths
- * @linkcode Math ./src/core/geometry.js 110
- */
-const boundingBox = (points, padding = 0) => {
-  const min = Array(points[0].length).fill(Infinity);
-  const max = Array(points[0].length).fill(-Infinity);
-  points.forEach(point => point
-    .forEach((c, i) => {
-      if (c < min[i]) { min[i] = c - padding; }
-      if (c > max[i]) { max[i] = c + padding; }
-    }));
-  const span = max.map((max, i) => max - min[i]);
-  return { min, max, span };
-};
-/**
- * the radius parameter measures from the center to the midpoint of the edge
- * vertex-axis aligned
- * todo: also possible to parameterize the radius as the center to the points
- * todo: can be edge-aligned
- */
-const angleArray = count => Array
-  .from(Array(Math.floor(count)))
-  .map((_, i) => TWO_PI * (i / count));
-
-const anglesToVecs = (angles, radius) => angles
-  .map(a => [radius * Math.cos(a), radius * Math.sin(a)])
-  .map(pt => pt.map(n => cleanNumber(n, 14))); // this step is costly!
-// a = 2r tan(π/n)
-/**
- * @description Make a regular polygon from a circumradius,
- * the first point is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [circumradius=1] the polygon's circumradius
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 143
- */
-const makePolygonCircumradius = (sides = 3, radius = 1) =>
-  anglesToVecs(angleArray(sides), radius);
-/**
- * @description Make a regular polygon from a circumradius,
- * the middle of the first side is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [circumradius=1] the polygon's circumradius
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 153
- */
-const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
-  const halfwedge = Math.PI / sides;
-  const angles = angleArray(sides).map(a => a + halfwedge);
-  return anglesToVecs(angles, radius);
-};
-/**
- * @description Make a regular polygon from a inradius,
- * the first point is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [inradius=1] the polygon's inradius
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 166
- */
-const makePolygonInradius = (sides = 3, radius = 1) => 
-  makePolygonCircumradius(sides, radius / Math.cos(Math.PI / sides));
-/**
- * @description Make a regular polygon from a inradius,
- * the middle of the first side is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [inradius=1] the polygon's inradius
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 176
- */
-const makePolygonInradiusSide = (sides = 3, radius = 1) =>
-  makePolygonCircumradiusSide(sides, radius / Math.cos(Math.PI / sides));
-/**
- * @description Make a regular polygon from a side length,
- * the first point is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [length=1] the polygon's side length
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 186
- */
-const makePolygonSideLength = (sides = 3, length = 1) =>
-  makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides));
-/**
- * @description Make a regular polygon from a side length,
- * the middle of the first side is +X aligned.
- * @param {number} sides the number of sides in the polygon
- * @param {number} [length=1] the polygon's side length
- * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/core/geometry.js 196
- */
-const makePolygonSideLengthSide = (sides = 3, length = 1) =>
-  makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides));
-/**
- * @description Remove any collinear vertices from a n-dimensional polygon.
- * @param {number[][]} polygon a polygon as an array of ordered points in array form
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} a copy of the polygon with collinear points removed
- * @linkcode Math ./src/core/geometry.js 205
- */
-const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
-  // index map [i] to [i, i+1]
-  const edges_vector = polygon
-    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
-    .map(pair => subtract(pair[1], pair[0]));
-  // the vertex to be removed. true=valid, false=collinear.
-  // ask if an edge is parallel to its predecessor, this way,
-  // the edge index will match to the collinear vertex.
-  const vertex_collinear = edges_vector
-    .map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
-    .map(pair => !parallel(pair[1], pair[0], epsilon));
-  return polygon
-    .filter((vertex, v) => vertex_collinear[v]);
-};
-// export const split_polygon = () => console.warn("split polygon not done");
-
-const pleatParallel = (count, a, b) => {
-  const origins = Array.from(Array(count - 1))
-    .map((_, i) => (i + 1) / count)
-    .map(t => lerp(a.origin, b.origin, t));
-  const vector = [...a.vector];
-  return origins.map(origin => ({ origin, vector }));
-};
-
-const pleatAngle = (count, a, b) => {
-  const origin = intersectLineLine(
-    a.vector, a.origin,
-    b.vector, b.origin);
-  const vectors = clockwiseAngle2(a.vector, b.vector) < counterClockwiseAngle2(a.vector, b.vector)
-    ? clockwiseSubsect2(count, a.vector, b.vector)
-    : counterClockwiseSubsect2(count, a.vector, b.vector);
-  return vectors.map(vector => ({ origin, vector }));
-};
-/**
- * @description Between two lines, make a repeating sequence of evenly-spaced lines to simulate a series of pleats.
- * @param {line} object with two keys/values: { vector: [], origin: [] }
- * @param {line} object with two keys/values: { vector: [], origin: [] }
- * @param {number} the number of faces, the number of lines will be n-1.
- * @returns {line[]} an array of lines, objects which contain "vector" and "origin"
- * @linkcode Math ./src/core/geometry.js 246
- */
-const pleat = (count, a, b) => {
-  const lineA = getLine$1(a);
-  const lineB = getLine$1(b);
-  return parallel(lineA.vector, lineB.vector)
-    ? pleatParallel(count, lineA, lineB)
-    : pleatAngle(count, lineA, lineB);
-};
-/**
- * @description Split a convex polygon by a line and rebuild each half into two convex polygons.
- * @param {number[][]} polygon an array of points, each point is an array of numbers
- * @param {number[]} vector the vector component of the line
- * @param {number[]} origin the origin component of the line
- * @returns {number[][][]} an array of one or two polygons, each polygon is an array of points,
- * each point is an array of numbers.
- * @linkcode Math ./src/core/geometry.js 262
- */
-const splitConvexPolygon = (poly, lineVector, linePoint) => {
-  // todo: should this return undefined if no intersection?
-  //       or the original poly?
-
-  //    point: intersection [x,y] point or null if no intersection
-  // at_index: where in the polygon this occurs
-  let vertices_intersections = poly.map((v, i) => {
-    let intersection = overlapLinePoint(lineVector, linePoint, v, includeL);
-    return { point: intersection ? v : null, at_index: i };
-  }).filter(el => el.point != null);
-  let edges_intersections = poly.map((v, i, arr) => ({
-      point: intersectLineLine(
-        lineVector,
-        linePoint,
-        subtract(v, arr[(i + 1) % arr.length]),
-        arr[(i + 1) % arr.length],
-        excludeL,
-        excludeS),
-      at_index: i }))
-    .filter(el => el.point != null);
-
-  // three cases: intersection at 2 edges, 2 points, 1 edge and 1 point
-  if (edges_intersections.length == 2) {
-    let sorted_edges = edges_intersections.slice()
-      .sort((a,b) => a.at_index - b.at_index);
-
-    let face_a = poly
-      .slice(sorted_edges[1].at_index+1)
-      .concat(poly.slice(0, sorted_edges[0].at_index+1));
-    face_a.push(sorted_edges[0].point);
-    face_a.push(sorted_edges[1].point);
-
-    let face_b = poly
-      .slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1);
-    face_b.push(sorted_edges[1].point);
-    face_b.push(sorted_edges[0].point);
-    return [face_a, face_b];
-  } else if (edges_intersections.length == 1 && vertices_intersections.length == 1) {
-    vertices_intersections[0]["type"] = "v";
-    edges_intersections[0]["type"] = "e";
-    let sorted_geom = vertices_intersections.concat(edges_intersections)
-      .sort((a,b) => a.at_index - b.at_index);
-
-    let face_a = poly.slice(sorted_geom[1].at_index+1)
-      .concat(poly.slice(0, sorted_geom[0].at_index+1));
-    if (sorted_geom[0].type === "e") { face_a.push(sorted_geom[0].point); }
-    face_a.push(sorted_geom[1].point); // todo: if there's a bug, it's here. switch this
-
-    let face_b = poly
-      .slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1);
-    if (sorted_geom[1].type === "e") { face_b.push(sorted_geom[1].point); }
-    face_b.push(sorted_geom[0].point); // todo: if there's a bug, it's here. switch this
-    return [face_a, face_b];
-  } else if (vertices_intersections.length == 2) {
-    let sorted_vertices = vertices_intersections.slice()
-      .sort((a,b) => a.at_index - b.at_index);
-    let face_a = poly
-      .slice(sorted_vertices[1].at_index)
-      .concat(poly.slice(0, sorted_vertices[0].at_index+1));
-    let face_b = poly
-      .slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
-    return [face_a, face_b];
-  }
-  return [poly.slice()];
-};
-/**
- * @description Create a 2D convex hull from a set of 2D points, choose whether to include
- * or exclude points which lie collinear inside one of the boundary lines.
- * @param {number[][]} points an array of 2D points (which are arrays of numbers)
- * @param {boolean} [include_collinear=false] should we include points collinear along a boundary edge? by default, no (false).
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} an array of points (which are arrays of numbers)
- * @linkcode Math ./src/core/geometry.js 336
- */
-const convexHull = (points, include_collinear = false, epsilon = EPSILON) => {
-  // # points in the convex hull before escaping function
-  let INFINITE_LOOP = 10000;
-  // sort points by y. if ys are equivalent, sort by x
-  let sorted = points.slice().sort((a, b) =>
-    (Math.abs(a[1] - b[1]) < epsilon
-      ? a[0] - b[0]
-      : a[1] - b[1]));
-  let hull = [];
-  hull.push(sorted[0]);
-  // the current direction the perimeter walker is facing
-  let ang = 0;
-  let infiniteLoop = 0;
-  do {
-    infiniteLoop += 1;
-    let h = hull.length - 1;
-    let angles = sorted
-      // remove all points in the same location from this search
-      .filter(el => !(Math.abs(el[0] - hull[h][0]) < epsilon
-        && Math.abs(el[1] - hull[h][1]) < epsilon))
-      // sort by angle, setting lowest values next to "ang"
-      .map((el) => {
-        let angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
-        while (angle < ang) { angle += Math.PI * 2; }
-        return { node: el, angle, distance: undefined };
-      }) // distance to be set later
-      .sort((a, b) => ((a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0));
-    if (angles.length === 0) { return undefined; }
-    // narrowest-most right turn
-    let rightTurn = angles[0];
-    // collect all other points that are collinear along the same ray
-    angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
-    // sort collinear points by their distances from the connecting point
-      .map((el) => {
-        let distance = Math.sqrt(((hull[h][0] - el.node[0]) ** 2) + ((hull[h][1] - el.node[1]) ** 2));
-        el.distance = distance;
-        return el;
-      })
-    // (OPTION 1) exclude all collinear points along the hull
-      .sort((a, b) => ((a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0));
-    // (OPTION 2) include all collinear points along the hull
-    // .sort(function(a,b) {return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-    // if the point is already in the convex hull, we've made a loop. we're done
-    // if (contains(hull, angles[0].node)) {
-    // if (includeCollinear) {
-    //  points.sort(function(a,b) {return (a.distance - b.distance)});
-    // } else{
-    //  points.sort(function(a,b) {return b.distance - a.distance});
-    // }
-
-    if (hull.filter(el => el === angles[0].node).length > 0) {
-      return hull;
-    }
-    // add point to hull, prepare to loop again
-    hull.push(angles[0].node);
-    // update walking direction with the angle to the new point
-    ang = Math.atan2(hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
-  } while (infiniteLoop < INFINITE_LOOP);
-};
-/**
- * @description this recursive algorithm works outwards-to-inwards, each repeat
- * decreases the size of the polygon by one point/side. (removes 2, adds 1)
- * and repeating the algorithm on the smaller polygon.
- *
- * @param {number[][]} array of point objects (arrays of numbers, [x, y]). the
- *   counter-clockwise sorted points of the polygon. as we recurse this list shrinks
- *   by removing the points that are "finished".
- *
- * @returns {object[]} array of line segments as objects with keys:
- *   "points": array of 2 points in array form [ [x, y], [x, y] ]
- *   "type": "skeleton" or "kawasaki", the latter being the projected perpendicular
- *   dropped edges down to the sides of the polygon.
- */
-const recurseSkeleton = (points, lines, bisectors) => {
-  // every point has an interior angle bisector vector, this ray is
-  // tested for intersections with its neighbors on both sides.
-  // "intersects" is fencepost mapped (i) to "points" (i, i+1)
-  // because one point/ray intersects with both points on either side,
-  // so in reverse, every point (i) relates to intersection (i-1, i)
-  const intersects = points
-    // .map((p, i) => math.ray(bisectors[i], p))
-    // .map((ray, i, arr) => ray.intersect(arr[(i + 1) % arr.length]));
-    .map((origin, i) => ({ vector: bisectors[i], origin }))
-    .map((ray, i, arr) => intersectLineLine(
-      ray.vector,
-      ray.origin,
-      arr[(i + 1) % arr.length].vector,
-      arr[(i + 1) % arr.length].origin,
-      excludeR,
-      excludeR));
-  // project each intersection point down perpendicular to the edge of the polygon
-  // const projections = lines.map((line, i) => line.nearestPoint(intersects[i]));
-  const projections = lines.map((line, i) => nearestPointOnLine(
-    line.vector, line.origin, intersects[i], a => a));
-  // when we reach only 3 points remaining, we are at the end. we can return early
-  // and skip unnecessary calculations, all 3 projection lengths will be the same.
-  if (points.length === 3) {
-    return points.map(p => ({ type:"skeleton", points: [p, intersects[0]] }))
-      .concat([{ type:"perpendicular", points: [projections[0], intersects[0]] }]);
-  }
-  // measure the lengths of the projected lines, these will be used to identify
-  // the smallest length, or the point we want to operate on this round.
-  const projectionLengths = intersects
-    .map((intersect, i) => distance(intersect, projections[i]));
-  let shortest = 0;
-  projectionLengths.forEach((len, i) => {
-    if (len < projectionLengths[shortest]) { shortest = i; }
-  });
-  // we have the shortest length, we now have the solution for this round
-  // (all that remains is to prepare the arguments for the next recursive call)
-  const solutions = [
-    { type:"skeleton",
-      points: [points[shortest], intersects[shortest]] },
-    { type:"skeleton",
-      points: [points[(shortest + 1) % points.length], intersects[shortest]] },
-    // perpendicular projection
-    // we could expand this algorithm here to include all three instead of just one.
-    // two more of the entries in "intersects" will have the same length as shortest
-    { type:"perpendicular", points: [projections[shortest], intersects[shortest]] }
-    // ...projections.map(p => ({ type: "perpendicular", points: [p, intersects[shortest]] }))
-  ];
-  // our new smaller polygon, missing two points now, but gaining one more (the intersection)
-  // this is to calculate the new angle bisector at this new point.
-  // we are now operating on the inside of the polygon, the lines that will be built from
-  // this bisection will become interior skeleton lines.
-  // first, flip the first vector so that both of the vectors originate at the
-  // center point, and extend towards the neighbors.
-  const newVector = clockwiseBisect2(
-    flip(lines[(shortest + lines.length - 1) % lines.length].vector),
-    lines[(shortest + 1) % lines.length].vector
-  );
-  // delete 2 entries from "points" and "bisectors" and add each array's new element.
-  // delete 1 entry from lines.
-  const shortest_is_last_index = shortest === points.length - 1;
-  points.splice(shortest, 2, intersects[shortest]);
-  lines.splice(shortest, 1);
-  bisectors.splice(shortest, 2, newVector);
-  if (shortest_is_last_index) {
-    // in the case the index was at the end of the array,
-    // we tried to remove two elements but only removed one because
-    // it was the last element. remove the first element too.
-    points.splice(0, 1);
-    bisectors.splice(0, 1);
-    // also, the fencepost mapping of the lines array is off by one,
-    // move the first element to the end of the array.
-    lines.push(lines.shift());
-  }
-  return solutions.concat(recurseSkeleton(points, lines, bisectors));
-};
-/**
- * @description create a straight skeleton inside of a convex polygon
- * @param {number[][]} points counter-clockwise polygon as an array of points
- * (which are arrays of numbers)
- * @returns {object[]} list of objects containing "points" {number[][]}: two points
- * defining a line segment, and "type" {string}: either "skeleton" or "perpendicular"
- *
- * make sure:
- *  - your polygon is convex (todo: make this algorithm work with non-convex)
- *  - your polygon points are sorted counter-clockwise
- * @linkcode Math ./src/core/geometry.js 497
- */
-const straightSkeleton = (points) => {
-  // first time running this function, create the 2nd and 3rd parameters
-  // convert the edges of the polygons into lines
-  const lines = points
-    .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-    // .map(side => math.line.fromPoints(...side));
-    .map(side => ({ vector: subtract(side[1], side[0]), origin: side[0] }));
-  // get the interior angle bisectors for every corner of the polygon
-  // index map match to "points"
-  const bisectors = points
-    // each element into 3 (previous, current, next)
-    .map((_, i, ar) => [(i - 1 + ar.length) % ar.length, i, (i + 1) % ar.length]
-      .map(i => ar[i]))
-    // make 2 vectors, from current point to previous/next neighbors
-    .map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
-    // it is a little counter-intuitive but the interior angle between three
-    // consecutive points in a counter-clockwise wound polygon is measured
-    // in the clockwise direction
-    .map(v => clockwiseBisect2(...v));
-  // points is modified in place. create a copy
-  // const points_clone = JSON.parse(JSON.stringify(points));
-  // console.log("ss points", points_clone, points);
-  return recurseSkeleton([...points], lines, bisectors);
-};
-
-var geometry = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  circumcircle: circumcircle,
-  signedArea: signedArea,
-  centroid: centroid,
-  boundingBox: boundingBox,
-  makePolygonCircumradius: makePolygonCircumradius,
-  makePolygonCircumradiusSide: makePolygonCircumradiusSide,
-  makePolygonInradius: makePolygonInradius,
-  makePolygonInradiusSide: makePolygonInradiusSide,
-  makePolygonSideLength: makePolygonSideLength,
-  makePolygonSideLengthSide: makePolygonSideLengthSide,
-  makePolygonNonCollinear: makePolygonNonCollinear,
-  pleat: pleat,
-  splitConvexPolygon: splitConvexPolygon,
-  convexHull: convexHull,
-  straightSkeleton: straightSkeleton
+	__proto__: null,
+	getVector: getVector,
+	getVectorOfVectors: getVectorOfVectors,
+	getSegment: getSegment,
+	getLine: getLine$1,
+	getRay: getRay,
+	getRectParams: getRectParams,
+	getRect: getRect,
+	getCircle: getCircle,
+	getMatrix3x4: getMatrix3x4
 });
 
 /**
@@ -2609,12 +1383,12 @@ var geometry = /*#__PURE__*/Object.freeze({
  * to be any vector made from an angle constrained between [0...180), meaning
  * the y component will never be negative.
  * The D component is allowed to be any number between -Infinity...Infinity
- * 
+ *
  * The constraint on the normal-angle causes issues when converting back
  * and forth between vector-origin and UD parameterization. Lang's intention
  * is that lines do not have a directionality, whereas this library does,
  * (see: Axiom folding, which face to fold is decided by the line's vector).
- * 
+ *
  * Therefore, this library modifies the paramterization slightly to allow
  * unconstrained normals, where the angle can be anywhere [0...360).
  * The cost is when testing equality, the normal and its flip must be checked,
@@ -2627,123 +1401,423 @@ var geometry = /*#__PURE__*/Object.freeze({
 /**
  * @description convert a line from one parameterization into another.
  * convert vector-origin into u-d (normal, distance-to-origin)
- * @linkcode Math ./src/core/parameterize.js 34
+ * @linkcode Math ./src/types/parameterize.js 34
  */
 // export const vectorOriginToUD = ({ vector, origin }) => {
-const makeNormalDistanceLine = ({ vector, origin }) => {
-  const mag = magnitude(vector);
-  const normal = rotate90(vector);
-  const distance = dot(origin, normal) / mag;
-  return { normal: scale(normal, 1 / mag), distance };
-
+// export const makeNormalDistanceLine = ({ vector, origin }) => {
+const rayLineToUniqueLine = ({ vector, origin }) => {
+	const mag = magnitude(vector);
+	const normal = rotate90(vector);
+	const distance = dot(origin, normal) / mag;
+	return { normal: scale(normal, 1 / mag), distance };
 };
 /**
  * @description convert a line from one parameterization into another.
  * convert u-d (normal, distance-to-origin) into vector-origin
- * @linkcode Math ./src/core/parameterize.js 47
+ * @linkcode Math ./src/types/parameterize.js 47
  */
 // export const UDToVectorOrigin = ({ u, d }) => ({
-const makeVectorOriginLine = ({ normal, distance }) => ({
-  vector: rotate270(normal),
-  origin: scale(normal, distance),
+// export const makeVectorOriginLine = ({ normal, distance }) => ({
+const uniqueLineToRayLine = ({ normal, distance }) => ({
+	vector: rotate270(normal),
+	origin: scale(normal, distance),
 });
 
 var parameterize = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  makeNormalDistanceLine: makeNormalDistanceLine,
-  makeVectorOriginLine: makeVectorOriginLine
+	__proto__: null,
+	rayLineToUniqueLine: rayLineToUniqueLine,
+	uniqueLineToRayLine: uniqueLineToRayLine
 });
 
 /**
  * Math (c) Kraft
  */
-
-const acosSafe = (x) => {
-  if (x >= 1.0) return 0;
-  if (x <= -1.0) return Math.PI;
-  return Math.acos(x);
-};
-
-const rotateVector2 = (center, pt, a) => {
-  const x = pt[0] - center[0];
-  const y = pt[1] - center[1];
-  const xRot = x * Math.cos(a) + y * Math.sin(a);
-  const yRot = y * Math.cos(a) - x * Math.sin(a);
-  return [center[0] + xRot, center[1] + yRot];
+/**
+ * @description find the one item in the set which minimizes the
+ * function when compared against another object provided in the arguments.
+ * @param {any} obj the single item to test against the set
+ * @param {any[]} array the set of items to test against
+ * @param {function} compare_func a function which takes two items (which match
+ * the type of the first parameter), execution of this function should return a scalar.
+ * @returns {number[]} the index from the set which minimizes the compare function
+ * @linkcode Math ./src/algebra/nearest.js 28
+ */
+const smallestComparisonSearch = (obj, array, compare_func) => {
+	const objs = array.map((o, i) => ({ o, i, d: compare_func(obj, o) }));
+	let index;
+	let smallest_value = Infinity;
+	for (let i = 0; i < objs.length; i += 1) {
+		if (objs[i].d < smallest_value) {
+			index = i;
+			smallest_value = objs[i].d;
+		}
+	}
+	return index;
 };
 /**
- * @description calculate the intersection of two circles, resulting in either no intersection,
- * or one or two points.
- * @param {number} radius1 the first circle's radius
- * @param {number[]} origin1 the first circle's origin
- * @param {number} radius2 the second circle's radius
- * @param {number[]} origin2 the second circle's origin
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]|undefined} an array of one or two points, or undefined if no intersection 
- * @linkcode Math ./src/intersection/intersect-circle-circle.js 28
+ * @description Find the indices from an array of vectors which all have
+ * the smallest value within an epsilon.
+ * @param {number[][]} vectors array of vectors
+ * @returns {number[]} array of indices which all have the lowest X value.
+ * @linkcode Math ./src/algebra/nearest.js 47
  */
-const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsilon = EPSILON) => {
-  // sort by largest-smallest radius
-  const r = (c1_radius < c2_radius) ? c1_radius : c2_radius;
-  const R = (c1_radius < c2_radius) ? c2_radius : c1_radius;
-  const smCenter = (c1_radius < c2_radius) ? c1_origin : c2_origin;
-  const bgCenter = (c1_radius < c2_radius) ? c2_origin : c1_origin;
-  // this is also the starting vector to rotate around the big circle
-  const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
-  const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
-  // infinite solutions // don't need this because the below case covers it
-  // if (d < epsilon && Math.abs(R - r) < epsilon) { return undefined; }
-  // no intersection (same center, different size)
-  if (d < epsilon) { return undefined; }
-  const point = vec.map((v, i) => v / d * R + bgCenter[i]);
-  // kissing circles
-  if (Math.abs((R + r) - d) < epsilon
-    || Math.abs(R - (r + d)) < epsilon) { return [point]; }
-  // circles are contained
-  if ((d + r) < R || (R + r < d)) { return undefined; }
-  const angle = acosSafe((r * r - d * d - R * R) / (-2.0 * d * R));
-  const pt1 = rotateVector2(bgCenter, point, +angle);
-  const pt2 = rotateVector2(bgCenter, point, -angle);
-  return [pt1, pt2];
+const minimumXIndices = (vectors, compFn = fnEpsilonSort, epsilon = EPSILON) => {
+	// find the set of all vectors that share the smallest X value within an epsilon
+	let smallSet = [0];
+	for (let i = 1; i < vectors.length; i += 1) {
+		switch (compFn(vectors[i][0], vectors[smallSet[0]][0], epsilon)) {
+		case 0: smallSet.push(i); break;
+		case 1: smallSet = [i]; break;
+		}
+	}
+	return smallSet;
 };
+/**
+ * @description Get the index of the point in an array considered the absolute minimum.
+ * First check the X values, and in the case of multiple minimums, check the Y values.
+ * @param {number[][]} points array of points
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number} the index of the point in the array with the smallest component values
+ * @linkcode Math ./src/algebra/nearest.js 67
+ */
+const minimum2DPointIndex = (points, epsilon = EPSILON) => {
+	// find the set of all points that share the smallest X value
+	const smallSet = minimumXIndices(points, fnEpsilonSort, epsilon);
+	// from this set, find the point with the smallest Y value
+	let sm = 0;
+	for (let i = 1; i < smallSet.length; i += 1) {
+		if (points[smallSet[i]][1] < points[smallSet[sm]][1]) { sm = i; }
+	}
+	return smallSet[sm];
+};
+
+/**
+ * @description find the one point in an array of 2D points closest to a 2D point.
+ * @param {number[]} point the 2D point to test nearness to
+ * @param {number[][]} array_of_points an array of 2D points to test against
+ * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/algebra/nearest.js 85
+ */
+const nearestPoint2 = (point, array_of_points) => {
+	// todo speed up with partitioning
+	const index = smallestComparisonSearch(point, array_of_points, distance2);
+	return index === undefined ? undefined : array_of_points[index];
+};
+/**
+ * @description find the one point in an array of points closest to a point.
+ * @param {number[]} point the point to test nearness to
+ * @param {number[][]} array_of_points an array of points to test against
+ * @returns {number[]} one point from the array of points
+ * @linkcode Math ./src/algebra/nearest.js 97
+ */
+const nearestPoint = (point, array_of_points) => {
+	// todo speed up with partitioning
+	const index = smallestComparisonSearch(point, array_of_points, distance);
+	return index === undefined ? undefined : array_of_points[index];
+};
+/**
+ * @description find the nearest point on a line, ray, or segment.
+ * @param {number[]} vector the vector of the line
+ * @param {number[]} origin a point that the line passes through
+ * @param {number[]} point the point to test nearness to
+ * @param {function} limiterFunc a clamp function to bound a calculation between 0 and 1
+ * for segments, greater than 0 for rays, or unbounded for lines.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 113
+ */
+const nearestPointOnLine = (vector, origin, point, limiterFunc, epsilon = EPSILON) => {
+	origin = resize(vector.length, origin);
+	point = resize(vector.length, point);
+	const magSq = magSquared(vector);
+	const vectorToPoint = subtract(point, origin);
+	const dotProd = dot(vector, vectorToPoint);
+	const dist = dotProd / magSq;
+	// limit depending on line, ray, segment
+	const d = limiterFunc(dist, epsilon);
+	return add(origin, scale(vector, d));
+};
+/**
+ * @description given a polygon and a point, in 2D, find a point on the boundary of the polygon
+ * that is closest to the provided point.
+ * @param {number[][]} polygon an array of points (which are arrays of numbers)
+ * @param {number[]} point the point to test nearness to
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 132
+ */
+const nearestPointOnPolygon = (polygon, point) => {
+	const v = polygon
+		.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p));
+	return polygon
+		.map((p, i) => nearestPointOnLine(v[i], p, point, segmentLimiter))
+		.map((p, i) => ({ point: p, i, distance: distance(p, point) }))
+		.sort((a, b) => a.distance - b.distance)
+		.shift();
+};
+/**
+ * @description find the nearest point on the boundary of a circle to another point
+ * that is closest to the provided point.
+ * @param {number} radius the radius of the circle
+ * @param {number[]} origin the origin of the circle as an array of numbers.
+ * @param {number[]} point the point to test nearness to
+ * @returns {number[]} a point
+ * @linkcode Math ./src/algebra/nearest.js 150
+ */
+const nearestPointOnCircle = (radius, origin, point) => (
+	add(origin, scale(normalize(subtract(point, origin)), radius)));
+
+// todo
+// const nearestPointOnEllipse = () => false;
+
+var nearest$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	smallestComparisonSearch: smallestComparisonSearch,
+	minimum2DPointIndex: minimum2DPointIndex,
+	nearestPoint2: nearestPoint2,
+	nearestPoint: nearestPoint,
+	nearestPointOnLine: nearestPointOnLine,
+	nearestPointOnPolygon: nearestPointOnPolygon,
+	nearestPointOnCircle: nearestPointOnCircle
+});
 
 /**
  * Math (c) Kraft
  */
 /**
- * @description Calculate the intersection of a circle and a line; the line can
- * be a line, ray, or segment.
- * @param {number} circleRadius the circle's radius
- * @param {number[]} circleOrigin the center of the circle
- * @param {number[]} lineVector the vector component of the line
- * @param {number[]} lineOrigin the origin component of the line
- * @param {function} [lineFunc=includeL] set the line/ray/segment and inclusive/exclusive
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @linkcode Math ./src/intersection/intersect-circle-line.js 20
+ * @description sort an array of 2D points along a 2D vector.
+ * @param {number[][]} points array of points (which are arrays of numbers)
+ * @param {number[]} vector one 2D vector
+ * @returns {number[][]} the same points, sorted.
+ * @linkcode Math ./src/algebra/sort.js 18
  */
-const intersectCircleLine = (
-  circle_radius, circle_origin,
-  line_vector, line_origin,
-  line_func = includeL,
-  epsilon = EPSILON
-) => {
-  const magSq = line_vector[0] ** 2 + line_vector[1] ** 2;
-  const mag = Math.sqrt(magSq);
-  const norm = mag === 0 ? line_vector : line_vector.map(c => c / mag);
-  const rot90 = rotate90(norm);
-  const bvec = subtract(line_origin, circle_origin);
-  const det = cross2(bvec, norm);
-  if (Math.abs(det) > circle_radius + epsilon) { return undefined; }
-  const side = Math.sqrt((circle_radius ** 2) - (det ** 2));
-  const f = (s, i) => circle_origin[i] - rot90[i] * det + norm[i] * s;
-  const results = Math.abs(circle_radius - Math.abs(det)) < epsilon
-    ? [side].map((s) => [s, s].map(f)) // tangent to circle
-    : [-side, side].map((s) => [s, s].map(f));
-  const ts = results.map(res => res.map((n, i) => n - line_origin[i]))
-    .map(v => v[0] * line_vector[0] + line_vector[1] * v[1])
-    .map(d => d / magSq);
-  return results.filter((_, i) => line_func(ts[i], epsilon));
+const sortPointsAlongVector2 = (points, vector) => points
+	.map(point => ({ point, d: point[0] * vector[0] + point[1] * vector[1] }))
+	.sort((a, b) => a.d - b.d)
+	.map(a => a.point);
+/**
+ * @description given an array of already-sorted values (so that comparisons only
+ * need to happen between neighboring items), cluster the numbers which are similar
+ * within an epsilon. isolated values still get put in length-1 arrays. (all values returned)
+ * and the clusters contain the indices from the param array, not the values.
+ * @param {numbers[]} an array of sorted numbers
+ * @param {numbers} [epsilon=1e-6] an optional epsilon
+ * @returns {numbers[][]} an array of arrays, each inner array containin indices.
+ * each inner array represents clusters of values which lie within an epsilon.
+ * @linkcode Math ./src/algebra/sort.js 33
+ */
+const clusterIndicesOfSortedNumbers = (numbers, epsilon = EPSILON) => {
+	const clusters = [[0]];
+	let clusterIndex = 0;
+	for (let i = 1; i < numbers.length; i += 1) {
+		// if this scalar fits inside the current cluster
+		if (fnEpsilonEqual(numbers[i], numbers[i - 1], epsilon)) {
+			clusters[clusterIndex].push(i);
+		} else {
+			clusterIndex = clusters.length;
+			clusters.push([i]);
+		}
+	}
+	return clusters;
 };
+/**
+ * @description radially sort point indices around the lowest-value point, clustering
+ * similarly-angled points within an epsilon. Within these clusters, the points are
+ * sorted by distance so the nearest point is listed first.
+ * @param {number[][]} points an array of points
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} this returns indices in clusters.
+ * @linkcode Math ./src/algebra/sort.js 56
+ */
+const radialSortPointIndices = (points = [], epsilon = EPSILON) => {
+	const first = minimum2DPointIndex(points, epsilon);
+	const angles = points
+		.map(p => subtract2(p, points[first]))
+		.map(v => normalize2(v))
+		.map(vec => dot2([0, 1], vec));
+		// .map((p, i) => Math.atan2(unitVecs[i][1], unitVecs[i][0]));
+	const rawOrder = angles
+		.map((a, i) => ({ a, i }))
+		.sort((a, b) => a.a - b.a)
+		.map(el => el.i)
+		.filter(i => i !== first);
+	return [[first]]
+		.concat(clusterIndicesOfSortedNumbers(rawOrder.map(i => angles[i]), epsilon)
+			.map(arr => arr.map(i => rawOrder[i]))
+			.map(cluster => (cluster.length === 1 ? cluster : cluster
+				.map(i => ({ i, len: distance2(points[i], points[first]) }))
+				.sort((a, b) => a.len - b.len)
+				.map(el => el.i))));
+};
+
+var sort$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	sortPointsAlongVector2: sortPointsAlongVector2,
+	clusterIndicesOfSortedNumbers: clusterIndicesOfSortedNumbers,
+	radialSortPointIndices: radialSortPointIndices
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description the identity matrix for 2x2 matrices
+ * @linkcode Math ./src/algebra/matrix2.js 6
+ */
+const identity2x2 = [1, 0, 0, 1];
+/**
+ * @description the identity matrix for 2x3 matrices (zero translation)
+ * @linkcode Math ./src/algebra/matrix2.js 11
+ */
+const identity2x3 = identity2x2.concat(0, 0);
+/**
+ * @param {number[]} vector, in array form
+ * @param {number[]} matrix, in array form
+ * @returns {number[]} vector, the input vector transformed by the matrix
+ * @linkcode Math ./src/algebra/matrix2.js 18
+ */
+const multiplyMatrix2Vector2 = (matrix, vector) => [
+	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
+	matrix[1] * vector[0] + matrix[3] * vector[1] + matrix[5],
+];
+/**
+ * @param line in point-vector form, matrix
+ * @returns transformed line in point-vector form
+ * @linkcode Math ./src/algebra/matrix2.js 27
+ */
+const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
+	vector: [
+		matrix[0] * vector[0] + matrix[2] * vector[1],
+		matrix[1] * vector[0] + matrix[3] * vector[1],
+	],
+	origin: [
+		matrix[0] * origin[0] + matrix[2] * origin[1] + matrix[4],
+		matrix[1] * origin[0] + matrix[3] * origin[1] + matrix[5],
+	],
+});
+/**
+ * @param {number[]} matrix, matrix, left/right order matches what you'd see on a page.
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 42
+ */
+const multiplyMatrices2 = (m1, m2) => [
+	m1[0] * m2[0] + m1[2] * m2[1],
+	m1[1] * m2[0] + m1[3] * m2[1],
+	m1[0] * m2[2] + m1[2] * m2[3],
+	m1[1] * m2[2] + m1[3] * m2[3],
+	m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+	m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+];
+/**
+ * @description calculate the determinant of a 2x3 or 2x2 matrix.
+ * in the case of 2x3, the translation component is ignored.
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number} the determinant of the matrix
+ * @linkcode Math ./src/algebra/matrix2.js 57
+ */
+const determinant2 = m => m[0] * m[3] - m[1] * m[2];
+/**
+ * @description invert a 2x3 matrix
+ * @param {number[]} matrix one matrix in array form
+ * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
+ * @linkcode Math ./src/algebra/matrix2.js 64
+ */
+const invertMatrix2 = (m) => {
+	const det = determinant2(m);
+	if (Math.abs(det) < 1e-6
+		|| Number.isNaN(det)
+		|| !Number.isFinite(m[4])
+		|| !Number.isFinite(m[5])) {
+		return undefined;
+	}
+	return [
+		m[3] / det,
+		-m[1] / det,
+		-m[2] / det,
+		m[0] / det,
+		(m[2] * m[5] - m[3] * m[4]) / det,
+		(m[1] * m[4] - m[0] * m[5]) / det,
+	];
+};
+/**
+ * @param {number} x, y
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 86
+ */
+const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
+/**
+ * @param ratio of scale, optional origin homothetic center (0,0 default)
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 92
+ */
+const makeMatrix2Scale = (x, y, origin = [0, 0]) => [
+	x,
+	0,
+	0,
+	y,
+	x * -origin[0] + origin[0],
+	y * -origin[1] + origin[1],
+];
+/**
+ * @param angle of rotation, origin of transformation
+ * @returns {number[]} matrix
+ * @linkcode Math ./src/algebra/matrix2.js 105
+ */
+const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	return [
+		cos,
+		sin,
+		-sin,
+		cos,
+		origin[0],
+		origin[1],
+	];
+};
+/**
+ * remember vector comes before origin. origin comes last, so that it's easy
+ * to leave it empty and make a reflection through the origin.
+ * @param line in vector-origin form
+ * @returns matrix
+ * @linkcode Math ./src/algebra/matrix2.js 124
+ */
+const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
+	// the line of reflection passes through origin, runs along vector
+	const angle = Math.atan2(vector[1], vector[0]);
+	const cosAngle = Math.cos(angle);
+	const sinAngle = Math.sin(angle);
+	const cos_Angle = Math.cos(-angle);
+	const sin_Angle = Math.sin(-angle);
+	const a = cosAngle * cos_Angle + sinAngle * sin_Angle;
+	const b = cosAngle * -sin_Angle + sinAngle * cos_Angle;
+	const c = sinAngle * cos_Angle + -cosAngle * sin_Angle;
+	const d = sinAngle * -sin_Angle + -cosAngle * cos_Angle;
+	const tx = origin[0] + a * -origin[0] + -origin[1] * c;
+	const ty = origin[1] + b * -origin[0] + -origin[1] * d;
+	return [a, b, c, d, tx, ty];
+};
+
+//               __                                           _
+//   _________  / /_  ______ ___  ____     ____ ___  ____ _  (_)___  _____
+//  / ___/ __ \/ / / / / __ `__ \/ __ \   / __ `__ \/ __ `/ / / __ \/ ___/
+// / /__/ /_/ / / /_/ / / / / / / / / /  / / / / / / /_/ / / / /_/ / /
+// \___/\____/_/\__,_/_/ /_/ /_/_/ /_/  /_/ /_/ /_/\__,_/_/ /\____/_/
+//                                                     /___/
+
+var matrix2 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	identity2x2: identity2x2,
+	identity2x3: identity2x3,
+	multiplyMatrix2Vector2: multiplyMatrix2Vector2,
+	multiplyMatrix2Line2: multiplyMatrix2Line2,
+	multiplyMatrices2: multiplyMatrices2,
+	determinant2: determinant2,
+	invertMatrix2: invertMatrix2,
+	makeMatrix2Translate: makeMatrix2Translate,
+	makeMatrix2Scale: makeMatrix2Scale,
+	makeMatrix2Rotate: makeMatrix2Rotate,
+	makeMatrix2Reflect: makeMatrix2Reflect
+});
 
 /**
  * Math (c) Kraft
@@ -2763,11 +1837,11 @@ const intersectCircleLine = (
  * @linkcode Math ./src/intersection/overlap-polygon-point.js 23
  */
 const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILON) => poly
-  .map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
-  .map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])))
-  .map(side => func(side, epsilon))
-  .map((s, _, arr) => s === arr[0])
-  .reduce((prev, curr) => prev && curr, true);
+	.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+	.map(s => cross2(normalize(subtract(s[1], s[0])), subtract(point, s[0])))
+	.map(side => func(side, epsilon))
+	.map((s, _, arr) => s === arr[0])
+	.reduce((prev, curr) => prev && curr, true);
 
 /**
  * Tests whether or not a point is contained inside a polygon.
@@ -2804,492 +1878,28 @@ const overlapConvexPolygonPoint = (poly, point, func = exclude, epsilon = EPSILO
  * Math (c) Kraft
  */
 
-// todo, this is copied over in clip/polygon.js
-const getUniquePair = (intersections) => {
-  for (let i = 1; i < intersections.length; i += 1) {
-    if (!fnEpsilonEqualVectors(intersections[0], intersections[i])) {
-      return [intersections[0], intersections[i]];
-    }
-  }
-};
-
-/**
- * generalized line-ray-segment intersection with convex polygon function
- * for lines and rays, line1 and line2 are the vector, origin in that order.
- * for segments, line1 and line2 are the two endpoints.
- */
-const intersectConvexPolygonLineInclusive = (
-  poly,
-  vector, origin,
-  fn_poly = includeS,
-  fn_line = includeL,
-  epsilon = EPSILON
-) => {
-  const intersections = poly
-    .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]) // into segment pairs
-    .map(side => intersectLineLine(
-      subtract(side[1], side[0]), side[0],
-      vector, origin,
-      fn_poly, fn_line,
-      epsilon))
-    .filter(a => a !== undefined);
-  switch (intersections.length) {
-    case 0: return undefined;
-    case 1: return [intersections];
-    default:
-      // for two intersection points or more, in the case of vertex-
-      // collinear intersections the same point from 2 polygon sides
-      // can be returned. we need to filter for unique points.
-      // if no 2 unique points found:
-      // there was only one unique intersection point after all.
-      return getUniquePair(intersections) || [intersections[0]];
-  }
-};
-
-/**
- * @description generalized line-ray-segment intersection with convex polygon function
- * for lines and rays, line1 and line2 are the vector, origin in that order.
- * for segments, line1 and line2 are the two endpoints.
- *
- * this doubles as the exclusive condition, and the main export since it
- * checks for exclusive/inclusive and can early-return
- * @linkcode Math ./src/intersection/intersect-polygon-line.js 72
- */
-const intersectConvexPolygonLine = (
-  poly,
-  vector, origin,
-  fn_poly = includeS,
-  fn_line = excludeL,
-  epsilon = EPSILON
-) => {
-  const sects = intersectConvexPolygonLineInclusive(poly, vector, origin, fn_poly, fn_line, epsilon);
-  // const sects = convex_poly_line_intersect(intersect_func, poly, line1, line2, epsilon);
-  let altFunc; // the opposite func, as far as inclusive/exclusive
-  switch (fn_line) {
-    // case excludeL: altFunc = includeL; break;
-    case excludeR: altFunc = includeR; break;
-    case excludeS: altFunc = includeS; break;
-    default: return sects;
-  }
-  // here on, we are only dealing with exclusive tests, parsing issues with
-  // vertex-on intersections that still intersect or don't intersect the polygon.
-  // repeat the computation but include intersections with the polygon's vertices.
-  const includes = intersectConvexPolygonLineInclusive(poly, vector, origin, includeS, altFunc, epsilon);
-  // const includes = convex_poly_line_intersect(altFunc, poly, line1, line2, epsilon);
-  // if there are still no intersections, the line doesn't intersect.
-  if (includes === undefined) { return undefined; }
-  // if there are intersections, see if the line crosses the entire polygon
-  // (gives us 2 unique points)
-  const uniqueIncludes = getUniquePair(includes);
-  // first, deal with the case that there are no unique 2 points.
-  if (uniqueIncludes === undefined) {
-    switch (fn_line) {
-      // if there is one intersection, an infinite line is intersecting the
-      // polygon from the outside touching at just one vertex. this should be
-      // considered undefined for the exclusive case.
-      case excludeL: return undefined;
-      // if there is one intersection, check if a ray's origin is inside.
-      // 1. if the origin is inside, consider the intersection valid
-      // 2. if the origin is outside, same as the line case above. no intersection.
-      case excludeR:
-        // is the ray origin inside?
-        return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
-          ? includes
-          : undefined;
-      // if there is one intersection, check if either of a segment's points are
-      // inside the polygon, same as the ray above. if neither are, consider
-      // the intersection invalid for the exclusive case.
-      case excludeS:
-        return overlapConvexPolygonPoint(poly, add(origin, vector), exclude, epsilon)
-          || overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
-          ? includes
-          : undefined;
-    }
-  }
-  // now that we've covered all the other cases, we know that the line intersects
-  // the polygon at two unique points. this should return true for all cases
-  // except one: when the line is collinear to an edge of the polygon.
-  // to test this, get the midpoint of the two intersects and do an exclusive
-  // check if the midpoint is inside the polygon. if it is, the line is crossing
-  // the polygon and the intersection is valid.
-  return overlapConvexPolygonPoint(poly, midpoint(...uniqueIncludes), exclude, epsilon)
-    ? uniqueIncludes
-    : sects;
-};
-
-/**
- * Math (c) Kraft
- */
-
-// all intersection functions expect primitives to be in a certain form
-// for example all lines are: vector, origin
-const intersect_param_form = {
-  polygon: a => [a],
-  rect: a => [a],
-  circle: a => [a.radius, a.origin],
-  line: a => [a.vector, a.origin],
-  ray: a => [a.vector, a.origin],
-  segment: a => [a.vector, a.origin],
-  // segment: a => [subtract(a[1], a[0]), a[0]],
-};
-
-const intersect_func = {
-  polygon: {
-    // polygon: intersectPolygonPolygon,
-    // circle: convex_poly_circle,
-    line: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
-    ray: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
-  },
-  circle: {
-    // polygon: (a, b) => convex_poly_circle(b, a),
-    circle: (a, b, fnA, fnB, ep) => intersectCircleCircle(...a, ...b, ep),
-    line: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
-    ray: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
-  },
-  line: {
-    polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
-    circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
-    line: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-    ray: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-  },
-  ray: {
-    polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
-    circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
-    line: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
-    ray: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-  },
-  segment: {
-    polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
-    circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
-    line: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
-    ray: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
-    segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
-  },
-};
-
-// convert "rect" to "polygon"
-const similar_intersect_types = {
-  polygon: "polygon",
-  rect: "polygon",
-  circle: "circle",
-  line: "line",
-  ray: "ray",
-  segment: "segment",
-};
-
-const default_intersect_domain_function = {
-  polygon: exclude, // not used
-  rect: exclude, // not used
-  circle: exclude, // not used
-  line: excludeL,
-  ray: excludeR,
-  segment: excludeS,
-};
-
-/**
- * @name intersect
- * @description get the intersection of two geometry objects, the type of each is inferred.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {number[]|number[][]|undefined} the type of the result varies depending on the type of the input parameters, it is always one point, or an array of points, or undefined if no intersection.
- * @linkcode Math ./src/intersection/intersect.js 92
- */
-const intersect$1 = function (a, b, epsilon) {
-  const type_a = typeOf(a);
-  const type_b = typeOf(b);
-  const aT = similar_intersect_types[type_a];
-  const bT = similar_intersect_types[type_b];
-  const params_a = intersect_param_form[type_a](a);
-  const params_b = intersect_param_form[type_b](b);
-  const domain_a = a.domain_function || default_intersect_domain_function[type_a];
-  const domain_b = b.domain_function || default_intersect_domain_function[type_b];
-  return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
-};
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description find out if two convex polygons are overlapping by searching
- * for a dividing axis, which should be one side from one of the polygons.
- * @linkcode Math ./src/intersection/overlap-polygons.js 13
- */
-const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
-  for (let p = 0; p < 2; p++) {
-    // for non-overlapping convex polygons, it's possible that only only
-    // one edge on one polygon holds the property of being a dividing axis.
-    // we must run the algorithm on both polygons
-    const polyA = p === 0 ? poly1 : poly2;
-    const polyB = p === 0 ? poly2 : poly1;
-    for (let i = 0; i < polyA.length; i++) {
-      // each edge of polygonA will become a line
-      const origin = polyA[i];
-      const vector = rotate90(subtract(polyA[(i + 1) % polyA.length], polyA[i]));
-      // project each point from the other polygon on to the line's perpendicular
-      // also, subtracting the origin (from the first poly) such that the
-      // numberline is centered around zero. if the test passes, this polygon's
-      // projections will be entirely above or below 0.
-      const projected = polyB
-        .map(p => subtract(p, origin))
-        .map(v => dot(vector, v));
-      // is the first polygon on the positive or negative side?
-      const other_test_point = polyA[(i + 2) % polyA.length];
-      const side_a = dot(vector, subtract(other_test_point, origin));
-      const side = side_a > 0; // use 0. not epsilon
-      // is the second polygon on whichever side of 0 that the first isn't?
-      const one_sided = projected
-        .map(dotProd => side ? dotProd < epsilon : dotProd > -epsilon)
-        .reduce((a, b) => a && b, true);
-      // if true, we found a dividing axis
-      if (one_sided) { return false; }
-    }
-  }
-  return true;
-};
-
-/**
- * Math (c) Kraft
- */
-
-const overlapCirclePoint = (radius, origin, point, func = exclude, epsilon = EPSILON) =>
-  func(radius - distance2(origin, point), epsilon);
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description 2D line intersection function, generalized and works for lines,
- * rays, segments.
- * @param {number[]} array of 2 numbers, the first line's vector
- * @param {number[]} array of 2 numbers, the first line's origin
- * @param {number[]} array of 2 numbers, the second line's vector
- * @param {number[]} array of 2 numbers, the second line's origin
- * @param {function} first line's boolean test normalized value lies collinear
- * @param {function} seconde line's boolean test normalized value lies collinear
- * @linkcode Math ./src/intersection/overlap-line-line.js 25
-*/
-
-// export const exclude_s = (t, e = EPSILON) => t > e && t < 1 - e;
-
-const overlapLineLine = (
-  aVector, aOrigin,
-  bVector, bOrigin,
-  aFunction = excludeL,
-  bFunction = excludeL,
-  epsilon = EPSILON
-) => {
-  const denominator0 = cross2(aVector, bVector);
-  const denominator1 = -denominator0;
-  const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
-  if (Math.abs(denominator0) < epsilon) { // parallel
-    if (Math.abs(cross2(a2b, aVector)) > epsilon) { return false; }
-    const bPt1 = a2b;
-    const bPt2 = add(bPt1, bVector);
-    // a will be between 0 and 1
-    const aProjLen = dot(aVector, aVector);
-    const bProj1 = dot(bPt1, aVector) / aProjLen;
-    const bProj2 = dot(bPt2, aVector) / aProjLen;
-    const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
-    const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
-    const bOutside1 = bProjSm > 1 - epsilon;
-    const bOutside2 = bProjLg < epsilon;
-    if (bOutside1 || bOutside2) { return false; }
-    return true;
-  }
-  const b2a = [-a2b[0], -a2b[1]];
-  const t0 = cross2(a2b, bVector) / denominator0;
-  const t1 = cross2(b2a, aVector) / denominator1;
-  return aFunction(t0, epsilon / magnitude(aVector))
-    && bFunction(t1, epsilon / magnitude(bVector));
-};
-
-/**
- * Math (c) Kraft
- */
-
-// all intersection functions expect primitives to be in a certain form
-// for example all lines are: vector, origin
-const overlap_param_form = {
-  polygon: a => [a],
-  rect: a => [a],
-  circle: a => [a.radius, a.origin],
-  line: a => [a.vector, a.origin],
-  ray: a => [a.vector, a.origin],
-  segment: a => [a.vector, a.origin],
-  // segment: a => [subtract(a[1], a[0]), a[0]],
-  vector: a => [a],
-};
-
-const overlap_func = {
-  polygon: {
-    polygon: (a, b, fnA, fnB, ep) => overlapConvexPolygons(...a, ...b, ep),
-    // circle: (a, b) => 
-    // line: (a, b) =>
-    // ray: (a, b) =>
-    // segment: (a, b) =>
-    vector: (a, b, fnA, fnB, ep) => overlapConvexPolygonPoint(...a, ...b, fnA, ep),
-  },
-  circle: {
-    // polygon: (a, b) =>
-    // circle: (a, b) =>
-    // line: (a, b) =>
-    // ray: (a, b) =>
-    // segment: (a, b) =>
-    vector: (a, b, fnA, fnB, ep) => overlapCirclePoint(...a, ...b, exclude, ep),
-  },
-  line: {
-    // polygon: (a, b) =>
-    // circle: (a, b) =>
-    line: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    ray: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
-  },
-  ray: {
-    // polygon: (a, b) =>
-    // circle: (a, b) =>
-    line: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
-    ray: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
-  },
-  segment: {
-    // polygon: (a, b) =>
-    // circle: (a, b) =>
-    line: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
-    ray: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
-    segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
-    vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
-  },
-  vector: {
-    polygon: (a, b, fnA, fnB, ep) => overlapConvexPolygonPoint(...b, ...a, fnB, ep),
-    circle: (a, b, fnA, fnB, ep) => overlapCirclePoint(...b, ...a, exclude, ep),
-    line: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
-    ray: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
-    segment: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
-    vector: (a, b, fnA, fnB, ep) => fnEpsilonEqualVectors(...a, ...b, ep),
-  },
-};
-
-// convert "rect" to "polygon"
-const similar_overlap_types = {
-  polygon: "polygon",
-  rect: "polygon",
-  circle: "circle",
-  line: "line",
-  ray: "ray",
-  segment: "segment",
-  vector: "vector",
-};
-
-const default_overlap_domain_function = {
-  polygon: exclude,
-  rect: exclude,
-  circle: exclude, // not used
-  line: excludeL,
-  ray: excludeR,
-  segment: excludeS,
-  vector: excludeL, // not used
-};
-/**
- * @name overlap
- * @description test whether or not two geometry objects overlap each other.
- * @param {any} a any geometry object
- * @param {any} b any geometry object
- * @param {number} [epsilon=1e-6] optional epsilon
- * @returns {boolean} true if the two objects overlap.
- * @linkcode Math ./src/intersection/overlap.js 109
- */
-const overlap$1 = function (a, b, epsilon) {
-  const type_a = typeOf(a);
-  const type_b = typeOf(b);
-  const aT = similar_overlap_types[type_a];
-  const bT = similar_overlap_types[type_b];
-  const params_a = overlap_param_form[type_a](a);
-  const params_b = overlap_param_form[type_b](b);
-  const domain_a = a.domain_function || default_overlap_domain_function[type_a];
-  const domain_b = b.domain_function || default_overlap_domain_function[type_b];
-  return overlap_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
-};
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description does one polygon (outer) completely enclose another polygon (inner),
- * currently, this only works for convex polygons.
- * @param {number[][]} outer a 2D convex polygon
- * @param {number[][]} inner a 2D convex polygon
- * @param {function} [fnInclusive] by default, the boundary is considered inclusive
- * @returns {boolean} is the "inner" polygon completely inside the "outer"
- *
- * @todo: should one function be include and the other exclude?
- * @linkcode Math ./src/intersection/enclose-polygons.js 18
- */
-const enclosingPolygonPolygon = (outer, inner, fnInclusive=include) => {
-  // these points should be *not inside* (false)
-  const outerGoesInside = outer
-    .map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-    .reduce((a, b) => a || b, false);
-  // these points should be *inside* (true)
-  const innerGoesOutside = inner
-    .map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
-    .reduce((a, b) => a && b, true);
-  return (!outerGoesInside && innerGoesOutside);
-};
-
-/**
- * Math (c) Kraft
- */
-/**
- * @description Test if two axis-aligned bounding boxes overlap each other.
- * @param {BoundingBox} box1 an axis-aligned bounding box, the result of calling boundingBox(...)
- * @param {BoundingBox} box2 an axis-aligned bounding box, the result of calling boundingBox(...)
- * @returns {boolean} true if the bounding boxes overlap each other
- * @linkcode Math ./src/intersection/overlap-bounding-boxes.js 9
- */
-const overlapBoundingBoxes = (box1, box2) => {
-  const dimensions = box1.min.length > box2.min.length
-    ? box2.min.length
-    : box1.min.length;
-  for (let d = 0; d < dimensions; d++) {
-    // if one minimum is above the other's maximum, or visa versa
-    if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
-      return false;
-    }
-  }
-  return true;
-};
-
-/**
- * Math (c) Kraft
- */
-
 const lineLineParameter = (
-  lineVector, lineOrigin,
-  polyVector, polyOrigin,
-  polyLineFunc = includeS,
-  epsilon = EPSILON
+	lineVector,
+	lineOrigin,
+	polyVector,
+	polyOrigin,
+	polyLineFunc = includeS,
+	epsilon = EPSILON,
 ) => {
-  // a normalized determinant gives consistent values across all epsilon ranges
-  const det_norm = cross2(normalize(lineVector), normalize(polyVector));
-  // lines are parallel
-  if (Math.abs(det_norm) < epsilon) { return undefined; }
-  const determinant0 = cross2(lineVector, polyVector);
-  const determinant1 = -determinant0;
-  const a2b = subtract(polyOrigin, lineOrigin);
-  const b2a = flip(a2b);
-  const t0 = cross2(a2b, polyVector) / determinant0;
-  const t1 = cross2(b2a, lineVector) / determinant1;
-  if (polyLineFunc(t1, epsilon / magnitude(polyVector))) {
-    return t0;
-  }
-  return undefined;
+	// a normalized determinant gives consistent values across all epsilon ranges
+	const det_norm = cross2(normalize(lineVector), normalize(polyVector));
+	// lines are parallel
+	if (Math.abs(det_norm) < epsilon) { return undefined; }
+	const determinant0 = cross2(lineVector, polyVector);
+	const determinant1 = -determinant0;
+	const a2b = subtract(polyOrigin, lineOrigin);
+	const b2a = flip(a2b);
+	const t0 = cross2(a2b, polyVector) / determinant0;
+	const t1 = cross2(b2a, lineVector) / determinant1;
+	if (polyLineFunc(t1, epsilon / magnitude(polyVector))) {
+		return t0;
+	}
+	return undefined;
 };
 
 const linePointFromParameter = (vector, origin, t) => add(origin, scale(vector, t));
@@ -3298,31 +1908,34 @@ const linePointFromParameter = (vector, origin, t) => add(origin, scale(vector, 
 // - includeS or excludeS
 // sort them so we can grab the two most opposite intersections
 const getIntersectParameters = (poly, vector, origin, polyLineFunc, epsilon) => poly
-  // polygon into array of arrays [vector, origin]
-  .map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
-  .map(side => lineLineParameter(
-    vector, origin,
-    side[0], side[1],
-    polyLineFunc,
-    epsilon))
-  .filter(fnNotUndefined)
-  .sort((a, b) => a - b);
+	// polygon into array of arrays [vector, origin]
+	.map((p, i, arr) => [subtract(arr[(i + 1) % arr.length], p), p])
+	.map(side => lineLineParameter(
+		vector,
+		origin,
+		side[0],
+		side[1],
+		polyLineFunc,
+		epsilon,
+	))
+	.filter(fnNotUndefined)
+	.sort((a, b) => a - b);
 
 // we have already done the test that numbers is a valid array
 // and the length is >= 2
 const getMinMax = (numbers, func, scaled_epsilon) => {
-  let a = 0;
-  let b = numbers.length - 1;
-  while (a < b) {
-    if (func(numbers[a+1] - numbers[a], scaled_epsilon)) { break; }
-    a++;
-  }
-  while (b > a) {
-    if (func(numbers[b] - numbers[b-1], scaled_epsilon)) { break; }
-    b--;
-  }
-  if (a >= b) { return undefined; }
-  return [numbers[a], numbers[b]];
+	let a = 0;
+	let b = numbers.length - 1;
+	while (a < b) {
+		if (func(numbers[a + 1] - numbers[a], scaled_epsilon)) { break; }
+		a += 1;
+	}
+	while (b > a) {
+		if (func(numbers[b] - numbers[b - 1], scaled_epsilon)) { break; }
+		b -= 1;
+	}
+	if (a >= b) { return undefined; }
+	return [numbers[a], numbers[b]];
 };
 /**
  * @description find the overlap between one line and one convex polygon and
@@ -3332,39 +1945,45 @@ const getMinMax = (numbers, func, scaled_epsilon) => {
  * @param {number[]} vector the vector of the line
  * @param {number[]} origin the origin of the line
  * @param {function} [fnPoly=include] include or exclude polygon boundary in clip
- * @param {function} [fnLine=includeL] function to determine line/ray/segment, and inclusive or exclusive.
+ * @param {function} [fnLine=includeL] function to determine line/ray/segment,
+ * and inclusive or exclusive.
  * @param {number} [epsilon=1e-6] optional epsilon
+ * @linkcode Math ./src/geometry/clip-line-polygon.js 92
  */
 const clipLineConvexPolygon = (
-  poly,
-  vector,
-  origin,
-  fnPoly = include,
-  fnLine = includeL,
-  epsilon = EPSILON
+	poly,
+	vector,
+	origin,
+	fnPoly = include,
+	fnLine = includeL,
+	epsilon = EPSILON,
 ) => {
-  const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
-  if (numbers.length < 2) { return undefined; }
-  const scaled_epsilon = (epsilon * 2) / magnitude(vector);
-  // ends is now an array, length 2, of the min and max parameter on the line
-  // this also verifies the two intersections are not the same point
-  const ends = getMinMax(numbers, fnPoly, scaled_epsilon);
-  if (ends === undefined) { return undefined; }
-  // ends_clip is the intersection between 2 domains, the result
-  // and the valid inclusive/exclusive function
-  // todo: this line hardcodes the parameterization that segments and rays are cropping
-  // their lowest point at 0 and highest (if segment) at 1
-  const ends_clip = ends.map((t, i) => fnLine(t) ? t : (t < 0.5 ? 0 : 1));
-  // if endpoints are the same, exit
-  if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
-    return undefined;
-  }
-  // test if the solution is collinear to an edge by getting the segment midpoint
-  // then test inclusive or exclusive depending on user parameter
-  const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
-  return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon)
-    ? ends_clip.map(t => linePointFromParameter(vector, origin, t))
-    : undefined;
+	const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
+	if (numbers.length < 2) { return undefined; }
+	const scaled_epsilon = (epsilon * 2) / magnitude(vector);
+	// ends is now an array, length 2, of the min and max parameter on the line
+	// this also verifies the two intersections are not the same point
+	const ends = getMinMax(numbers, fnPoly, scaled_epsilon);
+	if (ends === undefined) { return undefined; }
+	// ends_clip is the intersection between 2 domains, the result
+	// and the valid inclusive/exclusive function
+	// todo: this line hardcodes the parameterization that segments and rays are cropping
+	// their lowest point at 0 and highest (if segment) at 1
+	const clip_fn = (t) => {
+		if (fnLine(t)) { return t; }
+		return t < 0.5 ? 0 : 1;
+	};
+	const ends_clip = ends.map(clip_fn);
+	// if endpoints are the same, exit
+	if (Math.abs(ends_clip[0] - ends_clip[1]) < (epsilon * 2) / magnitude(vector)) {
+		return undefined;
+	}
+	// test if the solution is collinear to an edge by getting the segment midpoint
+	// then test inclusive or exclusive depending on user parameter
+	const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
+	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon)
+		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
+		: undefined;
 };
 
 /**
@@ -3380,40 +1999,40 @@ const clipLineConvexPolygon = (
  * @param {number[][]} polygon2 an array of points, where each point is an array of numbers.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} a polygon as an array of points.
+ * @linkcode Math ./src/geometry/clip-polygon-polygon.js 15
  */
 const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
-	var cp1, cp2, s, e;
-	const inside = (p) => {
-		// console.log(p, "inside", ((cp2[0] - cp1[0]) * (p[1] - cp1[1]))
-		// 	> ((cp2[1] - cp1[1]) * (p[0] - cp1[0])));
-		return ((cp2[0] - cp1[0]) * (p[1] - cp1[1]))
-			> ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon);
-	};
+	let cp1;
+	let cp2;
+	let s;
+	let e;
+	const inside = (p) => (
+		(cp2[0] - cp1[0]) * (p[1] - cp1[1])) > ((cp2[1] - cp1[1]) * (p[0] - cp1[0]) + epsilon
+	);
 	const intersection = () => {
-		var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
-			dp = [ s[0] - e[0], s[1] - e[1] ],
-			n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
-			n2 = s[0] * e[1] - s[1] * e[0], 
-			n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-			// console.log("intersection res", [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3]);
-		return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+		const dc = [cp1[0] - cp2[0], cp1[1] - cp2[1]];
+		const dp = [s[0] - e[0], s[1] - e[1]];
+		const n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0];
+		const n2 = s[0] * e[1] - s[1] * e[0];
+		const n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+		// console.log("intersection res", [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3]);
+		return [(n1 * dp[0] - n2 * dc[0]) * n3, (n1 * dp[1] - n2 * dc[1]) * n3];
 	};
-	var outputList = polygon1;
-	cp1 = polygon2[polygon2.length-1];
-	for (var j in polygon2) {
+	let outputList = polygon1;
+	cp1 = polygon2[polygon2.length - 1];
+	for (let j in polygon2) {
 		cp2 = polygon2[j];
-		var inputList = outputList;
+		const inputList = outputList;
 		outputList = [];
 		s = inputList[inputList.length - 1];
-		for (var i in inputList) {
+		for (let i in inputList) {
 			e = inputList[i];
 			if (inside(e)) {
 				if (!inside(s)) {
 					outputList.push(intersection());
 				}
 				outputList.push(e);
-			}
-			else if (inside(s)) {
+			} else if (inside(s)) {
 				outputList.push(intersection());
 			}
 			s = e;
@@ -3426,19 +2045,1563 @@ const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 /**
  * Math (c) Kraft
  */
+/**
+ * measurements involving vectors and radians
+ */
+/**
+ * @description check if the first parameter is counter-clockwise between A and B.
+ * floor and ceiling can be unbounded, this method takes care of 0-2pi wrap around.
+ * @param {number} angle angle in radians
+ * @param {number} floor angle in radians, lower bound
+ * @param {number} ceiling angle in radians, upper bound
+ * @returns {boolean} is the angle between floor and ceiling
+ * @linkcode Math ./src/geometry/radial.js 38
+ */
+const isCounterClockwiseBetween = (angle, floor, ceiling) => {
+	while (ceiling < floor) { ceiling += TWO_PI; }
+	while (angle > floor) { angle -= TWO_PI; }
+	while (angle < floor) { angle += TWO_PI; }
+	return angle < ceiling;
+};
+/**
+ * @description There are 2 interior angles between 2 vectors (as an angle in radians),
+ * A-to-B clockwise, and A-to-B counter-clockwise. Get the clockwise one from A to B.
+ * @param {number} a vector as an angle in radians
+ * @param {number} b vector as an angle in radians
+ * @returns {number} interior angle in radians
+ * @linkcode Math ./src/geometry/radial.js 52
+ */
+const clockwiseAngleRadians = (a, b) => {
+	// this is on average 50 to 100 times faster than clockwiseAngle2
+	while (a < 0) { a += TWO_PI; }
+	while (b < 0) { b += TWO_PI; }
+	while (a > TWO_PI) { a -= TWO_PI; }
+	while (b > TWO_PI) { b -= TWO_PI; }
+	const a_b = a - b;
+	return (a_b >= 0)
+		? a_b
+		: TWO_PI - (b - a);
+};
+/**
+ * @description There are 2 interior angles between 2 vectors (as an angle in radians),
+ * A-to-B clockwise, and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
+ * @param {number} a vector as an angle in radians
+ * @param {number} b vector as an angle in radians
+ * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/geometry/radial.js 71
+ */
+const counterClockwiseAngleRadians = (a, b) => {
+	// this is on average 50 to 100 times faster than counterClockwiseAngle2
+	while (a < 0) { a += TWO_PI; }
+	while (b < 0) { b += TWO_PI; }
+	while (a > TWO_PI) { a -= TWO_PI; }
+	while (b > TWO_PI) { b -= TWO_PI; }
+	const b_a = b - a;
+	return (b_a >= 0)
+		? b_a
+		: TWO_PI - (a - b);
+};
+/**
+ * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
+ * and A-to-B counter-clockwise. Get the clockwise one from A to B.
+ * @param {number[]} a vector as an array of two numbers
+ * @param {number[]} b vector as an array of two numbers
+ * @returns {number} interior angle in radians, clockwise from a to b
+ * @linkcode Math ./src/geometry/radial.js 90
+ */
+const clockwiseAngle2 = (a, b) => {
+	const dotProduct = b[0] * a[0] + b[1] * a[1];
+	const determinant = b[0] * a[1] - b[1] * a[0];
+	let angle = Math.atan2(determinant, dotProduct);
+	if (angle < 0) { angle += TWO_PI; }
+	return angle;
+};
+/**
+ * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
+ * and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
+ * @param {number[]} a vector as an array of two numbers
+ * @param {number[]} b vector as an array of two numbers
+ * @returns {number} interior angle in radians, counter-clockwise from a to b
+ * @linkcode Math ./src/geometry/radial.js 105
+ */
+const counterClockwiseAngle2 = (a, b) => {
+	const dotProduct = a[0] * b[0] + a[1] * b[1];
+	const determinant = a[0] * b[1] - a[1] * b[0];
+	let angle = Math.atan2(determinant, dotProduct);
+	if (angle < 0) { angle += TWO_PI; }
+	return angle;
+};
+/**
+ * this calculates an angle bisection between the pair of vectors
+ * clockwise from the first vector to the second
+ *
+ *     a  x
+ *       /     . bisection
+ *      /   .
+ *     / .
+ *     --------x  b
+ */
+/**
+ * @description calculate the angle bisection clockwise from the first vector to the second.
+ * @param {number[]} a one 2D vector
+ * @param {number[]} b one 2D vector
+ * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/geometry/radial.js 129
+ */
+const clockwiseBisect2 = (a, b) => fnToVec2(fnVec2Angle(a) - clockwiseAngle2(a, b) / 2);
+/**
+ * @description calculate the angle bisection counter-clockwise from the first vector to the second.
+ * @param {number[]} a one 2D vector
+ * @param {number[]} b one 2D vector
+ * @returns {number[]} one 2D vector
+ * @linkcode Math ./src/geometry/radial.js 137
+ */
+const counterClockwiseBisect2 = (a, b) => (
+	fnToVec2(fnVec2Angle(a) + counterClockwiseAngle2(a, b) / 2)
+);
+/**
+ * @description subsect into n-divisions the angle clockwise from one angle to the next
+ * @param {number} divisions number of angles minus 1
+ * @param {number} angleA one angle in radians
+ * @param {number} angleB one angle in radians
+ * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/geometry/radial.js 148
+ */
+const clockwiseSubsectRadians = (divisions, angleA, angleB) => {
+	const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
+	return Array.from(Array(divisions - 1))
+		.map((_, i) => angleA + angle * (i + 1));
+};
+/**
+ * @description subsect into n-divisions the angle counter-clockwise from one angle to the next
+ * @param {number} divisions number of angles minus 1
+ * @param {number} angleA one angle in radians
+ * @param {number} angleB one angle in radians
+ * @returns {number[]} array of angles in radians
+ * @linkcode Math ./src/geometry/radial.js 161
+ */
+const counterClockwiseSubsectRadians = (divisions, angleA, angleB) => {
+	const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
+	return Array.from(Array(divisions - 1))
+		.map((_, i) => angleA + angle * (i + 1));
+};
+/**
+ * @description subsect into n-divisions the angle clockwise from one vector to the next
+ * @param {number} divisions number of angles minus 1
+ * @param {number[]} vectorA one vector in array form
+ * @param {number[]} vectorB one vector in array form
+ * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/geometry/radial.js 174
+ */
+const clockwiseSubsect2 = (divisions, vectorA, vectorB) => {
+	const angleA = Math.atan2(vectorA[1], vectorA[0]);
+	const angleB = Math.atan2(vectorB[1], vectorB[0]);
+	return clockwiseSubsectRadians(divisions, angleA, angleB)
+		.map(fnToVec2);
+};
+/**
+ * @description subsect into n-divisions the angle counter-clockwise from one vector to the next
+ * @param {number} divisions number of angles minus 1
+ * @param {number[]} vectorA one vector in array form
+ * @param {number[]} vectorB one vector in array form
+ * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @linkcode Math ./src/geometry/radial.js 188
+ */
+const counterClockwiseSubsect2 = (divisions, vectorA, vectorB) => {
+	const angleA = Math.atan2(vectorA[1], vectorA[0]);
+	const angleB = Math.atan2(vectorB[1], vectorB[0]);
+	return counterClockwiseSubsectRadians(divisions, angleA, angleB)
+		.map(fnToVec2);
+};
+/**
+ * @description given two lines, find two lines which bisect the given lines,
+ * if the given lines have an intersection, or return one line if they are parallel.
+ * @param {number[]} vectorA the vector of the first line, as an array of numbers
+ * @param {number[]} originA the origin of the first line, as an array of numbers
+ * @param {number[]} vectorB the vector of the first line, as an array of numbers
+ * @param {number[]} originB the origin of the first line, as an array of numbers
+ * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
+ * @returns {object[]} an array of objects with "vector" and "origin" keys defining a line
+ * @linkcode Math ./src/geometry/radial.js 205
+ */
+const bisectLines2 = (vectorA, originA, vectorB, originB, epsilon = EPSILON) => {
+	const determinant = cross2(vectorA, vectorB);
+	const dotProd = dot(vectorA, vectorB);
+	const bisects = determinant > -epsilon
+		? [counterClockwiseBisect2(vectorA, vectorB)]
+		: [clockwiseBisect2(vectorA, vectorB)];
+	bisects[1] = determinant > -epsilon
+		? rotate90(bisects[0])
+		: rotate270(bisects[0]);
+	const numerator = (originB[0] - originA[0]) * vectorB[1] - vectorB[0] * (originB[1] - originA[1]);
+	const t = numerator / determinant;
+	const normalized = [vectorA, vectorB].map(vec => normalize(vec));
+	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+	const origin = isParallel
+		? midpoint(originA, originB)
+		: [originA[0] + vectorA[0] * t, originA[1] + vectorA[1] * t];
+	const solution = bisects.map(vector => ({ vector, origin }));
+	if (isParallel) { delete solution[(dotProd > -epsilon ? 1 : 0)]; }
+	return solution;
+};
+/**
+ * @description sort an array of angles in radians by getting an array of
+ * reference indices to the input array, instead of an array of angles.
+ *
+ * maybe there is such thing as an absolute radial origin (x axis?)
+ * but this chooses the first element as the first element
+ * and sort everything else counter-clockwise around it.
+ *
+ * @param {number[]|...number} args array or sequence of angles in radians
+ * @returns {number[]} array of indices of the input array, indicating
+ * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/geometry/radial.js 238
+ */
+const counterClockwiseOrderRadians = function () {
+	const radians = Array.from(arguments).flat();
+	const counter_clockwise = radians
+		.map((_, i) => i)
+		.sort((a, b) => radians[a] - radians[b]);
+	return counter_clockwise
+		.slice(counter_clockwise.indexOf(0), counter_clockwise.length)
+		.concat(counter_clockwise.slice(0, counter_clockwise.indexOf(0)));
+};
+/**
+ * @description sort an array of vectors by getting an array of
+ * reference indices to the input array, instead of a sorted array of vectors.
+ * @param {number[][]} args array of vectors (which are arrays of numbers)
+ * @returns {number[]} array of indices of the input array, indicating
+ * the counter-clockwise sorted arrangement.
+ * @linkcode Math ./src/geometry/radial.js 255
+ */
+const counterClockwiseOrder2 = function () {
+	return counterClockwiseOrderRadians(
+		semiFlattenArrays(arguments).map(fnVec2Angle),
+	);
+};
+/**
+ * @description given an array of angles, return the sector angles between
+ * consecutive parameters. if radially unsorted, this will sort them.
+ * @param {number[]|...number} args array or sequence of angles in radians
+ * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/geometry/radial.js 267
+ */
+const counterClockwiseSectorsRadians = function () {
+	const radians = Array.from(arguments).flat();
+	const ordered = counterClockwiseOrderRadians(radians)
+		.map(i => radians[i]);
+	return ordered.map((rad, i, arr) => [rad, arr[(i + 1) % arr.length]])
+		.map(pair => counterClockwiseAngleRadians(pair[0], pair[1]));
+};
+/**
+ * @description given an array of vectors, return the sector angles between
+ * consecutive parameters. if radially unsorted, this will sort them.
+ * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
+ * @returns {number[]} array of sector angles in radians
+ * @linkcode Math ./src/geometry/radial.js 281
+ */
+const counterClockwiseSectors2 = function () {
+	return counterClockwiseSectorsRadians(
+		getVectorOfVectors(arguments).map(fnVec2Angle),
+	);
+};
+/**
+ * subsect the angle between two lines, can handle parallel lines
+ */
+// export const subsect = function (divisions, pointA, vectorA, pointB, vectorB) {
+//   const denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
+//   if (Math.abs(denominator) < EPSILON) { /* parallel */
+//     const solution = [midpoint(pointA, pointB), [vectorA[0], vectorA[1]]];
+//     const array = [solution, solution];
+//     const dot = vectorA[0] * vectorB[0] + vectorA[1] * vectorB[1];
+//     delete array[(dot > 0 ? 1 : 0)];
+//     return array;
+//   }
+//   const numerator = (pointB[0] - pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1] - pointA[1]);
+//   const t = numerator / denominator;
+//   const x = pointA[0] + vectorA[0] * t;
+//   const y = pointA[1] + vectorA[1] * t;
+//   const bisects = bisect_vectors(vectorA, vectorB);
+//   bisects[1] = [-bisects[0][1], bisects[0][0]];
+//   return bisects.map(el => [[x, y], el]);
+// };
+/**
+ * @description which turn direction do 3 points make? clockwise or couter-clockwise
+ * @param {number[]} p0 the start point
+ * @param {number[]} p1 the middle point
+ * @param {number[]} p2 the end point
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number|undefined} with 4 possible results:
+ * - "0": collinear, no turn, forward
+ * - "1": counter-clockwise turn, 0+epsilon < x < 180-epsilon
+ * - "-1": clockwise turn, 0-epsilon > x > -180+epsilon
+ * - "undefined": collinear but with a 180 degree turn.
+ * @linkcode Math ./src/geometry/radial.js 319
+ */
+const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
+	const v = normalize2(subtract2(p1, p0));
+	const u = normalize2(subtract2(p2, p0));
+	// not collinear
+	const cross = cross2(v, u);
+	if (!fnEpsilonEqual(cross, 0, epsilon)) {
+		return Math.sign(cross);
+	}
+	// collinear. now we have to ensure the order is 0, 1, 2, and point
+	// 1 lies between 0 and 2. otherwise we made a 180 degree turn (return undefined)
+	return fnEpsilonEqual(distance2(p0, p1) + distance2(p1, p2), distance2(p0, p2))
+		? 0
+		: undefined;
+};
+
+var radial = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	isCounterClockwiseBetween: isCounterClockwiseBetween,
+	clockwiseAngleRadians: clockwiseAngleRadians,
+	counterClockwiseAngleRadians: counterClockwiseAngleRadians,
+	clockwiseAngle2: clockwiseAngle2,
+	counterClockwiseAngle2: counterClockwiseAngle2,
+	clockwiseBisect2: clockwiseBisect2,
+	counterClockwiseBisect2: counterClockwiseBisect2,
+	clockwiseSubsectRadians: clockwiseSubsectRadians,
+	counterClockwiseSubsectRadians: counterClockwiseSubsectRadians,
+	clockwiseSubsect2: clockwiseSubsect2,
+	counterClockwiseSubsect2: counterClockwiseSubsect2,
+	bisectLines2: bisectLines2,
+	counterClockwiseOrderRadians: counterClockwiseOrderRadians,
+	counterClockwiseOrder2: counterClockwiseOrder2,
+	counterClockwiseSectorsRadians: counterClockwiseSectorsRadians,
+	counterClockwiseSectors2: counterClockwiseSectors2,
+	threePointTurnDirection: threePointTurnDirection
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description mirror an array and join it at the end, except
+ * do not duplicate the final element, it should only appear once.
+ */
+const mirror = (arr) => arr.concat(arr.slice(0, -1).reverse());
+/**
+ * @description Convex hull from a set of 2D points, choose whether to include or exclude
+ * points which lie collinear inside one of the boundary lines. modified Graham scan algorithm.
+ * @param {number[][]} points array of points, each point is an array of numbers
+ * @param {boolean} [includeCollinear=false] true to include points collinear along the boundary
+ * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
+ * @returns {number[]} not the points, but the indices of points in your "points" array
+ * @linkcode Math ./src/geometry/convex-hull.js 19
+ */
+const convexHullIndices = (points = [], includeCollinear = false, epsilon = EPSILON) => {
+	if (points.length < 2) { return []; }
+	const order = radialSortPointIndices(points, epsilon)
+		.map(arr => (arr.length === 1 ? arr : mirror(arr)))
+		.flat();
+	order.push(order[0]);
+	const stack = [order[0]];
+	let i = 1;
+	// threePointTurnDirection returns -1,0,1, with 0 as the collinear case.
+	// setup our operation for each case, depending on includeCollinear
+	const funcs = {
+		"-1": () => stack.pop(),
+		1: (next) => { stack.push(next); i += 1; },
+		undefined: () => { i += 1; },
+	};
+	funcs[0] = includeCollinear ? funcs["1"] : funcs["-1"];
+	while (i < order.length) {
+		if (stack.length < 2) {
+			stack.push(order[i]);
+			i += 1;
+			continue;
+		}
+		const prev = stack[stack.length - 2];
+		const curr = stack[stack.length - 1];
+		const next = order[i];
+		const turn = threePointTurnDirection(...[prev, curr, next].map(j => points[j]), epsilon);
+		funcs[turn](next);
+	}
+	stack.pop();
+	return stack;
+};
+/**
+ * @description Convex hull from a set of 2D points, choose whether to include or exclude
+ * points which lie collinear inside one of the boundary lines. modified Graham scan algorithm.
+ * @param {number[][]} points array of points, each point is an array of numbers
+ * @param {boolean} [includeCollinear=false] true to include points collinear along the boundary
+ * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
+ * @returns {number[][]} the convex hull as a list of points,
+ * where each point is an array of numbers
+ * @linkcode Math ./src/geometry/convex-hull.js 60
+ */
+const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => (
+	convexHullIndices(points, includeCollinear, epsilon)
+		.map(i => points[i]));
+
+var convexHull$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	convexHullIndices: convexHullIndices,
+	convexHull: convexHull
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description Find the intersection of two lines. Lines can be lines/rays/segments,
+ * and can be inclusve or exclusive in terms of their endpoints and the epsilon value.
+ * @param {number[]} vector array of 2 numbers, the first line's vector
+ * @param {number[]} origin array of 2 numbers, the first line's origin
+ * @param {number[]} vector array of 2 numbers, the second line's vector
+ * @param {number[]} origin array of 2 numbers, the second line's origin
+ * @param {function} [aFunction=includeL] first line's boolean test normalized value lies collinear
+ * @param {function} [bFunction=includeL] second line's boolean test normalized value lies collinear
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|undefined} one 2D point or undefined
+ * @linkcode Math ./src/intersection/intersect-line-line.js 26
+*/
+const intersectLineLine = (
+	aVector,
+	aOrigin,
+	bVector,
+	bOrigin,
+	aFunction = includeL,
+	bFunction = includeL,
+	epsilon = EPSILON,
+) => {
+	// a normalized determinant gives consistent values across all epsilon ranges
+	const det_norm = cross2(normalize(aVector), normalize(bVector));
+	// lines are parallel
+	if (Math.abs(det_norm) < epsilon) { return undefined; }
+	const determinant0 = cross2(aVector, bVector);
+	const determinant1 = -determinant0;
+	const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+	const b2a = [-a2b[0], -a2b[1]];
+	const t0 = cross2(a2b, bVector) / determinant0;
+	const t1 = cross2(b2a, aVector) / determinant1;
+	if (aFunction(t0, epsilon / magnitude(aVector))
+		&& bFunction(t1, epsilon / magnitude(bVector))) {
+		return add(aOrigin, scale(aVector, t0));
+	}
+	return undefined;
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const pleatParallel = (count, a, b) => {
+	const origins = Array.from(Array(count - 1))
+		.map((_, i) => (i + 1) / count)
+		.map(t => lerp(a.origin, b.origin, t));
+	const vector = [...a.vector];
+	return origins.map(origin => ({ origin, vector }));
+};
+
+const pleatAngle = (count, a, b) => {
+	const origin = intersectLineLine(a.vector, a.origin, b.vector, b.origin);
+	const vectors = clockwiseAngle2(a.vector, b.vector) < counterClockwiseAngle2(a.vector, b.vector)
+		? clockwiseSubsect2(count, a.vector, b.vector)
+		: counterClockwiseSubsect2(count, a.vector, b.vector);
+	return vectors.map(vector => ({ origin, vector }));
+};
+/**
+ * @description Between two lines, make a repeating sequence of
+ * evenly-spaced lines to simulate a series of pleats.
+ * @param {line} object with two keys/values: { vector: [], origin: [] }
+ * @param {line} object with two keys/values: { vector: [], origin: [] }
+ * @param {number} the number of faces, the number of lines will be n-1.
+ * @returns {line[]} an array of lines, objects which contain "vector" and "origin"
+ * @linkcode Math ./src/geometry/pleat.js 39
+ */
+const pleat = (count, a, b) => {
+	const lineA = getLine$1(a);
+	const lineB = getLine$1(b);
+	return parallel(lineA.vector, lineB.vector)
+		? pleatParallel(count, lineA, lineB)
+		: pleatAngle(count, lineA, lineB);
+};
+
+var pleat$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	pleat: pleat
+});
+
+/**
+ * Math (c) Kraft
+ */
+
+/**
+ * the radius parameter measures from the center to the midpoint of the edge
+ * vertex-axis aligned
+ * todo: also possible to parameterize the radius as the center to the points
+ * todo: can be edge-aligned
+ */
+const angleArray = count => Array
+	.from(Array(Math.floor(count)))
+	.map((_, i) => TWO_PI * (i / count));
+
+const anglesToVecs = (angles, radius) => angles
+	.map(a => [radius * Math.cos(a), radius * Math.sin(a)])
+	.map(pt => pt.map(n => cleanNumber(n, 14))); // this step is costly!
+// a = 2r tan(π/n)
+/**
+ * @description Make a regular polygon from a circumradius,
+ * the first point is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [circumradius=1] the polygon's circumradius
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 34
+ */
+const makePolygonCircumradius = (sides = 3, radius = 1) => (
+	anglesToVecs(angleArray(sides), radius)
+);
+/**
+ * @description Make a regular polygon from a circumradius,
+ * the middle of the first side is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [circumradius=1] the polygon's circumradius
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 45
+ */
+const makePolygonCircumradiusSide = (sides = 3, radius = 1) => {
+	const halfwedge = Math.PI / sides;
+	const angles = angleArray(sides).map(a => a + halfwedge);
+	return anglesToVecs(angles, radius);
+};
+/**
+ * @description Make a regular polygon from a inradius,
+ * the first point is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [inradius=1] the polygon's inradius
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 58
+ */
+const makePolygonInradius = (sides = 3, radius = 1) => (
+	makePolygonCircumradius(sides, radius / Math.cos(Math.PI / sides)));
+/**
+ * @description Make a regular polygon from a inradius,
+ * the middle of the first side is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [inradius=1] the polygon's inradius
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 68
+ */
+const makePolygonInradiusSide = (sides = 3, radius = 1) => (
+	makePolygonCircumradiusSide(sides, radius / Math.cos(Math.PI / sides)));
+/**
+ * @description Make a regular polygon from a side length,
+ * the first point is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [length=1] the polygon's side length
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 78
+ */
+const makePolygonSideLength = (sides = 3, length = 1) => (
+	makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides)));
+/**
+ * @description Make a regular polygon from a side length,
+ * the middle of the first side is +X aligned.
+ * @param {number} sides the number of sides in the polygon
+ * @param {number} [length=1] the polygon's side length
+ * @returns {number[][]} an array of points, each point as an arrays of numbers
+ * @linkcode Math ./src/geometry/polygons.js 88
+ */
+const makePolygonSideLengthSide = (sides = 3, length = 1) => (
+	makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides)));
+/**
+ * @description Remove any collinear vertices from a n-dimensional polygon.
+ * @param {number[][]} polygon a polygon as an array of ordered points in array form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]} a copy of the polygon with collinear points removed
+ * @linkcode Math ./src/geometry/polygons.js 97
+ */
+const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
+	// index map [i] to [i, i+1]
+	const edges_vector = polygon
+		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+		.map(pair => subtract(pair[1], pair[0]));
+	// the vertex to be removed. true=valid, false=collinear.
+	// ask if an edge is parallel to its predecessor, this way,
+	// the edge index will match to the collinear vertex.
+	const vertex_collinear = edges_vector
+		.map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
+		.map(pair => !parallel(pair[1], pair[0], epsilon));
+	return polygon
+		.filter((vertex, v) => vertex_collinear[v]);
+};
+/**
+ * @description Calculates the circumcircle which lies on three points.
+ * @param {number[]} a one 2D point as an array of numbers
+ * @param {number[]} b one 2D point as an array of numbers
+ * @param {number[]} c one 2D point as an array of numbers
+ * @returns {circle} one circle with keys "radius" (number) and "origin" (number[])
+ * @linkcode Math ./src/geometry/polygons.js 119
+ */
+const circumcircle = function (a, b, c) {
+	const A = b[0] - a[0];
+	const B = b[1] - a[1];
+	const C = c[0] - a[0];
+	const D = c[1] - a[1];
+	const E = A * (a[0] + b[0]) + B * (a[1] + b[1]);
+	const F = C * (a[0] + c[0]) + D * (a[1] + c[1]);
+	const G = 2 * (A * (c[1] - b[1]) - B * (c[0] - b[0]));
+	if (Math.abs(G) < EPSILON) {
+		const minx = Math.min(a[0], b[0], c[0]);
+		const miny = Math.min(a[1], b[1], c[1]);
+		const dx = (Math.max(a[0], b[0], c[0]) - minx) * 0.5;
+		const dy = (Math.max(a[1], b[1], c[1]) - miny) * 0.5;
+		return {
+			origin: [minx + dx, miny + dy],
+			radius: Math.sqrt(dx * dx + dy * dy),
+		};
+	}
+	const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
+	const dx = origin[0] - a[0];
+	const dy = origin[1] - a[1];
+	return {
+		origin,
+		radius: Math.sqrt(dx * dx + dy * dy),
+	};
+};
+/**
+ * @description Calculates the signed area of a polygon.
+ * This requires the polygon be non-self-intersecting.
+ * @param {number[][]} points an array of 2D points, which are arrays of numbers
+ * @returns {number} the area of the polygon
+ * @example
+ * var area = polygon.signedArea([ [1,2], [5,6], [7,0] ])
+ * @linkcode Math ./src/geometry/polygons.js 154
+ */
+const signedArea = points => 0.5 * points
+	.map((el, i, arr) => {
+		const next = arr[(i + 1) % arr.length];
+		return el[0] * next[1] - next[0] * el[1];
+	}).reduce(fnAdd, 0);
+/**
+ * @description Calculates the centroid or the center of mass of the polygon.
+ * @param {number[][]} points an array of 2D points, which are arrays of numbers
+ * @returns {number[]} one 2D point as an array of numbers
+ * @example
+ * var centroid = polygon.centroid([ [1,2], [8,9], [8,0] ])
+ * @linkcode Math ./src/geometry/polygons.js 167
+ */
+const centroid = (points) => {
+	const sixthArea = 1 / (6 * signedArea(points));
+	return points.map((el, i, arr) => {
+		const next = arr[(i + 1) % arr.length];
+		const mag = el[0] * next[1] - next[0] * el[1];
+		return [(el[0] + next[0]) * mag, (el[1] + next[1]) * mag];
+	}).reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+		.map(c => c * sixthArea);
+};
+/**
+ * @description Make an axis-aligned bounding box that encloses a set of points.
+ * the optional padding is used to make the bounding box inclusive / exclusive
+ * by adding padding on all sides, or inset in the case of negative number.
+ * (positive=inclusive boundary, negative=exclusive boundary)
+ * @param {number[][]} points an array of unsorted points, in any dimension
+ * @param {number} [padding=0] optionally add padding around the box
+ * @returns {BoundingBox} an object where "min" and "max" are two points and "span" is the lengths
+ * @linkcode Math ./src/geometry/polygons.js 186
+ */
+const boundingBox = (points, padding = 0) => {
+	const min = Array(points[0].length).fill(Infinity);
+	const max = Array(points[0].length).fill(-Infinity);
+	points.forEach(point => point
+		.forEach((c, i) => {
+			if (c < min[i]) { min[i] = c - padding; }
+			if (c > max[i]) { max[i] = c + padding; }
+		}));
+	const span = max.map((m, i) => m - min[i]);
+	return { min, max, span };
+};
+
+var polygons = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	makePolygonCircumradius: makePolygonCircumradius,
+	makePolygonCircumradiusSide: makePolygonCircumradiusSide,
+	makePolygonInradius: makePolygonInradius,
+	makePolygonInradiusSide: makePolygonInradiusSide,
+	makePolygonSideLength: makePolygonSideLength,
+	makePolygonSideLengthSide: makePolygonSideLengthSide,
+	makePolygonNonCollinear: makePolygonNonCollinear,
+	circumcircle: circumcircle,
+	signedArea: signedArea,
+	centroid: centroid,
+	boundingBox: boundingBox
+});
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description check if a point lies collinear along a line, and specify if the
+ * line is a line/ray/segment and test whether the point lies within endpoint(s).
+ * @param {number[]} vector the vector component of the line
+ * @param {number[]} origin the origin component of the line
+ * @param {number[]} point one 2D point
+ * @parma {function} [func=excludeL] specify line/ray/segment and inclusive/exclusive
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
+ * @returns {boolean} is the point collinear to the line, and in the case of ray/segment,
+ * does the point lie within the bounds of the ray/segment?
+ * @linkcode Math ./src/intersection/overlap-line-point.js 22
+ */
+const overlapLinePoint = (vector, origin, point, func = excludeL, epsilon = EPSILON) => {
+	const p2p = subtract(point, origin);
+	const lineMagSq = magSquared(vector);
+	const lineMag = Math.sqrt(lineMagSq);
+	// the line is degenerate
+	if (lineMag < epsilon) { return false; }
+	const cross = cross2(p2p, vector.map(n => n / lineMag));
+	const proj = dot(p2p, vector) / lineMagSq;
+	return Math.abs(cross) < epsilon && func(proj, epsilon / lineMag);
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description Split a convex polygon by a line and rebuild each half into two convex polygons.
+ * @param {number[][]} polygon an array of points, each point is an array of numbers
+ * @param {number[]} vector the vector component of the line
+ * @param {number[]} origin the origin component of the line
+ * @returns {number[][][]} an array of one or two polygons, each polygon is an array of points,
+ * each point is an array of numbers.
+ * @linkcode Math ./src/geometry/split-polygon.js 19
+ */
+const splitConvexPolygon = (poly, lineVector, linePoint) => {
+	// todo: should this return undefined if no intersection?
+	//       or the original poly?
+
+	//    point: intersection [x,y] point or null if no intersection
+	// at_index: where in the polygon this occurs
+	const vertices_intersections = poly.map((v, i) => {
+		const intersection = overlapLinePoint(lineVector, linePoint, v, includeL);
+		return { point: intersection ? v : null, at_index: i };
+	}).filter(el => el.point != null);
+	const edges_intersections = poly.map((v, i, arr) => ({
+		point: intersectLineLine(
+			lineVector,
+			linePoint,
+			subtract(v, arr[(i + 1) % arr.length]),
+			arr[(i + 1) % arr.length],
+			excludeL,
+			excludeS,
+		),
+		at_index: i,
+	}))
+		.filter(el => el.point != null);
+
+	// three cases: intersection at 2 edges, 2 points, 1 edge and 1 point
+	if (edges_intersections.length === 2) {
+		const sorted_edges = edges_intersections.slice()
+			.sort((a, b) => a.at_index - b.at_index);
+
+		const face_a = poly
+			.slice(sorted_edges[1].at_index + 1)
+			.concat(poly.slice(0, sorted_edges[0].at_index + 1));
+		face_a.push(sorted_edges[0].point);
+		face_a.push(sorted_edges[1].point);
+
+		const face_b = poly
+			.slice(sorted_edges[0].at_index + 1, sorted_edges[1].at_index + 1);
+		face_b.push(sorted_edges[1].point);
+		face_b.push(sorted_edges[0].point);
+		return [face_a, face_b];
+	}
+	if (edges_intersections.length === 1 && vertices_intersections.length === 1) {
+		vertices_intersections[0].type = "v";
+		edges_intersections[0].type = "e";
+		const sorted_geom = vertices_intersections.concat(edges_intersections)
+			.sort((a, b) => a.at_index - b.at_index);
+
+		const face_a = poly.slice(sorted_geom[1].at_index + 1)
+			.concat(poly.slice(0, sorted_geom[0].at_index + 1));
+		if (sorted_geom[0].type === "e") { face_a.push(sorted_geom[0].point); }
+		face_a.push(sorted_geom[1].point); // todo: if there's a bug, it's here. switch this
+
+		const face_b = poly
+			.slice(sorted_geom[0].at_index + 1, sorted_geom[1].at_index + 1);
+		if (sorted_geom[1].type === "e") { face_b.push(sorted_geom[1].point); }
+		face_b.push(sorted_geom[0].point); // todo: if there's a bug, it's here. switch this
+		return [face_a, face_b];
+	}
+	if (vertices_intersections.length === 2) {
+		const sorted_vertices = vertices_intersections.slice()
+			.sort((a, b) => a.at_index - b.at_index);
+		const face_a = poly
+			.slice(sorted_vertices[1].at_index)
+			.concat(poly.slice(0, sorted_vertices[0].at_index + 1));
+		const face_b = poly
+			.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index + 1);
+		return [face_a, face_b];
+	}
+	return [poly.slice()];
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description this recursive algorithm works outwards-to-inwards, each repeat
+ * decreases the size of the polygon by one point/side. (removes 2, adds 1)
+ * and repeating the algorithm on the smaller polygon.
+ *
+ * @param {number[][]} array of point objects (arrays of numbers, [x, y]). the
+ *   counter-clockwise sorted points of the polygon. as we recurse this list shrinks
+ *   by removing the points that are "finished".
+ *
+ * @returns {object[]} array of line segments as objects with keys:
+ *   "points": array of 2 points in array form [ [x, y], [x, y] ]
+ *   "type": "skeleton" or "kawasaki", the latter being the projected perpendicular
+ *   dropped edges down to the sides of the polygon.
+ */
+const recurseSkeleton = (points, lines, bisectors) => {
+	// every point has an interior angle bisector vector, this ray is
+	// tested for intersections with its neighbors on both sides.
+	// "intersects" is fencepost mapped (i) to "points" (i, i+1)
+	// because one point/ray intersects with both points on either side,
+	// so in reverse, every point (i) relates to intersection (i-1, i)
+	const intersects = points
+		// .map((p, i) => math.ray(bisectors[i], p))
+		// .map((ray, i, arr) => ray.intersect(arr[(i + 1) % arr.length]));
+		.map((origin, i) => ({ vector: bisectors[i], origin }))
+		.map((ray, i, arr) => intersectLineLine(
+			ray.vector,
+			ray.origin,
+			arr[(i + 1) % arr.length].vector,
+			arr[(i + 1) % arr.length].origin,
+			excludeR,
+			excludeR,
+		));
+	// project each intersection point down perpendicular to the edge of the polygon
+	// const projections = lines.map((line, i) => line.nearestPoint(intersects[i]));
+	const projections = lines.map((line, i) => (
+		nearestPointOnLine(line.vector, line.origin, intersects[i], a => a)
+	));
+	// when we reach only 3 points remaining, we are at the end. we can return early
+	// and skip unnecessary calculations, all 3 projection lengths will be the same.
+	if (points.length === 3) {
+		return points.map(p => ({ type: "skeleton", points: [p, intersects[0]] }))
+			.concat([{ type: "perpendicular", points: [projections[0], intersects[0]] }]);
+	}
+	// measure the lengths of the projected lines, these will be used to identify
+	// the smallest length, or the point we want to operate on this round.
+	const projectionLengths = intersects
+		.map((intersect, i) => distance(intersect, projections[i]));
+	let shortest = 0;
+	projectionLengths.forEach((len, i) => {
+		if (len < projectionLengths[shortest]) { shortest = i; }
+	});
+	// we have the shortest length, we now have the solution for this round
+	// (all that remains is to prepare the arguments for the next recursive call)
+	const solutions = [
+		{
+			type: "skeleton",
+			points: [points[shortest], intersects[shortest]],
+		},
+		{
+			type: "skeleton",
+			points: [points[(shortest + 1) % points.length], intersects[shortest]],
+		},
+		// perpendicular projection
+		// we could expand this algorithm here to include all three instead of just one.
+		// two more of the entries in "intersects" will have the same length as shortest
+		{ type: "perpendicular", points: [projections[shortest], intersects[shortest]] },
+		// ...projections.map(p => ({ type: "perpendicular", points: [p, intersects[shortest]] }))
+	];
+	// our new smaller polygon, missing two points now, but gaining one more (the intersection)
+	// this is to calculate the new angle bisector at this new point.
+	// we are now operating on the inside of the polygon, the lines that will be built from
+	// this bisection will become interior skeleton lines.
+	// first, flip the first vector so that both of the vectors originate at the
+	// center point, and extend towards the neighbors.
+	const newVector = clockwiseBisect2(
+		flip(lines[(shortest + lines.length - 1) % lines.length].vector),
+		lines[(shortest + 1) % lines.length].vector,
+	);
+	// delete 2 entries from "points" and "bisectors" and add each array's new element.
+	// delete 1 entry from lines.
+	const shortest_is_last_index = shortest === points.length - 1;
+	points.splice(shortest, 2, intersects[shortest]);
+	lines.splice(shortest, 1);
+	bisectors.splice(shortest, 2, newVector);
+	if (shortest_is_last_index) {
+		// in the case the index was at the end of the array,
+		// we tried to remove two elements but only removed one because
+		// it was the last element. remove the first element too.
+		points.splice(0, 1);
+		bisectors.splice(0, 1);
+		// also, the fencepost mapping of the lines array is off by one,
+		// move the first element to the end of the array.
+		lines.push(lines.shift());
+	}
+	return solutions.concat(recurseSkeleton(points, lines, bisectors));
+};
+/**
+ * @description create a straight skeleton inside of a convex polygon
+ * @param {number[][]} points counter-clockwise polygon as an array of points
+ * (which are arrays of numbers)
+ * @returns {object[]} list of objects containing "points" {number[][]}: two points
+ * defining a line segment, and "type" {string}: either "skeleton" or "perpendicular"
+ *
+ * make sure:
+ *  - your polygon is convex (todo: make this algorithm work with non-convex)
+ *  - your polygon points are sorted counter-clockwise
+ * @linkcode Math ./src/geometry/straight-skeleton.js 123
+ */
+const straightSkeleton = (points) => {
+	// first time running this function, create the 2nd and 3rd parameters
+	// convert the edges of the polygons into lines
+	const lines = points
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
+		// .map(side => math.line.fromPoints(...side));
+		.map(side => ({ vector: subtract(side[1], side[0]), origin: side[0] }));
+	// get the interior angle bisectors for every corner of the polygon
+	// index map match to "points"
+	const bisectors = points
+		// each element into 3 (previous, current, next)
+		.map((_, i, ar) => [(i - 1 + ar.length) % ar.length, i, (i + 1) % ar.length]
+			.map(j => ar[j]))
+		// make 2 vectors, from current point to previous/next neighbors
+		.map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
+		// it is a little counter-intuitive but the interior angle between three
+		// consecutive points in a counter-clockwise wound polygon is measured
+		// in the clockwise direction
+		.map(v => clockwiseBisect2(...v));
+	// points is modified in place. create a copy
+	// const points_clone = JSON.parse(JSON.stringify(points));
+	// console.log("ss points", points_clone, points);
+	return recurseSkeleton([...points], lines, bisectors);
+};
+
+/**
+ * @description Check if a point is collinear and between two other points.
+ * @param {number[]} p0 a segment point
+ * @param {number[]} p1 the point to test collinearity
+ * @param {number[]} p2 a segment point
+ * @param {boolean} [inclusive=false] if the point is the same as the endpoints
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean} true if the point lies collinear and between the other two points.
+ * @linkcode Math ./src/intersection/general.js 19
+ */
+const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
+	const similar = [p0, p2]
+		.map(p => fnEpsilonEqualVectors(p1, p))
+		.reduce((a, b) => a || b, false);
+	if (similar) { return inclusive; }
+	const vectors = [[p0, p1], [p1, p2]]
+		.map(segment => subtract(segment[1], segment[0]))
+		.map(vector => normalize(vector));
+	return fnEpsilonEqual(1.0, dot(...vectors), epsilon);
+};
+
+var generalIntersect = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	collinearBetween: collinearBetween
+});
+
+/**
+ * Math (c) Kraft
+ */
+
+const acosSafe = (x) => {
+	if (x >= 1.0) return 0;
+	if (x <= -1.0) return Math.PI;
+	return Math.acos(x);
+};
+
+const rotateVector2 = (center, pt, a) => {
+	const x = pt[0] - center[0];
+	const y = pt[1] - center[1];
+	const xRot = x * Math.cos(a) + y * Math.sin(a);
+	const yRot = y * Math.cos(a) - x * Math.sin(a);
+	return [center[0] + xRot, center[1] + yRot];
+};
+/**
+ * @description calculate the intersection of two circles, resulting in either no intersection,
+ * or one or two points.
+ * @param {number} radius1 the first circle's radius
+ * @param {number[]} origin1 the first circle's origin
+ * @param {number} radius2 the second circle's radius
+ * @param {number[]} origin2 the second circle's origin
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {number[][]|undefined} an array of one or two points, or undefined if no intersection
+ * @linkcode Math ./src/intersection/intersect-circle-circle.js 28
+ */
+const intersectCircleCircle = (c1_radius, c1_origin, c2_radius, c2_origin, epsilon = EPSILON) => {
+	// sort by largest-smallest radius
+	const r = (c1_radius < c2_radius) ? c1_radius : c2_radius;
+	const R = (c1_radius < c2_radius) ? c2_radius : c1_radius;
+	const smCenter = (c1_radius < c2_radius) ? c1_origin : c2_origin;
+	const bgCenter = (c1_radius < c2_radius) ? c2_origin : c1_origin;
+	// this is also the starting vector to rotate around the big circle
+	const vec = [smCenter[0] - bgCenter[0], smCenter[1] - bgCenter[1]];
+	const d = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+	// infinite solutions // don't need this because the below case covers it
+	// if (d < epsilon && Math.abs(R - r) < epsilon) { return undefined; }
+	// no intersection (same center, different size)
+	if (d < epsilon) { return undefined; }
+	const point = vec.map((v, i) => (v / d) * R + bgCenter[i]);
+	// kissing circles
+	if (Math.abs((R + r) - d) < epsilon
+		|| Math.abs(R - (r + d)) < epsilon) { return [point]; }
+	// circles are contained
+	if ((d + r) < R || (R + r < d)) { return undefined; }
+	const angle = acosSafe((r * r - d * d - R * R) / (-2.0 * d * R));
+	const pt1 = rotateVector2(bgCenter, point, +angle);
+	const pt2 = rotateVector2(bgCenter, point, -angle);
+	return [pt1, pt2];
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description Calculate the intersection of a circle and a line; the line can
+ * be a line, ray, or segment.
+ * @param {number} circleRadius the circle's radius
+ * @param {number[]} circleOrigin the center of the circle
+ * @param {number[]} lineVector the vector component of the line
+ * @param {number[]} lineOrigin the origin component of the line
+ * @param {function} [lineFunc=includeL] set the line/ray/segment and inclusive/exclusive
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @linkcode Math ./src/intersection/intersect-circle-line.js 20
+ */
+const intersectCircleLine = (
+	circle_radius,
+	circle_origin,
+	line_vector,
+	line_origin,
+	line_func = includeL,
+	epsilon = EPSILON,
+) => {
+	const magSq = line_vector[0] ** 2 + line_vector[1] ** 2;
+	const mag = Math.sqrt(magSq);
+	const norm = mag === 0 ? line_vector : line_vector.map(c => c / mag);
+	const rot90 = rotate90(norm);
+	const bvec = subtract(line_origin, circle_origin);
+	const det = cross2(bvec, norm);
+	if (Math.abs(det) > circle_radius + epsilon) { return undefined; }
+	const side = Math.sqrt((circle_radius ** 2) - (det ** 2));
+	const f = (s, i) => circle_origin[i] - rot90[i] * det + norm[i] * s;
+	const results = Math.abs(circle_radius - Math.abs(det)) < epsilon
+		? [side].map((s) => [s, s].map(f)) // tangent to circle
+		: [-side, side].map((s) => [s, s].map(f));
+	const ts = results.map(res => res.map((n, i) => n - line_origin[i]))
+		.map(v => v[0] * line_vector[0] + line_vector[1] * v[1])
+		.map(d => d / magSq);
+	return results.filter((_, i) => line_func(ts[i], epsilon));
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// todo, this is copied over in clip/polygon.js
+const getUniquePair = (intersections) => {
+	for (let i = 1; i < intersections.length; i += 1) {
+		if (!fnEpsilonEqualVectors(intersections[0], intersections[i])) {
+			return [intersections[0], intersections[i]];
+		}
+	}
+	return undefined;
+};
+
+/**
+ * generalized line-ray-segment intersection with convex polygon function
+ * for lines and rays, line1 and line2 are the vector, origin in that order.
+ * for segments, line1 and line2 are the two endpoints.
+ */
+const intersectConvexPolygonLineInclusive = (
+	poly,
+	vector,
+	origin,
+	fn_poly = includeS,
+	fn_line = includeL,
+	epsilon = EPSILON,
+) => {
+	const intersections = poly
+		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]) // into segment pairs
+		.map(side => intersectLineLine(
+			subtract(side[1], side[0]),
+			side[0],
+			vector,
+			origin,
+			fn_poly,
+			fn_line,
+			epsilon,
+		))
+		.filter(a => a !== undefined);
+	switch (intersections.length) {
+	case 0: return undefined;
+	case 1: return [intersections];
+	default:
+		// for two intersection points or more, in the case of vertex-
+		// collinear intersections the same point from 2 polygon sides
+		// can be returned. we need to filter for unique points.
+		// if no 2 unique points found:
+		// there was only one unique intersection point after all.
+		return getUniquePair(intersections) || [intersections[0]];
+	}
+};
+
+/**
+ * @description generalized line-ray-segment intersection with convex polygon function
+ * for lines and rays, line1 and line2 are the vector, origin in that order.
+ * for segments, line1 and line2 are the two endpoints.
+ *
+ * this doubles as the exclusive condition, and the main export since it
+ * checks for exclusive/inclusive and can early-return
+ * @linkcode Math ./src/intersection/intersect-polygon-line.js 78
+ */
+const intersectConvexPolygonLine = (
+	poly,
+	vector,
+	origin,
+	fn_poly = includeS,
+	fn_line = excludeL,
+	epsilon = EPSILON,
+) => {
+	const sects = intersectConvexPolygonLineInclusive(
+		poly,
+		vector,
+		origin,
+		fn_poly,
+		fn_line,
+		epsilon,
+	);
+	// const sects = convex_poly_line_intersect(intersect_func, poly, line1, line2, epsilon);
+	let altFunc; // the opposite func, as far as inclusive/exclusive
+	switch (fn_line) {
+	// case excludeL: altFunc = includeL; break;
+	case excludeR: altFunc = includeR; break;
+	case excludeS: altFunc = includeS; break;
+	default: return sects;
+	}
+	// here on, we are only dealing with exclusive tests, parsing issues with
+	// vertex-on intersections that still intersect or don't intersect the polygon.
+	// repeat the computation but include intersections with the polygon's vertices.
+	const includes = intersectConvexPolygonLineInclusive(
+		poly,
+		vector,
+		origin,
+		includeS,
+		altFunc,
+		epsilon,
+	);
+	// const includes = convex_poly_line_intersect(altFunc, poly, line1, line2, epsilon);
+	// if there are still no intersections, the line doesn't intersect.
+	if (includes === undefined) { return undefined; }
+	// if there are intersections, see if the line crosses the entire polygon
+	// (gives us 2 unique points)
+	const uniqueIncludes = getUniquePair(includes);
+	// first, deal with the case that there are no unique 2 points.
+	if (uniqueIncludes === undefined) {
+		switch (fn_line) {
+		// if there is one intersection, check if a ray's origin is inside.
+		// 1. if the origin is inside, consider the intersection valid
+		// 2. if the origin is outside, same as the line case above. no intersection.
+		case excludeR:
+			// is the ray origin inside?
+			return overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+				? includes
+				: undefined;
+		// if there is one intersection, check if either of a segment's points are
+		// inside the polygon, same as the ray above. if neither are, consider
+		// the intersection invalid for the exclusive case.
+		case excludeS:
+			return overlapConvexPolygonPoint(poly, add(origin, vector), exclude, epsilon)
+				|| overlapConvexPolygonPoint(poly, origin, exclude, epsilon)
+				? includes
+				: undefined;
+		// if there is one intersection, an infinite line is intersecting the
+		// polygon from the outside touching at just one vertex. this should be
+		// considered undefined for the exclusive case.
+		case excludeL: return undefined;
+		default: return undefined;
+		}
+	}
+	// now that we've covered all the other cases, we know that the line intersects
+	// the polygon at two unique points. this should return true for all cases
+	// except one: when the line is collinear to an edge of the polygon.
+	// to test this, get the midpoint of the two intersects and do an exclusive
+	// check if the midpoint is inside the polygon. if it is, the line is crossing
+	// the polygon and the intersection is valid.
+	return overlapConvexPolygonPoint(poly, midpoint(...uniqueIncludes), exclude, epsilon)
+		? uniqueIncludes
+		: sects;
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// all intersection functions expect primitives to be in a certain form
+// for example all lines are: vector, origin
+const intersect_param_form = {
+	polygon: a => [a],
+	rect: a => [a],
+	circle: a => [a.radius, a.origin],
+	line: a => [a.vector, a.origin],
+	ray: a => [a.vector, a.origin],
+	segment: a => [a.vector, a.origin],
+	// segment: a => [subtract(a[1], a[0]), a[0]],
+};
+
+const intersect_func = {
+	polygon: {
+		// polygon: intersectPolygonPolygon,
+		// circle: convex_poly_circle,
+		line: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
+		ray: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...a, ...b, includeS, fnB, ep),
+	},
+	circle: {
+		// polygon: (a, b) => convex_poly_circle(b, a),
+		circle: (a, b, fnA, fnB, ep) => intersectCircleCircle(...a, ...b, ep),
+		line: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
+		ray: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => intersectCircleLine(...a, ...b, fnB, ep),
+	},
+	line: {
+		polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
+		circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
+		line: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+		ray: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+	},
+	ray: {
+		polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
+		circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
+		line: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
+		ray: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+	},
+	segment: {
+		polygon: (a, b, fnA, fnB, ep) => intersectConvexPolygonLine(...b, ...a, includeS, fnA, ep),
+		circle: (a, b, fnA, fnB, ep) => intersectCircleLine(...b, ...a, fnA, ep),
+		line: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
+		ray: (a, b, fnA, fnB, ep) => intersectLineLine(...b, ...a, fnB, fnA, ep),
+		segment: (a, b, fnA, fnB, ep) => intersectLineLine(...a, ...b, fnA, fnB, ep),
+	},
+};
+
+// convert "rect" to "polygon"
+const similar_intersect_types = {
+	polygon: "polygon",
+	rect: "polygon",
+	circle: "circle",
+	line: "line",
+	ray: "ray",
+	segment: "segment",
+};
+
+const default_intersect_domain_function = {
+	polygon: exclude, // not used
+	rect: exclude, // not used
+	circle: exclude, // not used
+	line: excludeL,
+	ray: excludeR,
+	segment: excludeS,
+};
+
+/**
+ * @name intersect
+ * @description get the intersection of two geometry objects, the type of each is inferred.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {number[]|number[][]|undefined} the type of the result varies depending on
+ * the type of the input parameters, it is always one point, or an array of points,
+ * or undefined if no intersection.
+ * @linkcode Math ./src/intersection/intersect.js 92
+ */
+const intersect$1 = function (a, b, epsilon) {
+	const type_a = typeOf(a);
+	const type_b = typeOf(b);
+	const aT = similar_intersect_types[type_a];
+	const bT = similar_intersect_types[type_b];
+	const params_a = intersect_param_form[type_a](a);
+	const params_b = intersect_param_form[type_b](b);
+	const domain_a = a.domain_function || default_intersect_domain_function[type_a];
+	const domain_b = b.domain_function || default_intersect_domain_function[type_b];
+	return intersect_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description find out if two convex polygons are overlapping by searching
+ * for a dividing axis, which should be one side from one of the polygons.
+ * @linkcode Math ./src/intersection/overlap-polygons.js 13
+ */
+const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
+	for (let p = 0; p < 2; p += 1) {
+		// for non-overlapping convex polygons, it's possible that only only
+		// one edge on one polygon holds the property of being a dividing axis.
+		// we must run the algorithm on both polygons
+		const polyA = p === 0 ? poly1 : poly2;
+		const polyB = p === 0 ? poly2 : poly1;
+		for (let i = 0; i < polyA.length; i += 1) {
+			// each edge of polygonA will become a line
+			const origin = polyA[i];
+			const vector = rotate90(subtract(polyA[(i + 1) % polyA.length], polyA[i]));
+			// project each point from the other polygon on to the line's perpendicular
+			// also, subtracting the origin (from the first poly) such that the
+			// numberline is centered around zero. if the test passes, this polygon's
+			// projections will be entirely above or below 0.
+			const projected = polyB
+				.map(point => subtract(point, origin))
+				.map(v => dot(vector, v));
+			// is the first polygon on the positive or negative side?
+			const other_test_point = polyA[(i + 2) % polyA.length];
+			const side_a = dot(vector, subtract(other_test_point, origin));
+			const side = side_a > 0; // use 0. not epsilon
+			// is the second polygon on whichever side of 0 that the first isn't?
+			const one_sided = projected
+				.map(dotProd => (side ? dotProd < epsilon : dotProd > -epsilon))
+				.reduce((a, b) => a && b, true);
+			// if true, we found a dividing axis
+			if (one_sided) { return false; }
+		}
+	}
+	return true;
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+const overlapCirclePoint = (radius, origin, point, func = exclude, epsilon = EPSILON) => (
+	func(radius - distance2(origin, point), epsilon)
+);
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description 2D line intersection function, generalized and works for lines,
+ * rays, segments.
+ * @param {number[]} array of 2 numbers, the first line's vector
+ * @param {number[]} array of 2 numbers, the first line's origin
+ * @param {number[]} array of 2 numbers, the second line's vector
+ * @param {number[]} array of 2 numbers, the second line's origin
+ * @param {function} first line's boolean test normalized value lies collinear
+ * @param {function} seconde line's boolean test normalized value lies collinear
+ * @linkcode Math ./src/intersection/overlap-line-line.js 21
+*/
+
+// export const exclude_s = (t, e = EPSILON) => t > e && t < 1 - e;
+
+const overlapLineLine = (
+	aVector,
+	aOrigin,
+	bVector,
+	bOrigin,
+	aFunction = excludeL,
+	bFunction = excludeL,
+	epsilon = EPSILON,
+) => {
+	const denominator0 = cross2(aVector, bVector);
+	const denominator1 = -denominator0;
+	const a2b = [bOrigin[0] - aOrigin[0], bOrigin[1] - aOrigin[1]];
+	if (Math.abs(denominator0) < epsilon) { // parallel
+		if (Math.abs(cross2(a2b, aVector)) > epsilon) { return false; }
+		const bPt1 = a2b;
+		const bPt2 = add(bPt1, bVector);
+		// a will be between 0 and 1
+		const aProjLen = dot(aVector, aVector);
+		const bProj1 = dot(bPt1, aVector) / aProjLen;
+		const bProj2 = dot(bPt2, aVector) / aProjLen;
+		const bProjSm = bProj1 < bProj2 ? bProj1 : bProj2;
+		const bProjLg = bProj1 < bProj2 ? bProj2 : bProj1;
+		const bOutside1 = bProjSm > 1 - epsilon;
+		const bOutside2 = bProjLg < epsilon;
+		if (bOutside1 || bOutside2) { return false; }
+		return true;
+	}
+	const b2a = [-a2b[0], -a2b[1]];
+	const t0 = cross2(a2b, bVector) / denominator0;
+	const t1 = cross2(b2a, aVector) / denominator1;
+	return aFunction(t0, epsilon / magnitude(aVector))
+		&& bFunction(t1, epsilon / magnitude(bVector));
+};
+
+/**
+ * Math (c) Kraft
+ */
+
+// all intersection functions expect primitives to be in a certain form
+// for example all lines are: vector, origin
+const overlap_param_form = {
+	polygon: a => [a],
+	rect: a => [a],
+	circle: a => [a.radius, a.origin],
+	line: a => [a.vector, a.origin],
+	ray: a => [a.vector, a.origin],
+	segment: a => [a.vector, a.origin],
+	// segment: a => [subtract(a[1], a[0]), a[0]],
+	vector: a => [a],
+};
+
+const overlap_func = {
+	polygon: {
+		polygon: (a, b, fnA, fnB, ep) => overlapConvexPolygons(...a, ...b, ep),
+		// circle: (a, b) =>
+		// line: (a, b) =>
+		// ray: (a, b) =>
+		// segment: (a, b) =>
+		vector: (a, b, fnA, fnB, ep) => overlapConvexPolygonPoint(...a, ...b, fnA, ep),
+	},
+	circle: {
+		// polygon: (a, b) =>
+		// circle: (a, b) =>
+		// line: (a, b) =>
+		// ray: (a, b) =>
+		// segment: (a, b) =>
+		vector: (a, b, fnA, fnB, ep) => overlapCirclePoint(...a, ...b, exclude, ep),
+	},
+	line: {
+		// polygon: (a, b) =>
+		// circle: (a, b) =>
+		line: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		ray: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
+	},
+	ray: {
+		// polygon: (a, b) =>
+		// circle: (a, b) =>
+		line: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
+		ray: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
+	},
+	segment: {
+		// polygon: (a, b) =>
+		// circle: (a, b) =>
+		line: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
+		ray: (a, b, fnA, fnB, ep) => overlapLineLine(...b, ...a, fnB, fnA, ep),
+		segment: (a, b, fnA, fnB, ep) => overlapLineLine(...a, ...b, fnA, fnB, ep),
+		vector: (a, b, fnA, fnB, ep) => overlapLinePoint(...a, ...b, fnA, ep),
+	},
+	vector: {
+		polygon: (a, b, fnA, fnB, ep) => overlapConvexPolygonPoint(...b, ...a, fnB, ep),
+		circle: (a, b, fnA, fnB, ep) => overlapCirclePoint(...b, ...a, exclude, ep),
+		line: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
+		ray: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
+		segment: (a, b, fnA, fnB, ep) => overlapLinePoint(...b, ...a, fnB, ep),
+		vector: (a, b, fnA, fnB, ep) => fnEpsilonEqualVectors(...a, ...b, ep),
+	},
+};
+
+// convert "rect" to "polygon"
+const similar_overlap_types = {
+	polygon: "polygon",
+	rect: "polygon",
+	circle: "circle",
+	line: "line",
+	ray: "ray",
+	segment: "segment",
+	vector: "vector",
+};
+
+const default_overlap_domain_function = {
+	polygon: exclude,
+	rect: exclude,
+	circle: exclude, // not used
+	line: excludeL,
+	ray: excludeR,
+	segment: excludeS,
+	vector: excludeL, // not used
+};
+/**
+ * @name overlap
+ * @description test whether or not two geometry objects overlap each other.
+ * @param {any} a any geometry object
+ * @param {any} b any geometry object
+ * @param {number} [epsilon=1e-6] optional epsilon
+ * @returns {boolean} true if the two objects overlap.
+ * @linkcode Math ./src/intersection/overlap.js 106
+ */
+const overlap$1 = function (a, b, epsilon) {
+	const type_a = typeOf(a);
+	const type_b = typeOf(b);
+	const aT = similar_overlap_types[type_a];
+	const bT = similar_overlap_types[type_b];
+	const params_a = overlap_param_form[type_a](a);
+	const params_b = overlap_param_form[type_b](b);
+	const domain_a = a.domain_function || default_overlap_domain_function[type_a];
+	const domain_b = b.domain_function || default_overlap_domain_function[type_b];
+	return overlap_func[aT][bT](params_a, params_b, domain_a, domain_b, epsilon);
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description does one polygon (outer) completely enclose another polygon (inner),
+ * currently, this only works for convex polygons.
+ * @param {number[][]} outer a 2D convex polygon
+ * @param {number[][]} inner a 2D convex polygon
+ * @param {function} [fnInclusive] by default, the boundary is considered inclusive
+ * @returns {boolean} is the "inner" polygon completely inside the "outer"
+ *
+ * @todo: should one function be include and the other exclude?
+ * @linkcode Math ./src/intersection/enclose-polygons.js 17
+ */
+const enclosingPolygonPolygon = (outer, inner, fnInclusive = include) => {
+	// these points should be *not inside* (false)
+	const outerGoesInside = outer
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a || b, false);
+	// these points should be *inside* (true)
+	const innerGoesOutside = inner
+		.map(p => overlapConvexPolygonPoint(inner, p, fnInclusive))
+		.reduce((a, b) => a && b, true);
+	return (!outerGoesInside && innerGoesOutside);
+};
+
+/**
+ * Math (c) Kraft
+ */
+/**
+ * @description Test if two axis-aligned bounding boxes overlap each other.
+ * @param {BoundingBox} box1 an axis-aligned bounding box, the result of calling boundingBox(...)
+ * @param {BoundingBox} box2 an axis-aligned bounding box, the result of calling boundingBox(...)
+ * @returns {boolean} true if the bounding boxes overlap each other
+ * @linkcode Math ./src/intersection/overlap-bounding-boxes.js 9
+ */
+const overlapBoundingBoxes = (box1, box2) => {
+	const dimensions = box1.min.length > box2.min.length
+		? box2.min.length
+		: box1.min.length;
+	for (let d = 0; d < dimensions; d += 1) {
+		// if one minimum is above the other's maximum, or visa versa
+		if (box1.min[d] > box2.max[d] || box1.max[d] < box2.min[d]) {
+			return false;
+		}
+	}
+	return true;
+};
+
+/**
+ * Math (c) Kraft
+ */
 
 const VectorArgs = function () {
-  this.push(...getVector(arguments));
+	this.push(...getVector(arguments));
 };
 
 /**
  * Math (c) Kraft
  */
 const VectorGetters = {
-  x: function () { return this[0]; },
-  y: function () { return this[1]; },
-  z: function () { return this[2]; },
-  // magnitude: function () { return magnitude(this); },
+	x: function () { return this[0]; },
+	y: function () { return this[1]; },
+	z: function () { return this[2]; },
+	// magnitude: function () { return magnitude(this); },
 };
 
 /**
@@ -3446,87 +3609,87 @@ const VectorGetters = {
  */
 
 const table = {
-  preserve: { // don't transform the return type. preserve it
-    magnitude: function () { return magnitude(this); },
-    isEquivalent: function () {
-      return fnEpsilonEqualVectors(this, getVector(arguments));
-    },
-    isParallel: function () {
-      return parallel(...resizeUp(this, getVector(arguments)));
-    },
-    isCollinear: function (line) {
-      return overlap$1(this, line);
-    },
-    dot: function () {
-      return dot(...resizeUp(this, getVector(arguments)));
-    },
-    distanceTo: function () {
-      return distance(...resizeUp(this, getVector(arguments)));
-    },
-    overlap: function (other) {
-      return overlap$1(this, other);
-    },
-  },
-  vector: { // return type
-    copy: function () { return [...this]; },
-    normalize: function () { return normalize(this); },
-    scale: function () { return scale(this, arguments[0]); },
-    flip: function () { return flip(this); },
-    rotate90: function () { return rotate90(this); },
-    rotate270: function () { return rotate270(this); },
-    cross: function () {
-      return cross3(
-        resize(3, this),
-        resize(3, getVector(arguments))
-      );
-    },
-    transform: function () {
-      return multiplyMatrix3Vector3(
-        getMatrix3x4(arguments),
-        resize(3, this)
-      );
-    },
-    /**
-     * @description add a vector to this vector.
-     * @param {number[]} vector one vector
-     * @returns {number[]} one vector, the sum of this and the input vector
-     */
-    add: function () {
-      return add(this, resize(this.length, getVector(arguments)));
-    },
-    subtract: function () {
-      return subtract(this, resize(this.length, getVector(arguments)));
-    },
-    // todo, can this be improved?
-    rotateZ: function (angle, origin) {
-      return multiplyMatrix3Vector3(
-        getMatrix3x4(makeMatrix2Rotate(angle, origin)),
-        resize(3, this)
-      );
-    },
-    lerp: function (vector, pct) {
-      return lerp(this, resize(this.length, getVector(vector)), pct);
-    },
-    midpoint: function () {
-      return midpoint(...resizeUp(this, getVector(arguments)));
-    },
-    bisect: function () {
-      return counterClockwiseBisect2(this, getVector(arguments));
-    },
-  }
+	preserve: { // don't transform the return type. preserve it
+		magnitude: function () { return magnitude(this); },
+		isEquivalent: function () {
+			return fnEpsilonEqualVectors(this, getVector(arguments));
+		},
+		isParallel: function () {
+			return parallel(...resizeUp(this, getVector(arguments)));
+		},
+		isCollinear: function (line) {
+			return overlap$1(this, line);
+		},
+		dot: function () {
+			return dot(...resizeUp(this, getVector(arguments)));
+		},
+		distanceTo: function () {
+			return distance(...resizeUp(this, getVector(arguments)));
+		},
+		overlap: function (other) {
+			return overlap$1(this, other);
+		},
+	},
+	vector: { // return type
+		copy: function () { return [...this]; },
+		normalize: function () { return normalize(this); },
+		scale: function () { return scale(this, arguments[0]); },
+		flip: function () { return flip(this); },
+		rotate90: function () { return rotate90(this); },
+		rotate270: function () { return rotate270(this); },
+		cross: function () {
+			return cross3(
+				resize(3, this),
+				resize(3, getVector(arguments)),
+			);
+		},
+		transform: function () {
+			return multiplyMatrix3Vector3(
+				getMatrix3x4(arguments),
+				resize(3, this),
+			);
+		},
+		/**
+		 * @description add a vector to this vector.
+		 * @param {number[]} vector one vector
+		 * @returns {number[]} one vector, the sum of this and the input vector
+		 */
+		add: function () {
+			return add(this, resize(this.length, getVector(arguments)));
+		},
+		subtract: function () {
+			return subtract(this, resize(this.length, getVector(arguments)));
+		},
+		// todo, can this be improved?
+		rotateZ: function (angle, origin) {
+			return multiplyMatrix3Vector3(
+				getMatrix3x4(makeMatrix2Rotate(angle, origin)),
+				resize(3, this),
+			);
+		},
+		lerp: function (vector, pct) {
+			return lerp(this, resize(this.length, getVector(vector)), pct);
+		},
+		midpoint: function () {
+			return midpoint(...resizeUp(this, getVector(arguments)));
+		},
+		bisect: function () {
+			return counterClockwiseBisect2(this, getVector(arguments));
+		},
+	},
 };
 
 // the default export
 const VectorMethods = {};
 
 Object.keys(table.preserve).forEach(key => {
-  VectorMethods[key] = table.preserve[key];
+	VectorMethods[key] = table.preserve[key];
 });
 
 Object.keys(table.vector).forEach(key => {
-  VectorMethods[key] = function () {
-    return Constructors.vector(...table.vector[key].apply(this, arguments));
-  };
+	VectorMethods[key] = function () {
+		return Constructors.vector(...table.vector[key].apply(this, arguments));
+	};
 });
 
 /**
@@ -3534,12 +3697,12 @@ Object.keys(table.vector).forEach(key => {
  */
 
 const VectorStatic = {
-  fromAngle: function (angle) {
-    return Constructors.vector(Math.cos(angle), Math.sin(angle));
-  },
-  fromAngleDegrees: function (angle) {
-    return Constructors.vector.fromAngle(angle * D2R);
-  },
+	fromAngle: function (angle) {
+		return Constructors.vector(Math.cos(angle), Math.sin(angle));
+	},
+	fromAngleDegrees: function (angle) {
+		return Constructors.vector.fromAngle(angle * D2R);
+	},
 };
 
 /**
@@ -3547,13 +3710,13 @@ const VectorStatic = {
  */
 
 var Vector = {
-  vector: {
-    P: Array.prototype, // vector is a special case, it's an instance of an Array
-    A: VectorArgs,
-    G: VectorGetters,
-    M: VectorMethods,
-    S: VectorStatic,
-  }
+	vector: {
+		P: Array.prototype, // vector is a special case, it's an instance of an Array
+		A: VectorArgs,
+		G: VectorGetters,
+		M: VectorMethods,
+		S: VectorStatic,
+	},
 };
 
 /**
@@ -3561,27 +3724,27 @@ var Vector = {
  */
 
 var Static = {
-  fromPoints: function () {
-    const points = getVectorOfVectors(arguments);
-    return this.constructor({
-      vector: subtract(points[1], points[0]),
-      origin: points[0],
-    });
-  },
-  fromAngle: function() {
-    const angle = arguments[0] || 0;
-    return this.constructor({
-      vector: [Math.cos(angle), Math.sin(angle)],
-      origin: [0, 0],
-    });
-  },
-  perpendicularBisector: function () {
-    const points = getVectorOfVectors(arguments);
-    return this.constructor({
-      vector: rotate90(subtract(points[1], points[0])),
-      origin: average(points[0], points[1]),
-    });
-  },
+	fromPoints: function () {
+		const points = getVectorOfVectors(arguments);
+		return this.constructor({
+			vector: subtract(points[1], points[0]),
+			origin: points[0],
+		});
+	},
+	fromAngle: function () {
+		const angle = arguments[0] || 0;
+		return this.constructor({
+			vector: [Math.cos(angle), Math.sin(angle)],
+			origin: [0, 0],
+		});
+	},
+	perpendicularBisector: function () {
+		const points = getVectorOfVectors(arguments);
+		return this.constructor({
+			vector: rotate90(subtract(points[1], points[0])),
+			origin: average(points[0], points[1]),
+		});
+	},
 };
 
 /**
@@ -3603,52 +3766,52 @@ var Static = {
 
 const LinesMethods = {
 // todo, this only takes line types. it should be able to take a vector
-  isParallel: function () {
-    const arr = resizeUp(this.vector, getLine$1(arguments).vector);
-    return parallel(...arr);
-  },
-  isCollinear: function () {
-    const line = getLine$1(arguments);
-    return overlapLinePoint(this.vector, this.origin, line.origin)
-      && parallel(...resizeUp(this.vector, line.vector));
-  },
-  isDegenerate: function (epsilon = EPSILON) {
-    return degenerate(this.vector, epsilon);
-  },
-  reflectionMatrix: function () {
-    return Constructors.matrix(makeMatrix3ReflectZ(this.vector, this.origin));
-  },
-  nearestPoint: function () {
-    const point = getVector(arguments);
-    return Constructors.vector(
-      nearestPointOnLine(this.vector, this.origin, point, this.clip_function)
-    );
-  },
-  // this works with lines and rays, it should be overwritten for segments
-  transform: function () {
-    const dim = this.dimension;
-    const r = multiplyMatrix3Line3(
-      getMatrix3x4(arguments),
-      resize(3, this.vector),
-      resize(3, this.origin)
-    );
-    return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
-  },
-  translate: function () {
-    const origin = add(...resizeUp(this.origin, getVector(arguments)));
-    return this.constructor(this.vector, origin);
-  },
-  intersect: function () {
-    return intersect$1(this, ...arguments);
-  },
-  overlap: function () {
-    return overlap$1(this, ...arguments);
-  },
-  bisect: function (lineType, epsilon) {
-    const line = getLine$1(lineType);
-    return bisectLines2(this.vector, this.origin, line.vector, line.origin, epsilon)
-      .map(line => this.constructor(line));
-  },
+	isParallel: function () {
+		const arr = resizeUp(this.vector, getLine$1(arguments).vector);
+		return parallel(...arr);
+	},
+	isCollinear: function () {
+		const line = getLine$1(arguments);
+		return overlapLinePoint(this.vector, this.origin, line.origin)
+			&& parallel(...resizeUp(this.vector, line.vector));
+	},
+	isDegenerate: function (epsilon = EPSILON) {
+		return degenerate(this.vector, epsilon);
+	},
+	reflectionMatrix: function () {
+		return Constructors.matrix(makeMatrix3ReflectZ(this.vector, this.origin));
+	},
+	nearestPoint: function () {
+		const point = getVector(arguments);
+		return Constructors.vector(
+			nearestPointOnLine(this.vector, this.origin, point, this.clip_function),
+		);
+	},
+	// this works with lines and rays, it should be overwritten for segments
+	transform: function () {
+		const dim = this.dimension;
+		const r = multiplyMatrix3Line3(
+			getMatrix3x4(arguments),
+			resize(3, this.vector),
+			resize(3, this.origin),
+		);
+		return this.constructor(resize(dim, r.vector), resize(dim, r.origin));
+	},
+	translate: function () {
+		const origin = add(...resizeUp(this.origin, getVector(arguments)));
+		return this.constructor(this.vector, origin);
+	},
+	intersect: function () {
+		return intersect$1(this, ...arguments);
+	},
+	overlap: function () {
+		return overlap$1(this, ...arguments);
+	},
+	bisect: function (lineType, epsilon) {
+		const line = getLine$1(lineType);
+		return bisectLines2(this.vector, this.origin, line.vector, line.origin, epsilon)
+			.map(l => this.constructor(l));
+	},
 };
 
 /**
@@ -3656,46 +3819,46 @@ const LinesMethods = {
  */
 
 var Line = {
-  line: {
-    P: Object.prototype,
+	line: {
+		P: Object.prototype,
 
-    A: function () {
-      const l = getLine$1(...arguments);
-      this.vector = Constructors.vector(l.vector);
-      this.origin = Constructors.vector(resize(this.vector.length, l.origin));
-      const alt = makeNormalDistanceLine({ vector: this.vector, origin: this.origin });
-      this.normal = alt.normal;
-      this.distance = alt.distance;
-      Object.defineProperty(this, "domain_function", { writable: true, value: includeL });
-    },
+		A: function () {
+			const l = getLine$1(...arguments);
+			this.vector = Constructors.vector(l.vector);
+			this.origin = Constructors.vector(resize(this.vector.length, l.origin));
+			const alt = rayLineToUniqueLine({ vector: this.vector, origin: this.origin });
+			this.normal = alt.normal;
+			this.distance = alt.distance;
+			Object.defineProperty(this, "domain_function", { writable: true, value: includeL });
+		},
 
-    G: {
-      // length: () => Infinity,
-      dimension: function () {
-        return [this.vector, this.origin]
-          .map(p => p.length)
-          .reduce((a, b) => Math.max(a, b), 0);
-      },
-    },
+		G: {
+			// length: () => Infinity,
+			dimension: function () {
+				return [this.vector, this.origin]
+					.map(p => p.length)
+					.reduce((a, b) => Math.max(a, b), 0);
+			},
+		},
 
-    M: Object.assign({}, LinesMethods, {
-      inclusive: function () { this.domain_function = includeL; return this; },
-      exclusive: function () { this.domain_function = excludeL; return this; },
-      clip_function: dist => dist,
-      svgPath: function (length = 20000) {
-        const start = add(this.origin, scale(this.vector, -length / 2));
-        const end = scale(this.vector, length);
-        return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
-      },
-    }),
+		M: Object.assign({}, LinesMethods, {
+			inclusive: function () { this.domain_function = includeL; return this; },
+			exclusive: function () { this.domain_function = excludeL; return this; },
+			clip_function: dist => dist,
+			svgPath: function (length = 20000) {
+				const start = add(this.origin, scale(this.vector, -length / 2));
+				const end = scale(this.vector, length);
+				return `M${start[0]} ${start[1]}l${end[0]} ${end[1]}`;
+			},
+		}),
 
-    S: Object.assign({
-      fromNormalDistance: function() {
-        return this.constructor(makeVectorOriginLine(arguments[0]));
-      },
-    }, Static)
+		S: Object.assign({
+			fromNormalDistance: function () {
+				return this.constructor(uniqueLineToRayLine(arguments[0]));
+			},
+		}, Static),
 
-  }
+	},
 };
 
 /**
@@ -3705,49 +3868,49 @@ var Line = {
 // LineProto.prototype.constructor = LineProto;
 
 var Ray = {
-  ray: {
-    P: Object.prototype,
+	ray: {
+		P: Object.prototype,
 
-    A: function () {
-      const ray = getLine$1(...arguments);
-      this.vector = Constructors.vector(ray.vector);
-      this.origin = Constructors.vector(resize(this.vector.length, ray.origin));
-      Object.defineProperty(this, "domain_function", { writable: true, value: includeR });
-    },
+		A: function () {
+			const ray = getLine$1(...arguments);
+			this.vector = Constructors.vector(ray.vector);
+			this.origin = Constructors.vector(resize(this.vector.length, ray.origin));
+			Object.defineProperty(this, "domain_function", { writable: true, value: includeR });
+		},
 
-    G: {
-      // length: () => Infinity,
-      dimension: function () {
-        return [this.vector, this.origin]
-          .map(p => p.length)
-          .reduce((a, b) => Math.max(a, b), 0);
-      },
-    },
+		G: {
+			// length: () => Infinity,
+			dimension: function () {
+				return [this.vector, this.origin]
+					.map(p => p.length)
+					.reduce((a, b) => Math.max(a, b), 0);
+			},
+		},
 
-    M: Object.assign({}, LinesMethods, {
-      inclusive: function () { this.domain_function = includeR; return this; },
-      exclusive: function () { this.domain_function = excludeR; return this; },
-      flip: function () {
-        return Constructors.ray(flip(this.vector), this.origin);
-      },
-      scale: function (scale) {
-        return Constructors.ray(this.vector.scale(scale), this.origin);
-      },
-      normalize: function () {
-        return Constructors.ray(this.vector.normalize(), this.origin);
-      },
-      // distance is between 0 and 1, representing the vector between start and end. cap accordingly
-      clip_function: rayLimiter,
-      svgPath: function (length = 10000) {
-        const end = this.vector.scale(length);
-        return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
-      },
+		M: Object.assign({}, LinesMethods, {
+			inclusive: function () { this.domain_function = includeR; return this; },
+			exclusive: function () { this.domain_function = excludeR; return this; },
+			flip: function () {
+				return Constructors.ray(flip(this.vector), this.origin);
+			},
+			scale: function (scale) {
+				return Constructors.ray(this.vector.scale(scale), this.origin);
+			},
+			normalize: function () {
+				return Constructors.ray(this.vector.normalize(), this.origin);
+			},
+			// distance is between 0 and 1, representing the vector between start and end. cap accordingly
+			clip_function: rayLimiter,
+			svgPath: function (length = 10000) {
+				const end = this.vector.scale(length);
+				return `M${this.origin[0]} ${this.origin[1]}l${end[0]} ${end[1]}`;
+			},
 
-    }),
+		}),
 
-    S: Static
+		S: Static,
 
-  }
+	},
 };
 
 /**
@@ -3755,66 +3918,66 @@ var Ray = {
  */
 
 var Segment = {
-  segment: {
-    P: Array.prototype,
+	segment: {
+		P: Array.prototype,
 
-    A: function () {
-      const a = getSegment(...arguments);
-      this.push(...[a[0], a[1]].map(v => Constructors.vector(v)));
-      this.vector = Constructors.vector(subtract(this[1], this[0]));
-      // the fast way, but i think we need the ability to call seg[0].x
-      // this.push(a[0], a[1]);
-      // this.vector = subtract(this[1], this[0]);
-      this.origin = this[0];
-      Object.defineProperty(this, "domain_function", { writable: true, value: includeS });
-    },
+		A: function () {
+			const a = getSegment(...arguments);
+			this.push(...[a[0], a[1]].map(v => Constructors.vector(v)));
+			this.vector = Constructors.vector(subtract(this[1], this[0]));
+			// the fast way, but i think we need the ability to call seg[0].x
+			// this.push(a[0], a[1]);
+			// this.vector = subtract(this[1], this[0]);
+			this.origin = this[0];
+			Object.defineProperty(this, "domain_function", { writable: true, value: includeS });
+		},
 
-    G: {
-      points: function () { return this; },
-      magnitude: function () { return magnitude(this.vector); },
-      dimension: function () {
-        return [this.vector, this.origin]
-          .map(p => p.length)
-          .reduce((a, b) => Math.max(a, b), 0);
-      },
-    },
+		G: {
+			points: function () { return this; },
+			magnitude: function () { return magnitude(this.vector); },
+			dimension: function () {
+				return [this.vector, this.origin]
+					.map(p => p.length)
+					.reduce((a, b) => Math.max(a, b), 0);
+			},
+		},
 
-    M: Object.assign({}, LinesMethods, {
-      inclusive: function () { this.domain_function = includeS; return this; },
-      exclusive: function () { this.domain_function = excludeS; return this; },
-      clip_function: segmentLimiter,
-      transform: function (...innerArgs) {
-        const dim = this.points[0].length;
-        const mat = getMatrix3x4(innerArgs);
-        const transformed_points = this.points
-          .map(point => resize(3, point))
-          .map(point => multiplyMatrix3Vector3(mat, point))
-          .map(point => resize(dim, point));
-        return Constructors.segment(transformed_points);
-      },
-      translate: function() {
-        const translate = getVector(arguments);
-        const transformed_points = this.points
-          .map(point => add(...resizeUp(point, translate)));
-        return Constructors.segment(transformed_points);
-      },
-      midpoint: function () {
-        return Constructors.vector(average(this.points[0], this.points[1]));
-      },
-      svgPath: function () {
-        const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
-        return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
-          .join("");
-      },
-    }),
+		M: Object.assign({}, LinesMethods, {
+			inclusive: function () { this.domain_function = includeS; return this; },
+			exclusive: function () { this.domain_function = excludeS; return this; },
+			clip_function: segmentLimiter,
+			transform: function (...innerArgs) {
+				const dim = this.points[0].length;
+				const mat = getMatrix3x4(innerArgs);
+				const transformed_points = this.points
+					.map(point => resize(3, point))
+					.map(point => multiplyMatrix3Vector3(mat, point))
+					.map(point => resize(dim, point));
+				return Constructors.segment(transformed_points);
+			},
+			translate: function () {
+				const translate = getVector(arguments);
+				const transformed_points = this.points
+					.map(point => add(...resizeUp(point, translate)));
+				return Constructors.segment(transformed_points);
+			},
+			midpoint: function () {
+				return Constructors.vector(average(this.points[0], this.points[1]));
+			},
+			svgPath: function () {
+				const pointStrings = this.points.map(p => `${p[0]} ${p[1]}`);
+				return ["M", "L"].map((cmd, i) => `${cmd}${pointStrings[i]}`)
+					.join("");
+			},
+		}),
 
-    S: {
-      fromPoints: function () {
-        return this.constructor(...arguments);
-      }
-    }
+		S: {
+			fromPoints: function () {
+				return this.constructor(...arguments);
+			},
+		},
 
-  }
+	},
 };
 
 /**
@@ -3832,18 +3995,18 @@ var Segment = {
  */
 
 const CircleArgs = function () {
-  const circle = getCircle(...arguments);
-  this.radius = circle.radius;
-  this.origin = Constructors.vector(...circle.origin);
+	const circle = getCircle(...arguments);
+	this.radius = circle.radius;
+	this.origin = Constructors.vector(...circle.origin);
 };
 
 /**
  * Math (c) Kraft
  */
 const CircleGetters = {
-  x: function () { return this.origin[0]; },
-  y: function () { return this.origin[1]; },
-  z: function () { return this.origin[2]; },
+	x: function () { return this.origin[0]; },
+	y: function () { return this.origin[1]; },
+	z: function () { return this.origin[2]; },
 };
 
 /**
@@ -3851,47 +4014,48 @@ const CircleGetters = {
  */
 
 const pointOnEllipse = function (cx, cy, rx, ry, zRotation, arcAngle) {
-  const cos_rotate = Math.cos(zRotation);
-  const sin_rotate = Math.sin(zRotation);
-  const cos_arc = Math.cos(arcAngle);
-  const sin_arc = Math.sin(arcAngle);
-  return [
-    cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
-    cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc
-  ];
+	const cos_rotate = Math.cos(zRotation);
+	const sin_rotate = Math.sin(zRotation);
+	const cos_arc = Math.cos(arcAngle);
+	const sin_arc = Math.sin(arcAngle);
+	return [
+		cx + cos_rotate * rx * cos_arc + -sin_rotate * ry * sin_arc,
+		cy + sin_rotate * rx * cos_arc + cos_rotate * ry * sin_arc,
+	];
 };
 
 const pathInfo = function (cx, cy, rx, ry, zRotation, arcStart_, deltaArc_) {
-  let arcStart = arcStart_;
-  if (arcStart < 0 && !isNaN(arcStart)) {
-    while (arcStart < 0) {
-      arcStart += Math.PI * 2;
-    }
-  }
-  const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
-  const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
-  // we need to divide the circle in half and make 2 arcs
-  const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
-  const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
-  const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
-  const fs = ((deltaArc / 2) > 0) ? 1 : 0;
-  return {
-    x1: start[0],
-    y1: start[1],
-    x2: middle[0],
-    y2: middle[1],
-    x3: end[0],
-    y3: end[1],
-    fa,
-    fs
-  };
+	let arcStart = arcStart_;
+	if (arcStart < 0 && !Number.isNaN(arcStart)) {
+		while (arcStart < 0) {
+			arcStart += Math.PI * 2;
+		}
+	}
+	const deltaArc = deltaArc_ > Math.PI * 2 ? Math.PI * 2 : deltaArc_;
+	const start = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart);
+	// we need to divide the circle in half and make 2 arcs
+	const middle = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc / 2);
+	const end = pointOnEllipse(cx, cy, rx, ry, zRotation, arcStart + deltaArc);
+	const fa = ((deltaArc / 2) > Math.PI) ? 1 : 0;
+	const fs = ((deltaArc / 2) > 0) ? 1 : 0;
+	return {
+		x1: start[0],
+		y1: start[1],
+		x2: middle[0],
+		y2: middle[1],
+		x3: end[0],
+		y3: end[1],
+		fa,
+		fs,
+	};
 };
 
 const cln = n => cleanNumber(n, 4);
 
 // (rx ry x-axis-rotation large-arc-flag sweep-flag x y)+
-const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
-  `A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`;
+const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) => (
+	`A${cln(rx)} ${cln(ry)} ${cln(phi_degrees)} ${cln(fa)} ${cln(fs)} ${cln(endX)} ${cln(endY)}`
+);
 
 /**
  * Math (c) Kraft
@@ -3910,55 +4074,54 @@ const ellipticalArcTo = (rx, ry, phi_degrees, fa, fs, endX, endY) =>
 //   .map((_, i) => { return })
 
 const CircleMethods = {
-  nearestPoint: function () {
-    return Constructors.vector(nearestPointOnCircle(
-      this.radius,
-      this.origin,
-      getVector(arguments)
-    ));
-  },
+	nearestPoint: function () {
+		return Constructors.vector(nearestPointOnCircle(
+			this.radius,
+			this.origin,
+			getVector(arguments),
+		));
+	},
 
-  intersect: function (object) {
-    return intersect$1(this, object);
-  },
+	intersect: function (object) {
+		return intersect$1(this, object);
+	},
 
-  overlap: function (object) {
-    return overlap$1(this, object);
-  },
+	overlap: function (object) {
+		return overlap$1(this, object);
+	},
 
-  svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
-    const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
-    const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
-    const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
-    return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+	svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+		const info = pathInfo(this.origin[0], this.origin[1], this.radius, this.radius, 0, arcStart, deltaArc);
+		const arc1 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x2, info.y2);
+		const arc2 = ellipticalArcTo(this.radius, this.radius, 0, info.fa, info.fs, info.x3, info.y3);
+		return `M${info.x1} ${info.y1}${arc1}${arc2}`;
 
-    // const arcMid = arcStart + deltaArc / 2;
-    // const start = circlePoint(this.origin, this.radius, arcStart);
-    // const mid = circlePoint(this.origin, this.radius, arcMid);
-    // const end = circlePoint(this.origin, this.radius, arcStart + deltaArc);
-    // const arc1 = circleArcTo(this.radius, mid);
-    // const arc2 = circleArcTo(this.radius, end);
-    // return `M${cln(start[0])} ${cln(start[1])}${arc1}${arc2}`;
-  },
-  points: function (count = 128) {
-    return Array.from(Array(count))
-      .map((_, i) => ((2 * Math.PI) / count) * i)
-      .map(angle => [
-        this.origin[0] + this.radius * Math.cos(angle),
-        this.origin[1] + this.radius * Math.sin(angle)
-      ]);
-  },
-  polygon: function () {
-    return Constructors.polygon(this.points(arguments[0]));
-  },
-  segments: function () {
-    const points = this.points(arguments[0]);
-    return points.map((point, i) => {
-      const nextI = (i + 1) % points.length;
-      return [point, points[nextI]];
-    }); // .map(a => Constructors.segment(...a));
-  }
-
+		// const arcMid = arcStart + deltaArc / 2;
+		// const start = circlePoint(this.origin, this.radius, arcStart);
+		// const mid = circlePoint(this.origin, this.radius, arcMid);
+		// const end = circlePoint(this.origin, this.radius, arcStart + deltaArc);
+		// const arc1 = circleArcTo(this.radius, mid);
+		// const arc2 = circleArcTo(this.radius, end);
+		// return `M${cln(start[0])} ${cln(start[1])}${arc1}${arc2}`;
+	},
+	points: function (count = 128) {
+		return Array.from(Array(count))
+			.map((_, i) => ((2 * Math.PI) / count) * i)
+			.map(angle => [
+				this.origin[0] + this.radius * Math.cos(angle),
+				this.origin[1] + this.radius * Math.sin(angle),
+			]);
+	},
+	polygon: function () {
+		return Constructors.polygon(this.points(arguments[0]));
+	},
+	segments: function () {
+		const points = this.points(arguments[0]);
+		return points.map((point, i) => {
+			const nextI = (i + 1) % points.length;
+			return [point, points[nextI]];
+		}); // .map(a => Constructors.segment(...a));
+	},
 };
 
 /**
@@ -3966,17 +4129,17 @@ const CircleMethods = {
  */
 
 const CircleStatic = {
-  fromPoints: function () {
-    if (arguments.length === 3) {
-      const result = circumcircle(...arguments);
-      return this.constructor(result.radius, result.origin);
-    }
-    return this.constructor(...arguments);
-  },
-  fromThreePoints: function () {
-    const result = circumcircle(...arguments);
-    return this.constructor(result.radius, result.origin);
-  }
+	fromPoints: function () {
+		if (arguments.length === 3) {
+			const result = circumcircle(...arguments);
+			return this.constructor(result.radius, result.origin);
+		}
+		return this.constructor(...arguments);
+	},
+	fromThreePoints: function () {
+		const result = circumcircle(...arguments);
+		return this.constructor(result.radius, result.origin);
+	},
 };
 
 /**
@@ -3984,7 +4147,12 @@ const CircleStatic = {
  */
 
 var Circle = {
-  circle: { A: CircleArgs, G: CircleGetters, M: CircleMethods, S: CircleStatic }
+	circle: {
+		A: CircleArgs,
+		G: CircleGetters,
+		M: CircleMethods,
+		S: CircleStatic,
+	},
 };
 
 /**
@@ -3992,94 +4160,107 @@ var Circle = {
  */
 
 const getFoci = function (center, rx, ry, spin) {
-  const order = rx > ry;
-  const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
-  const l = Math.sqrt(lsq);
-  const trigX = order ? Math.cos(spin) : Math.sin(spin);
-  const trigY = order ? Math.sin(spin) : Math.cos(spin);
-  return [
-    Constructors.vector(center[0] + l * trigX, center[1] + l * trigY),
-    Constructors.vector(center[0] - l * trigX, center[1] - l * trigY),
-  ];
+	const order = rx > ry;
+	const lsq = order ? (rx ** 2) - (ry ** 2) : (ry ** 2) - (rx ** 2);
+	const l = Math.sqrt(lsq);
+	const trigX = order ? Math.cos(spin) : Math.sin(spin);
+	const trigY = order ? Math.sin(spin) : Math.cos(spin);
+	return [
+		Constructors.vector(center[0] + l * trigX, center[1] + l * trigY),
+		Constructors.vector(center[0] - l * trigX, center[1] - l * trigY),
+	];
 };
 
 var Ellipse = {
-  ellipse: {
-    A: function () {
-      // const arr = Array.from(arguments);
-      const numbers = flattenArrays(arguments).filter(a => !isNaN(a));
-      const params = resize(5, numbers);
-      this.rx = params[0];
-      this.ry = params[1];
-      this.origin = Constructors.vector(params[2], params[3]);
-      this.spin = params[4];
-      this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
-      // const numbers = arr.filter(param => !isNaN(param));
-      // const vectors = getVector_of_vectors(arr);
-      // if (numbers.length === 4) {
-      //   // this.origin = Constructors.vector(numbers[0], numbers[1]);
-      //   // this.rx = numbers[2];
-      //   // this.ry = numbers[3];
-      // } else if (vectors.length === 2) {
-      //   // two foci
-      //   // this.radius = distance2(...vectors);
-      //   // this.origin = Constructors.vector(...vectors[0]);
-      // }
-    },
+	ellipse: {
+		A: function () {
+			// const arr = Array.from(arguments);
+			const numbers = flattenArrays(arguments).filter(a => !Number.isNaN(a));
+			const params = resize(5, numbers);
+			this.rx = params[0];
+			this.ry = params[1];
+			this.origin = Constructors.vector(params[2], params[3]);
+			this.spin = params[4];
+			this.foci = getFoci(this.origin, this.rx, this.ry, this.spin);
+			// const numbers = arr.filter(param => !isNaN(param));
+			// const vectors = getVector_of_vectors(arr);
+			// if (numbers.length === 4) {
+			//   // this.origin = Constructors.vector(numbers[0], numbers[1]);
+			//   // this.rx = numbers[2];
+			//   // this.ry = numbers[3];
+			// } else if (vectors.length === 2) {
+			//   // two foci
+			//   // this.radius = distance2(...vectors);
+			//   // this.origin = Constructors.vector(...vectors[0]);
+			// }
+		},
 
-    // todo, ellipse is not ready to have a Z yet. figure out arguments first
-    G: {
-      x: function () { return this.origin[0]; },
-      y: function () { return this.origin[1]; },
-      // z: function () { return this.origin[2]; },
-    },
-    M: {
-      // nearestPoint: function () {
-      //   return Constructors.vector(nearest_point_on_ellipse(
-      //     this.origin,
-      //     this.radius,
-      //     getVector(arguments)
-      //   ));
-      // },
-      // intersect: function (object) {
-      //   return Intersect(this, object);
-      // },
-      svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
-        const info = pathInfo(this.origin[0], this.origin[1], this.rx, this.ry, this.spin, arcStart, deltaArc);
-        const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x2, info.y2);
-        const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI) * 180, info.fa, info.fs, info.x3, info.y3);
-        return `M${info.x1} ${info.y1}${arc1}${arc2}`;
-      },
-      points: function (count = 128) {
-        return Array.from(Array(count))
-          .map((_, i) => ((2 * Math.PI) / count) * i)
-          .map(angle => pointOnEllipse(
-            this.origin.x, this.origin.y,
-            this.rx, this.ry,
-            this.spin, angle
-          ));
-      },
-      polygon: function () {
-        return Constructors.polygon(this.points(arguments[0]));
-      },
-      segments: function () {
-        const points = this.points(arguments[0]);
-        return points.map((point, i) => {
-          const nextI = (i + 1) % points.length;
-          return [point, points[nextI]];
-        }); // .map(a => Constructors.segment(...a));
-      }
+		// todo, ellipse is not ready to have a Z yet. figure out arguments first
+		G: {
+			x: function () { return this.origin[0]; },
+			y: function () { return this.origin[1]; },
+			// z: function () { return this.origin[2]; },
+		},
+		M: {
+			// nearestPoint: function () {
+			//   return Constructors.vector(nearest_point_on_ellipse(
+			//     this.origin,
+			//     this.radius,
+			//     getVector(arguments)
+			//   ));
+			// },
+			// intersect: function (object) {
+			//   return Intersect(this, object);
+			// },
+			svgPath: function (arcStart = 0, deltaArc = Math.PI * 2) {
+				const info = pathInfo(
+					this.origin[0],
+					this.origin[1],
+					this.rx,
+					this.ry,
+					this.spin,
+					arcStart,
+					deltaArc,
+				);
+				const arc1 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI)
+					* 180, info.fa, info.fs, info.x2, info.y2);
+				const arc2 = ellipticalArcTo(this.rx, this.ry, (this.spin / Math.PI)
+					* 180, info.fa, info.fs, info.x3, info.y3);
+				return `M${info.x1} ${info.y1}${arc1}${arc2}`;
+			},
+			points: function (count = 128) {
+				return Array.from(Array(count))
+					.map((_, i) => ((2 * Math.PI) / count) * i)
+					.map(angle => pointOnEllipse(
+						this.origin.x,
+						this.origin.y,
+						this.rx,
+						this.ry,
+						this.spin,
+						angle,
+					));
+			},
+			polygon: function () {
+				return Constructors.polygon(this.points(arguments[0]));
+			},
+			segments: function () {
+				const points = this.points(arguments[0]);
+				return points.map((point, i) => {
+					const nextI = (i + 1) % points.length;
+					return [point, points[nextI]];
+				}); // .map(a => Constructors.segment(...a));
+			},
 
-    },
+		},
 
-    S: {
-      // static methods
-      // fromPoints: function () {
-      //   const points = getVector_of_vectors(arguments);
-      //   return Constructors.circle(points, distance2(points[0], points[1]));
-      // }
-    }
-  }
+		S: {
+			// static methods
+			// fromPoints: function () {
+			//   const points = getVector_of_vectors(arguments);
+			//   return Constructors.circle(points, distance2(points[0], points[1]));
+			// }
+		},
+	},
 };
 
 /**
@@ -4092,102 +4273,104 @@ var Ellipse = {
 // this.sides - array edge pairs of points
 // this.vectors - non-normalized vectors relating to this.sides.
 const PolygonMethods = {
-  /**
-   * @description calculate the signed area of this polygon
-   * @returns {number} the signed area
-   */
-  area: function () {
-    return signedArea(this);
-  },
-  // midpoint: function () { return average(this); },
-  centroid: function () {
-    return Constructors.vector(centroid(this));
-  },
-  boundingBox: function () {
-    return boundingBox(this);
-  },
-  // contains: function () {
-  //   return overlap_convex_polygon_point(this, getVector(arguments));
-  // },
-  straightSkeleton: function () {
-    return straightSkeleton(this);
-  },
-  // scale will return a rect for rectangles, otherwise polygon
-  scale: function (magnitude, center = centroid(this)) {
-    const newPoints = this
-      .map(p => [0, 1].map((_, i) => p[i] - center[i]))
-      .map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
-    return this.constructor.fromPoints(newPoints);
-  },
-  rotate: function (angle, centerPoint = centroid(this)) {
-    const newPoints = this.map((p) => {
-      const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-      const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
-      const a = Math.atan2(vec[1], vec[0]);
-      return [
-        centerPoint[0] + Math.cos(a + angle) * mag,
-        centerPoint[1] + Math.sin(a + angle) * mag,
-      ];
-    });
-    return Constructors.polygon(newPoints);
-  },
-  translate: function () {
-    const vec = getVector(...arguments);
-    const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
-    return this.constructor.fromPoints(newPoints);
-  },
-  transform: function () {
-    const m = getMatrix3x4(...arguments);
-    const newPoints = this
-      .map(p => multiplyMatrix3Vector3(m, resize(3, p)));
-    return Constructors.polygon(newPoints);
-  },
-  // sectors: function () {
-  //   return this.map((p, i, arr) => {
-  //     const prev = (i + arr.length - 1) % arr.length;
-  //     const next = (i + 1) % arr.length;
-  //     const center = p;
-  //     const a = arr[prev].map((n, j) => n - center[j]);
-  //     const b = arr[next].map((n, j) => n - center[j]);
-  //     return Constructors.sector(b, a, center);
-  //   });
-  // },
-  nearest: function () {
-    const point = getVector(...arguments);
-    const result = nearestPointOnPolygon(this, point);
-    return result === undefined
-      ? undefined
-      : Object.assign(result, { edge: this.sides[result.i] });
-  },
-  split: function () {
-    const line = getLine$1(...arguments);
-    // const split_func = this.isConvex ? splitConvexPolygon : split_polygon;
-    const split_func = splitConvexPolygon;
-    return split_func(this, line.vector, line.origin)
-      .map(poly => Constructors.polygon(poly));
-  },
-  overlap: function () {
-    return overlap$1(this, ...arguments);
-  },
-  intersect: function () {
-    return intersect$1(this, ...arguments);
-  },
-  clip: function (line_type, epsilon) {
-    const fn_line = line_type.domain_function ? line_type.domain_function : includeL;
-    const segment = clipLineConvexPolygon(this,
-      line_type.vector,
-      line_type.origin,
-      this.domain_function,
-      fn_line,
-      epsilon);
-    return segment ? Constructors.segment(segment) : undefined;
-  },
-  svgPath: function () {
-    // make every point a Move or Line command, append with a "z" (close path)
-    const pre = Array(this.length).fill("L");
-    pre[0] = "M";
-    return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
-  },
+	/**
+	 * @description calculate the signed area of this polygon
+	 * @returns {number} the signed area
+	 */
+	area: function () {
+		return signedArea(this);
+	},
+	// midpoint: function () { return average(this); },
+	centroid: function () {
+		return Constructors.vector(centroid(this));
+	},
+	boundingBox: function () {
+		return boundingBox(this);
+	},
+	// contains: function () {
+	//   return overlap_convex_polygon_point(this, getVector(arguments));
+	// },
+	straightSkeleton: function () {
+		return straightSkeleton(this);
+	},
+	// scale will return a rect for rectangles, otherwise polygon
+	scale: function (magnitude, center = centroid(this)) {
+		const newPoints = this
+			.map(p => [0, 1].map((_, i) => p[i] - center[i]))
+			.map(vec => vec.map((_, i) => center[i] + vec[i] * magnitude));
+		return this.constructor.fromPoints(newPoints);
+	},
+	rotate: function (angle, centerPoint = centroid(this)) {
+		const newPoints = this.map((p) => {
+			const vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
+			const mag = Math.sqrt((vec[0] ** 2) + (vec[1] ** 2));
+			const a = Math.atan2(vec[1], vec[0]);
+			return [
+				centerPoint[0] + Math.cos(a + angle) * mag,
+				centerPoint[1] + Math.sin(a + angle) * mag,
+			];
+		});
+		return Constructors.polygon(newPoints);
+	},
+	translate: function () {
+		const vec = getVector(...arguments);
+		const newPoints = this.map(p => p.map((n, i) => n + vec[i]));
+		return this.constructor.fromPoints(newPoints);
+	},
+	transform: function () {
+		const m = getMatrix3x4(...arguments);
+		const newPoints = this
+			.map(p => multiplyMatrix3Vector3(m, resize(3, p)));
+		return Constructors.polygon(newPoints);
+	},
+	// sectors: function () {
+	//   return this.map((p, i, arr) => {
+	//     const prev = (i + arr.length - 1) % arr.length;
+	//     const next = (i + 1) % arr.length;
+	//     const center = p;
+	//     const a = arr[prev].map((n, j) => n - center[j]);
+	//     const b = arr[next].map((n, j) => n - center[j]);
+	//     return Constructors.sector(b, a, center);
+	//   });
+	// },
+	nearest: function () {
+		const point = getVector(...arguments);
+		const result = nearestPointOnPolygon(this, point);
+		return result === undefined
+			? undefined
+			: Object.assign(result, { edge: this.sides[result.i] });
+	},
+	split: function () {
+		const line = getLine$1(...arguments);
+		// const split_func = this.isConvex ? splitConvexPolygon : split_polygon;
+		const split_func = splitConvexPolygon;
+		return split_func(this, line.vector, line.origin)
+			.map(poly => Constructors.polygon(poly));
+	},
+	overlap: function () {
+		return overlap$1(this, ...arguments);
+	},
+	intersect: function () {
+		return intersect$1(this, ...arguments);
+	},
+	clip: function (line_type, epsilon) {
+		const fn_line = line_type.domain_function ? line_type.domain_function : includeL;
+		const segment = clipLineConvexPolygon(
+			this,
+			line_type.vector,
+			line_type.origin,
+			this.domain_function,
+			fn_line,
+			epsilon,
+		);
+		return segment ? Constructors.segment(segment) : undefined;
+	},
+	svgPath: function () {
+		// make every point a Move or Line command, append with a "z" (close path)
+		const pre = Array(this.length).fill("L");
+		pre[0] = "M";
+		return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}z`;
+	},
 };
 
 /**
@@ -4199,54 +4382,56 @@ const PolygonMethods = {
  * for a rectangle that can be rotated, use Polygon or ConvexPolygon
  */
 const rectToPoints = r => [
-  [r.x, r.y],
-  [r.x + r.width, r.y],
-  [r.x + r.width, r.y + r.height],
-  [r.x, r.y + r.height]
+	[r.x, r.y],
+	[r.x + r.width, r.y],
+	[r.x + r.width, r.y + r.height],
+	[r.x, r.y + r.height],
 ];
 
 const rectToSides = r => [
-  [[r.x, r.y], [r.x + r.width, r.y]],
-  [[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
-  [[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
-  [[r.x, r.y + r.height], [r.x, r.y]],
+	[[r.x, r.y], [r.x + r.width, r.y]],
+	[[r.x + r.width, r.y], [r.x + r.width, r.y + r.height]],
+	[[r.x + r.width, r.y + r.height], [r.x, r.y + r.height]],
+	[[r.x, r.y + r.height], [r.x, r.y]],
 ];
 
 var Rect = {
-  rect: {
-    P: Array.prototype,
-    A: function () {
-      const r = getRect(...arguments);
-      this.width = r.width;
-      this.height = r.height;
-      this.origin = Constructors.vector(r.x, r.y);
-      this.push(...rectToPoints(this));
-      Object.defineProperty(this, "domain_function", { writable: true, value: include });
-    },
-    G: {
-      x: function () { return this.origin[0]; },
-      y: function () { return this.origin[1]; },
-      center: function () { return Constructors.vector(
-        this.origin[0] + this.width / 2,
-        this.origin[1] + this.height / 2,
-      ); },
-    },
-    M: Object.assign({}, PolygonMethods, {
-      inclusive: function () { this.domain_function = include; return this; },
-      exclusive: function () { this.domain_function = exclude; return this; },
-      area: function () { return this.width * this.height; },
-      segments: function () { return rectToSides(this); },
-      svgPath: function () {
-        return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
-      },
-    }),
-    S: {
-      fromPoints: function () {
-        const box = boundingBox(getVectorOfVectors(arguments));
-        return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
-      }
-    }
-  }
+	rect: {
+		P: Array.prototype,
+		A: function () {
+			const r = getRect(...arguments);
+			this.width = r.width;
+			this.height = r.height;
+			this.origin = Constructors.vector(r.x, r.y);
+			this.push(...rectToPoints(this));
+			Object.defineProperty(this, "domain_function", { writable: true, value: include });
+		},
+		G: {
+			x: function () { return this.origin[0]; },
+			y: function () { return this.origin[1]; },
+			center: function () {
+				return Constructors.vector(
+					this.origin[0] + this.width / 2,
+					this.origin[1] + this.height / 2,
+				);
+			},
+		},
+		M: Object.assign({}, PolygonMethods, {
+			inclusive: function () { this.domain_function = include; return this; },
+			exclusive: function () { this.domain_function = exclude; return this; },
+			area: function () { return this.width * this.height; },
+			segments: function () { return rectToSides(this); },
+			svgPath: function () {
+				return `M${this.origin.join(" ")}h${this.width}v${this.height}h${-this.width}Z`;
+			},
+		}),
+		S: {
+			fromPoints: function () {
+				const box = boundingBox(getVectorOfVectors(arguments));
+				return Constructors.rect(box.min[0], box.min[1], box.span[0], box.span[1]);
+			},
+		},
+	},
 };
 
 /**
@@ -4254,50 +4439,50 @@ var Rect = {
  */
 
 var Polygon = {
-  polygon: {
-    P: Array.prototype,
-    A: function () {
-      this.push(...semiFlattenArrays(arguments));
-      // this.points = semiFlattenArrays(arguments);
-        // .map(v => Constructors.vector(v));
-      this.sides = this
-        .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
-        // .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
-      this.vectors = this.sides.map(side => subtract(side[1], side[0]));
-      // this.sectors
-      Object.defineProperty(this, "domain_function", { writable: true, value: include });
-    },
-    G: {
-      // todo: convex test
-      isConvex: function () {
-        return undefined;
-      },
-      points: function () {
-        return this;
-      },
-      // edges: function () {
-      //   return this.sides;
-      // },
-    },
-    M: Object.assign({}, PolygonMethods, {
-      inclusive: function () { this.domain_function = include; return this; },
-      exclusive: function () { this.domain_function = exclude; return this; },
-      segments: function () {
-        return this.sides;
-      },
-    }),
-    S: {
-      fromPoints: function () {
-        return this.constructor(...arguments);
-      },
-      regularPolygon: function () {
-        return this.constructor(makePolygonCircumradius(...arguments));
-      },
-      convexHull: function () {
-        return this.constructor(convexHull(...arguments));
-      },
-    }
-  }
+	polygon: {
+		P: Array.prototype,
+		A: function () {
+			this.push(...semiFlattenArrays(arguments));
+			// this.points = semiFlattenArrays(arguments);
+			// .map(v => Constructors.vector(v));
+			this.sides = this
+				.map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+			// .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+			this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+			// this.sectors
+			Object.defineProperty(this, "domain_function", { writable: true, value: include });
+		},
+		G: {
+			// todo: convex test
+			isConvex: function () {
+				return undefined;
+			},
+			points: function () {
+				return this;
+			},
+			// edges: function () {
+			//   return this.sides;
+			// },
+		},
+		M: Object.assign({}, PolygonMethods, {
+			inclusive: function () { this.domain_function = include; return this; },
+			exclusive: function () { this.domain_function = exclude; return this; },
+			segments: function () {
+				return this.sides;
+			},
+		}),
+		S: {
+			fromPoints: function () {
+				return this.constructor(...arguments);
+			},
+			regularPolygon: function () {
+				return this.constructor(makePolygonCircumradius(...arguments));
+			},
+			convexHull: function () {
+				return this.constructor(convexHull(...arguments));
+			},
+		},
+	},
 };
 
 /**
@@ -4305,44 +4490,44 @@ var Polygon = {
  */
 
 var Polyline = {
-  polyline: {
-    P: Array.prototype,
-    A: function () {
-      this.push(...semiFlattenArrays(arguments));
-        // .map(v => Constructors.vector(v));
-      // this.sides = this
-      //   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
-      // this.sides.pop(); // polylines are not closed. remove the last segment
-        // .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
-      // this.vectors = this.sides.map(side => subtract(side[1], side[0]));
-      // this.sectors
-    },
-    G: {
-      points: function () {
-        return this;
-      },
-      // edges: function () {
-      //   return this.sides;
-      // },
-    },
-    M: {
-      // segments: function () {
-      //   return this.sides;
-      // },
-      svgPath: function () {
-        // make every point a Move or Line command, no closed path at the end
-        const pre = Array(this.length).fill("L");
-        pre[0] = "M";
-        return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}`;
-      },
+	polyline: {
+		P: Array.prototype,
+		A: function () {
+			this.push(...semiFlattenArrays(arguments));
+			// .map(v => Constructors.vector(v));
+			// this.sides = this
+			//   .map((p, i, arr) => [p, arr[(i + 1) % arr.length]]);
+			// this.sides.pop(); // polylines are not closed. remove the last segment
+			// .map(ps => Constructors.segment(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
+			// this.vectors = this.sides.map(side => subtract(side[1], side[0]));
+			// this.sectors
+		},
+		G: {
+			points: function () {
+				return this;
+			},
+			// edges: function () {
+			//   return this.sides;
+			// },
+		},
+		M: {
+			// segments: function () {
+			//   return this.sides;
+			// },
+			svgPath: function () {
+				// make every point a Move or Line command, no closed path at the end
+				const pre = Array(this.length).fill("L");
+				pre[0] = "M";
+				return `${this.map((p, i) => `${pre[i]}${p[0]} ${p[1]}`).join("")}`;
+			},
 
-    },
-    S: {
-      fromPoints: function () {
-        return this.constructor(...arguments);
-      },
-    }
-  }
+		},
+		S: {
+			fromPoints: function () {
+				return this.constructor(...arguments);
+			},
+		},
+	},
 };
 
 /**
@@ -4361,89 +4546,98 @@ var Polyline = {
 
 // this is 4x faster than calling Object.assign(thisMat, mat)
 const array_assign = (thisMat, mat) => {
-  for (let i = 0; i < 12; i += 1) {
-    thisMat[i] = mat[i];
-  }
-  return thisMat;
+	for (let i = 0; i < 12; i += 1) {
+		thisMat[i] = mat[i];
+	}
+	return thisMat;
 };
 
 var Matrix = {
-  matrix: {
-    P: Array.prototype,
+	matrix: {
+		P: Array.prototype,
 
-    A: function () {
-      // [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].forEach(m => this.push(m));
-      getMatrix3x4(arguments).forEach(m => this.push(m));
-    },
+		A: function () {
+			// [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].forEach(m => this.push(m));
+			getMatrix3x4(arguments).forEach(m => this.push(m));
+		},
 
-    G: {
-    },
+		G: {
+		},
 
-    M: {
-      copy: function () { return Constructors.matrix(...Array.from(this)); },
-      set: function () {
-        return array_assign(this, getMatrix3x4(arguments));
-      },
-      isIdentity: function () { return isIdentity3x4(this); },
-      // todo: is this right, on the right hand side?
-      multiply: function (mat) {
-        return array_assign(this, multiplyMatrices3(this, mat));
-      },
-      determinant: function () {
-        return determinant3(this);
-      },
-      inverse: function () {
-        return array_assign(this, invertMatrix3(this));
-      },
-      // todo: is this the right order (this, transform)?
-      translate: function (x, y, z) {
-        return array_assign(this,
-          multiplyMatrices3(this, makeMatrix3Translate(x, y, z)));
-      },
-      rotateX: function (radians) {
-        return array_assign(this,
-          multiplyMatrices3(this, makeMatrix3RotateX(radians)));
-      },
-      rotateY: function (radians) {
-        return array_assign(this,
-          multiplyMatrices3(this, makeMatrix3RotateY(radians)));
-      },
-      rotateZ: function (radians) {
-        return array_assign(this,
-          multiplyMatrices3(this, makeMatrix3RotateZ(radians)));
-      },
-      rotate: function (radians, vector, origin) {
-        const transform = makeMatrix3Rotate(radians, vector, origin);
-        return array_assign(this, multiplyMatrices3(this, transform));
-      },
-      scale: function (amount) {
-        return array_assign(this,
-          multiplyMatrices3(this, makeMatrix3Scale(amount)));
-      },
-      reflectZ: function (vector, origin) {
-        const transform = makeMatrix3ReflectZ(vector, origin);
-        return array_assign(this, multiplyMatrices3(this, transform));
-      },
-      // todo, do type checking
-      transform: function (...innerArgs) {
-        return Constructors.vector(
-          multiplyMatrix3Vector3(this, resize(3, getVector(innerArgs)))
-        );
-      },
-      transformVector: function (vector) {
-        return Constructors.vector(
-          multiplyMatrix3Vector3(this, resize(3, getVector(vector)))
-        );
-      },
-      transformLine: function (...innerArgs) {
-        const l = getLine$1(innerArgs);
-        return Constructors.line(multiplyMatrix3Line3(this, l.vector, l.origin));
-      },
-    },
+		M: {
+			copy: function () { return Constructors.matrix(...Array.from(this)); },
+			set: function () {
+				return array_assign(this, getMatrix3x4(arguments));
+			},
+			isIdentity: function () { return isIdentity3x4(this); },
+			// todo: is this right, on the right hand side?
+			multiply: function (mat) {
+				return array_assign(this, multiplyMatrices3(this, mat));
+			},
+			determinant: function () {
+				return determinant3(this);
+			},
+			inverse: function () {
+				return array_assign(this, invertMatrix3(this));
+			},
+			// todo: is this the right order (this, transform)?
+			translate: function (x, y, z) {
+				return array_assign(
+					this,
+					multiplyMatrices3(this, makeMatrix3Translate(x, y, z)),
+				);
+			},
+			rotateX: function (radians) {
+				return array_assign(
+					this,
+					multiplyMatrices3(this, makeMatrix3RotateX(radians)),
+				);
+			},
+			rotateY: function (radians) {
+				return array_assign(
+					this,
+					multiplyMatrices3(this, makeMatrix3RotateY(radians)),
+				);
+			},
+			rotateZ: function (radians) {
+				return array_assign(
+					this,
+					multiplyMatrices3(this, makeMatrix3RotateZ(radians)),
+				);
+			},
+			rotate: function (radians, vector, origin) {
+				const transform = makeMatrix3Rotate(radians, vector, origin);
+				return array_assign(this, multiplyMatrices3(this, transform));
+			},
+			scale: function (amount) {
+				return array_assign(
+					this,
+					multiplyMatrices3(this, makeMatrix3Scale(amount)),
+				);
+			},
+			reflectZ: function (vector, origin) {
+				const transform = makeMatrix3ReflectZ(vector, origin);
+				return array_assign(this, multiplyMatrices3(this, transform));
+			},
+			// todo, do type checking
+			transform: function (...innerArgs) {
+				return Constructors.vector(
+					multiplyMatrix3Vector3(this, resize(3, getVector(innerArgs))),
+				);
+			},
+			transformVector: function (vector) {
+				return Constructors.vector(
+					multiplyMatrix3Vector3(this, resize(3, getVector(vector))),
+				);
+			},
+			transformLine: function (...innerArgs) {
+				const l = getLine$1(innerArgs);
+				return Constructors.line(multiplyMatrix3Line3(this, l.vector, l.origin));
+			},
+		},
 
-    S: {
-    }
-  }
+		S: {},
+	},
 };
 
 /**
@@ -4465,40 +4659,46 @@ var Matrix = {
 // }
 // keys are one letter to shrink minified compile size
 
-const Definitions = Object.assign({},
-  Vector,
-  Line,
-  Ray,
-  Segment,
-  Circle,
-  Ellipse,
-  Rect,
-  Polygon,
-  Polyline,
-  Matrix,
-  // Junction,
-  // Plane,
-  // Matrix2,
+const Definitions = Object.assign(
+	{},
+	Vector,
+	Line,
+	Ray,
+	Segment,
+	Circle,
+	Ellipse,
+	Rect,
+	Polygon,
+	Polyline,
+	Matrix,
+	// Junction,
+	// Plane,
+	// Matrix2,
 );
 
 const create = function (primitiveName, args) {
-  const a = Object.create(Definitions[primitiveName].proto);
-  Definitions[primitiveName].A.apply(a, args);
-  return a; // Object.freeze(a); // basically no cost. matrix needs to able to be modified now
+	const a = Object.create(Definitions[primitiveName].proto);
+	Definitions[primitiveName].A.apply(a, args);
+	return a; // Object.freeze(a); // basically no cost. matrix needs to able to be modified now
 };
 
 // these have to be typed out longform like this
 // this function name is what appears as the object type name in use
 /**
  * @memberof ear
- * @description Make a vector primitive from a sequence of numbers. This vector/point object comes with object methods, the object is **immutable** and methods will return modified copies. The object inherits from Array.prototype so that its components can be accessed via array syntax, [0], [1], or .x, .y, .z properties. There is no limit to the dimensions, some methods like cross product are dimension-specific.
+ * @description Make a vector primitive from a sequence of numbers.
+ * This vector/point object comes with object methods, the object is **immutable**
+ * and methods will return modified copies. The object inherits from Array.prototype
+ * so that its components can be accessed via array syntax, [0], [1], or .x, .y, .z properties.
+ * There is no limit to the dimensions, some methods like cross product are dimension-specific.
  * @param {...number|number[]} numbers a list of numbers as arguments or inside an array
  * @returns {vector} one vector object
  */
 const vector = function () { return create("vector", arguments); };
 /**
  * @memberof ear
- * @description Make a line defined by a vector and a point passing through the line. This object comes with object methods and can be used in intersection calculations.
+ * @description Make a line defined by a vector and a point passing through the line.
+ * This object comes with object methods and can be used in intersection calculations.
  * @param {number[]} vector the line's vector
  * @param {number[]} origin the line's origin (without this, it will assumed to be the origin)
  * @returns {line} one line object
@@ -4506,7 +4706,8 @@ const vector = function () { return create("vector", arguments); };
 const line = function () { return create("line", arguments); };
 /**
  * @memberof ear
- * @description Make a ray defined by a vector and an origin point. This object comes with object methods and can be used in intersection calculations.
+ * @description Make a ray defined by a vector and an origin point.
+ * This object comes with object methods and can be used in intersection calculations.
  * @param {number[]} vector the ray's vector
  * @param {number[]} origin the ray's origin (without this, it will assumed to be the origin)
  * @returns {ray} one ray object
@@ -4514,7 +4715,8 @@ const line = function () { return create("line", arguments); };
 const ray = function () { return create("ray", arguments); };
 /**
  * @memberof ear
- * @description Make a segment defined by two endpoints. This object comes with object methods and can be used in intersection calculations.
+ * @description Make a segment defined by two endpoints. This object comes
+ * with object methods and can be used in intersection calculations.
  * @param {number[]} a the first point
  * @param {number[]} b the second point
  * @returns {segment} one segment object
@@ -4522,9 +4724,10 @@ const ray = function () { return create("ray", arguments); };
 const segment = function () { return create("segment", arguments); };
 /**
  * @memberof ear
- * @description Make a circle defined by a radius and a center. This comes with object methods and can be used in intersection calculations.
- * @param {number} radius
- * @param {number[]|...number} origin the center of the circle 
+ * @description Make a circle defined by a radius and a center. This comes with
+ * object methods and can be used in intersection calculations.
+ * @param {number} radius the circle's radius
+ * @param {number[]|...number} origin the center of the circle
  * @returns {circle} one circle object
  */
 const circle = function () { return create("circle", arguments); };
@@ -4540,7 +4743,9 @@ const circle = function () { return create("circle", arguments); };
 const ellipse = function () { return create("ellipse", arguments); };
 /**
  * @memberof ear
- * @description Make an 2D axis-aligned rectangle defined by a corner point and a width and height. This comes with object methods and can be used in intersection calculations.
+ * @description Make an 2D axis-aligned rectangle defined by a corner point
+ * and a width and height. This comes with object methods and can
+ * be used in intersection calculations.
  * @param {number} x the x coordinate of the origin
  * @param {number} y the y coordinate of the origin
  * @param {number} width the width of the rectangle
@@ -4550,22 +4755,28 @@ const ellipse = function () { return create("ellipse", arguments); };
 const rect = function () { return create("rect", arguments); };
 /**
  * @memberof ear
- * @description Make a polygon defined by a sequence of points. This comes with object methods and can be used in intersection calculations. The polygon can be non-convex, but some methods only work on convex polygons.
- * @param {number[][]|...number[]} one array containing points (array of numbers) or a list of points as the arguments.
+ * @description Make a polygon defined by a sequence of points. This comes with
+ * object methods and can be used in intersection calculations. The polygon can be non-convex,
+ * but some methods only work on convex polygons.
+ * @param {number[][]|...number[]} points one array containing points (array of numbers)
+ * or a list of points as the arguments.
  * @returns {polygon} one polygon object
  */
 const polygon = function () { return create("polygon", arguments); };
 /**
  * @memberof ear
  * @description Make a polyline defined by a sequence of points.
- * @param {number[][]|...number[]} one array containing points (array of numbers) or a list of points as the arguments.
+ * @param {number[][]|...number[]} points one array containing points (array of numbers)
+ * or a list of points as the arguments.
  * @returns {polyline} one polyline object
  */
 const polyline = function () { return create("polyline", arguments); };
 /**
  * @memberof ear
- * @description Make a 3x4 column-major matrix containing three basis vectors and a translation column. This comes with object methods and this is the one primitive in the library which **is mutable**.
- * @param {number[]|...number} one array of numbers, or list of numbers as parameters.
+ * @description Make a 3x4 column-major matrix containing three basis
+ * vectors and a translation column. This comes with object methods and
+ * this is the one primitive in the library which **is mutable**.
+ * @param {number[]|...number} numbers one array of 12 numbers, or 12 numbers listed as parameters.
  * @returns {matrix} one 3x4 matrix object
  */
 const matrix = function () { return create("matrix", arguments); };
@@ -4583,7 +4794,8 @@ const matrix = function () { return create("matrix", arguments); };
 /**
  * @typedef matrix
  * @type {object}
- * @description a 3x4 matrix representing a transformation in 3D space, including a translation component.
+ * @description a 3x4 matrix representing a transformation in 3D space,
+ * including a translation component.
  * @property {number[]} 0...11 array indices for the individual matrix values
  */
 
@@ -4656,60 +4868,60 @@ const matrix = function () { return create("matrix", arguments); };
  */
 
 Object.assign(Constructors, {
-  vector,
-  line,
-  ray,
-  segment,
-  circle,
-  ellipse,
-  rect,
-  polygon,
-  polyline,
-  matrix,
-  // junction,
-  // plane,
-  // matrix2,
+	vector,
+	line,
+	ray,
+	segment,
+	circle,
+	ellipse,
+	rect,
+	polygon,
+	polyline,
+	matrix,
+	// junction,
+	// plane,
+	// matrix2,
 });
 
 // build prototypes
 Object.keys(Definitions).forEach(primitiveName => {
-  // create the prototype
-  const Proto = {};
-  Proto.prototype = Definitions[primitiveName].P != null
-    ? Object.create(Definitions[primitiveName].P)
-    : Object.create(Object.prototype);
-  Proto.prototype.constructor = Proto;
+	// create the prototype
+	const Proto = {};
+	Proto.prototype = Definitions[primitiveName].P != null
+		? Object.create(Definitions[primitiveName].P)
+		: Object.create(Object.prototype);
+	Proto.prototype.constructor = Proto;
 
-  // make this present in the prototype chain so "instanceof" works
-  Constructors[primitiveName].prototype = Proto.prototype;
-  Constructors[primitiveName].prototype.constructor = Constructors[primitiveName];
+	// make this present in the prototype chain so "instanceof" works
+	Constructors[primitiveName].prototype = Proto.prototype;
+	Constructors[primitiveName].prototype.constructor = Constructors[primitiveName];
 
-  // getters
-  Object.keys(Definitions[primitiveName].G)
-    .forEach(key => Object.defineProperty(Proto.prototype, key, {
-      get: Definitions[primitiveName].G[key],
-      // enumerable: true
-    }));
+	// getters
+	Object.keys(Definitions[primitiveName].G)
+		.forEach(key => Object.defineProperty(Proto.prototype, key, {
+			get: Definitions[primitiveName].G[key],
+			// enumerable: true
+		}));
 
-  // methods
-  Object.keys(Definitions[primitiveName].M)
-    .forEach(key => Object.defineProperty(Proto.prototype, key, {
-      value: Definitions[primitiveName].M[key],
-    }));
+	// methods
+	Object.keys(Definitions[primitiveName].M)
+		.forEach(key => Object.defineProperty(Proto.prototype, key, {
+			value: Definitions[primitiveName].M[key],
+		}));
 
-  // applied to the constructor not the prototype
-  Object.keys(Definitions[primitiveName].S)
-    .forEach(key => Object.defineProperty(Constructors[primitiveName], key, {
-      // bind to the prototype, this.constructor will point to the constructor
-      value: Definitions[primitiveName].S[key]
-        .bind(Constructors[primitiveName].prototype),
-    }));
+	// applied to the constructor not the prototype
+	Object.keys(Definitions[primitiveName].S)
+		.forEach(key => Object.defineProperty(Constructors[primitiveName], key, {
+			// bind to the prototype, this.constructor will point to the constructor
+			value: Definitions[primitiveName].S[key]
+				.bind(Constructors[primitiveName].prototype),
+		}));
 
-  // done with prototype
-  // Object.freeze(Proto.prototype); // now able to be modified from the outside
+	// done with prototype
+	// Object.freeze(Proto.prototype); // now able to be modified from the outside
 
-  // store the prototype on the Definition, to be called during instantiation
-  Definitions[primitiveName].proto = Proto.prototype;
+	// store the prototype on the Definition, to be called during instantiation
+	Definitions[primitiveName].proto = Proto.prototype;
 });
 
 /**
@@ -4733,36 +4945,44 @@ const math = Constructors;
  * the primitives store object methods under their prototype,
  * the top level has properties like x, y, z.
  */
-math.core = Object.assign(Object.create(null),
-  constants,
-  resizers,
-  getters,
-  functions,
-  algebra,
-  equal,
-  sort$1,
-  geometry,
-  radial,
-  // interpolation,
-  matrix2,
-  matrix3,
-  nearest$1,
-  parameterize,
-  {
-    enclosingPolygonPolygon,
-    intersectConvexPolygonLine,
-    intersectCircleCircle,
-    intersectCircleLine,
-    intersectLineLine,
-    overlapConvexPolygons,
-    overlapConvexPolygonPoint,
-    overlapBoundingBoxes,
-    overlapLineLine,
-    overlapLinePoint,
-    clipLineConvexPolygon,
-    clipPolygonPolygon,
-  }
+math.core = Object.assign(
+	Object.create(null),
+	constants,
+	resizers,
+	getters,
+	functions,
+	algebra,
+	sort$1,
+
+	radial,
+	convexHull$1,
+	pleat$1,
+	polygons,
+	radial,
+
+	matrix2,
+	matrix3,
+	nearest$1,
+	parameterize,
+	generalIntersect,
+	{
+		enclosingPolygonPolygon,
+		intersectConvexPolygonLine,
+		intersectCircleCircle,
+		intersectCircleLine,
+		intersectLineLine,
+		overlapConvexPolygons,
+		overlapConvexPolygonPoint,
+		overlapBoundingBoxes,
+		overlapLineLine,
+		overlapLinePoint,
+		clipLineConvexPolygon,
+		clipPolygonPolygon,
+		splitConvexPolygon,
+		straightSkeleton,
+	},
 );
+
 math.typeof = typeOf;
 math.intersect = intersect$1;
 math.overlap = overlap$1;
@@ -4776,7 +4996,7 @@ const vertex_degree = function (v, i) {
 	Object.defineProperty(v, "degree", {
 		get: () => (graph.vertices_vertices && graph.vertices_vertices[i]
 			? graph.vertices_vertices[i].length
-			: null)
+			: null),
 	});
 };
 
@@ -4790,7 +5010,7 @@ const edge_coords = function (e, i) {
 				return undefined;
 			}
 			return graph.edges_vertices[i].map(v => graph.vertices_coords[v]);
-		}
+		},
 	});
 };
 
@@ -4807,7 +5027,7 @@ const face_simple = function (f, i) {
 				}
 			}
 			return true;
-		}
+		},
 	});
 };
 
@@ -4821,7 +5041,7 @@ const face_coords = function (f, i) {
 				return undefined;
 			}
 			return graph.faces_vertices[i].map(v => graph.vertices_coords[v]);
-		}
+		},
 	});
 };
 
@@ -4873,7 +5093,7 @@ const foldKeys = {
 		"file_title",
 		"file_description",
 		"file_classes",
-		"file_frames"
+		"file_frames",
 	],
 	frame: [
 		"frame_author",
@@ -4901,11 +5121,11 @@ const foldKeys = {
 		// face-adjacent. this library uses as EDGE-ADJACENT.
 		"vertices_edges",
 		"edges_edges",
-		"faces_faces"
+		"faces_faces",
 	],
 	orders: [
 		"edgeOrders",
-		"faceOrders"
+		"faceOrders",
 	],
 };
 /**
@@ -4924,7 +5144,7 @@ const keysOutOfSpec = Object.freeze([
 	"edges_vector",
 	"vertices_sectors",
 	"faces_sectors",
-	"faces_matrix"
+	"faces_matrix",
 ]);
 /**
  * array of single characers, the values of an edge assignment
@@ -4969,14 +5189,15 @@ const edgesAssignmentNames = {
 	m: "mountain",
 	v: "valley",
 	f: "flat",
-	u: "unassigned"
+	u: "unassigned",
 };
 edgesAssignmentValues.forEach(key => {
 	edgesAssignmentNames[key.toUpperCase()] = edgesAssignmentNames[key];
 });
 /**
- * @description get the foldAngle in degrees for every FOLD assignment spec character (like "M", or "b"). **this assumes the creases are flat folded.**
- * @linkcode Origami ./src/fold/spec.js 52
+ * @description get the foldAngle in degrees for every FOLD assignment spec
+ * character (like "M", or "b"). **this assumes the creases are flat folded.**
+ * @linkcode Origami ./src/fold/spec.js 53
  */
 const edgesAssignmentDegrees = {
 	M: -180,
@@ -4988,23 +5209,24 @@ const edgesAssignmentDegrees = {
 	F: 0,
 	f: 0,
 	U: 0,
-	u: 0
+	u: 0,
 };
 /**
  * @description Convert an assignment character to a foldAngle in degrees. This assumes
  * that all assignments are flat folds.
  * @param {string} assignment one edge assignment letter: M V B F U
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
- * @linkcode Origami ./src/fold/spec.js 71
+ * @linkcode Origami ./src/fold/spec.js 72
  */
-const edgeAssignmentToFoldAngle = assignment =>
-	edgesAssignmentDegrees[assignment] || 0;
+const edgeAssignmentToFoldAngle = assignment => (
+	edgesAssignmentDegrees[assignment] || 0
+);
 /**
  * @description Convert a foldAngle to an edge assignment character.
  * @param {number} angle fold angle in degrees
  * @returns {string} one edge assignment letter: M V or U, no boundary detection
  * @todo should "U" be "F" instead, if so, we are assigning potental "B" edges to "F".
- * @linkcode Origami ./src/fold/spec.js 80
+ * @linkcode Origami ./src/fold/spec.js 82
  */
 const edgeFoldAngleToAssignment = (a) => {
 	if (a > math.core.EPSILON) { return "V"; }
@@ -5017,7 +5239,7 @@ const edgeFoldAngleToAssignment = (a) => {
  * and the +/- epsilon around each number.
  * @param {number} angle fold angle in degrees
  * @returns {boolean} true if the fold angle is flat
- * @linkcode Origami ./src/fold/spec.js 93
+ * @linkcode Origami ./src/fold/spec.js 95
  */
 const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
  || math.core.fnEpsilonEqual(-180, angle)
@@ -5029,11 +5251,11 @@ const edgeFoldAngleIsFlat = angle => math.core.fnEpsilonEqual(0, angle)
  * the angles are considered flat, and the method returns "true".
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean} is the graph flat-foldable according to foldAngles.
- * @linkcode Origami ./src/fold/spec.js 105
+ * @linkcode Origami ./src/fold/spec.js 107
  */
 const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
-	for (let i = 0; i < edges_foldAngle.length; i++) {
+	for (let i = 0; i < edges_foldAngle.length; i += 1) {
 		if (!edgeFoldAngleIsFlat(edges_foldAngle[i])) { return false; }
 	}
 	return true;
@@ -5043,7 +5265,7 @@ const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
  * @param {object} obj an object
  * @param {string} suffix a suffix to match against the keys
  * @returns {string[]} array of keys that end with the suffix
- * @linkcode Origami ./src/fold/spec.js 119
+ * @linkcode Origami ./src/fold/spec.js 121
  */
 const filterKeysWithSuffix = (graph, suffix) => Object
 	.keys(graph)
@@ -5055,7 +5277,7 @@ const filterKeysWithSuffix = (graph, suffix) => Object
  * @param {object} obj an object
  * @param {string} prefix a prefix to match against the keys
  * @returns {string[]} array of keys that start with the prefix
- * @linkcode Origami ./src/fold/spec.js 131
+ * @linkcode Origami ./src/fold/spec.js 133
  */
 const filterKeysWithPrefix = (obj, prefix) => Object
 	.keys(obj)
@@ -5070,10 +5292,11 @@ const filterKeysWithPrefix = (obj, prefix) => Object
  * for example: "vertices" will return:
  * vertices_coords, vertices_faces,
  * but not edges_vertices, or verticesCoords (must end with _)
- * @linkcode Origami ./src/fold/spec.js 146
+ * @linkcode Origami ./src/fold/spec.js 148
  */
-const getGraphKeysWithPrefix = (graph, key) =>
-	filterKeysWithPrefix(graph, `${key}_`);
+const getGraphKeysWithPrefix = (graph, key) => (
+	filterKeysWithPrefix(graph, `${key}_`)
+);
 /**
  * @description Get all keys in a graph which contain a "_" followed by the provided suffix.
  * @param {FOLD} graph a FOLD object
@@ -5082,17 +5305,19 @@ const getGraphKeysWithPrefix = (graph, key) =>
  * for example: "vertices" will return:
  * edges_vertices, faces_vertices,
  * but not vertices_coords, or edgesvertices (must prefix with _)
- * @linkcode Origami ./src/fold/spec.js 158
+ * @linkcode Origami ./src/fold/spec.js 161
  */
-const getGraphKeysWithSuffix = (graph, key) =>
-	filterKeysWithSuffix(graph, `_${key}`);
+const getGraphKeysWithSuffix = (graph, key) => (
+	filterKeysWithSuffix(graph, `_${key}`)
+);
 /**
  * @description This takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating one object with the keys for every index.
  * @param {FOLD} graph a FOLD object
  * @param {string} geometry_key a geometry item like "vertices"
- * @returns {object[]} an array of objects with FOLD keys but the values are from this single element
- * @linkcode Origami ./src/fold/spec.js 168
+ * @returns {object[]} an array of objects with FOLD keys but the
+ * values are from this single element
+ * @linkcode Origami ./src/fold/spec.js 173
  */
 const transposeGraphArrays = (graph, geometry_key) => {
 	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
@@ -5119,12 +5344,12 @@ const transposeGraphArrays = (graph, geometry_key) => {
  * @param {string} geometry_key a geometry item like "vertices"
  * @param {number} the index of an element
  * @returns {object} an object with FOLD keys but the values are from this single element
- * @linkcode Origami ./src/fold/spec.js 195
+ * @linkcode Origami ./src/fold/spec.js 200
  */
 const transposeGraphArrayAtIndex = function (
 	graph,
 	geometry_key,
-	index
+	index,
 ) {
 	const matching_keys = getGraphKeysWithPrefix(graph, geometry_key);
 	if (matching_keys.length === 0) { return undefined; }
@@ -5139,7 +5364,7 @@ const transposeGraphArrayAtIndex = function (
  * @description Using heuristics, try to determine if an object is a FOLD object.
  * @param {FOLD} graph a FOLD object
  * @returns {number} value between 0 and 1, zero meaning no chance, one meaning 100% chance
- * @linkcode Origami ./src/fold/spec.js 215
+ * @linkcode Origami ./src/fold/spec.js 220
  */
 const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
@@ -5213,7 +5438,7 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 			equivalent_matrix[i][j] = are_vertices_equivalent(
 				vertices_coords[i],
 				vertices_coords[j],
-				epsilon
+				epsilon,
 			);
 		}
 	}
@@ -5226,7 +5451,7 @@ const getVerticesClusters = ({ vertices_coords }, epsilon = math.core.EPSILON) =
 			.filter(a => a !== undefined));
 	// clusters is an array of arrays of numbers
 	// each entry in clusters is an array of vertex indices
-	// now we will recurse 
+	// now we will recurse
 	const clusters = [];
 	const visited = Array(vertices_coords.length).fill(false);
 	let visitedCount = 0;
@@ -5266,18 +5491,19 @@ const max_arrays_length = (...arrays) => Math.max(0, ...(arrays
  * @description Get the number of vertices, edges, or faces in the graph by
  * simply checking the length of arrays starting with the key; in the case
  * of differing array lengths (which shouldn't happen) return the largest number.
- * 
+ *
  * This works even with custom component names in place of "vertices", "edges"...
  *
  * This will fail in the case of abstract graphs, for example where no vertices
  * are defined in a vertex_ array, but still exist as mentions in faces_vertices.
  * In that case, use the implied count method. "count_implied.js"
  * @param {FOLD} graph a FOLD graph
- * @param {string} key the prefix for a key, eg: "vertices" 
+ * @param {string} key the prefix for a key, eg: "vertices"
  * @returns {number} the number of the requested element type in the graph
  * @linkcode Origami ./src/graph/count.js 25
  */
-const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(key => graph[key]));
+const count = (graph, key) => (
+	max_arrays_length(...getGraphKeysWithPrefix(graph, key).map(k => graph[k])));
 
 // standard graph components names
 /**
@@ -5285,22 +5511,22 @@ const count = (graph, key) => max_arrays_length(...getGraphKeysWithPrefix(graph,
  * @param {FOLD} graph a FOLD graph
  * @returns {number} the number of vertices in the graph
  */
-count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) =>
-	max_arrays_length(vertices_coords, vertices_faces, vertices_vertices);
+count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) => (
+	max_arrays_length(vertices_coords, vertices_faces, vertices_vertices));
 /**
  * @description Get the number of edges in a graph.
  * @param {FOLD} graph a FOLD graph
  * @returns {number} the number of edges in the graph
  */
-count.edges = ({ edges_vertices, edges_edges, edges_faces }) =>
-	max_arrays_length(edges_vertices, edges_edges, edges_faces);
+count.edges = ({ edges_vertices, edges_edges, edges_faces }) => (
+	max_arrays_length(edges_vertices, edges_edges, edges_faces));
 /**
  * @description Get the number of faces in a graph.
  * @param {FOLD} graph a FOLD graph
  * @returns {number} the number of faces in the graph
  */
-count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
-	max_arrays_length(faces_vertices, faces_edges, faces_faces);
+count.faces = ({ faces_vertices, faces_edges, faces_faces }) => (
+	max_arrays_length(faces_vertices, faces_edges, faces_faces));
 
 /**
  * Rabbit Ear (c) Kraft
@@ -5315,7 +5541,7 @@ count.faces = ({ faces_vertices, faces_edges, faces_faces }) =>
 const uniqueIntegers = (array) => {
 	const keys = {};
 	array.forEach((int) => { keys[int] = true; });
-	return Object.keys(keys).map(n => parseInt(n));
+	return Object.keys(keys).map(n => parseInt(n, 10));
 };
 /**
  * @description Given a list of integers (can contain duplicates),
@@ -5329,17 +5555,19 @@ const uniqueIntegers = (array) => {
 const uniqueSortedIntegers = (array) => uniqueIntegers(array)
 	.sort((a, b) => a - b);
 /**
- * @description A circular array (data wraps around) requires 2 indices if you intend to split it into two arrays. The "indices" parameter will be sorted, smaller index first.
+ * @description A circular array (data wraps around) requires 2 indices
+ * if you intend to split it into two arrays. The "indices" parameter
+ * will be sorted, smaller index first.
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
- * @linkcode Origami ./src/general/arrays.js 32
+ * @linkcode Origami ./src/general/arrays.js 34
  */
 const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
 	return [
 		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
-		array.slice(indices[0], indices[1] + 1)
+		array.slice(indices[0], indices[1] + 1),
 	];
 };
 /**
@@ -5347,13 +5575,13 @@ const splitCircularArray = (array, indices) => {
  * the first array in the list with the longest length.
  * @param {any[][]} arrays an array of arrays of any type
  * @return {any[]} one of the arrays from the set
- * @linkcode Origami ./src/general/arrays.js 46
+ * @linkcode Origami ./src/general/arrays.js 48
  */
 const getLongestArray = (arrays) => {
 	if (arrays.length === 1) { return arrays[0]; }
 	const lengths = arrays.map(arr => arr.length);
 	let max = 0;
-	for (let i = 0; i < arrays.length; i++) {
+	for (let i = 0; i < arrays.length; i += 1) {
 		if (lengths[i] > lengths[max]) {
 			max = i;
 		}
@@ -5366,13 +5594,13 @@ const getLongestArray = (arrays) => {
  * matching to compare, so this works for primitives (bool, number, string) not objects or arrays.
  * @param {any[]} array an array of any type.
  * @returns {any[]} the same input array but filtered to remove elements which appear only once.
- * @linkcode Origami ./src/general/arrays.js 65
+ * @linkcode Origami ./src/general/arrays.js 67
  */
 const removeSingleInstances = (array) => {
 	const count = {};
 	array.forEach(n => {
 		if (count[n] === undefined) { count[n] = 0; }
-		count[n]++;
+		count[n] += 1;
 	});
 	return array.filter(n => count[n] > 1);
 };
@@ -5381,11 +5609,11 @@ const removeSingleInstances = (array) => {
  * into arrays containing the indices `[i,j]` of all true values.
  * @param {Array<Array<boolean|undefined>>} matrix a 2D matrix containing boolean or undefined
  * @returns {number[][]} array of arrays of numbers
- * @linkcode Origami ./src/general/arrays.js 80
+ * @linkcode Origami ./src/general/arrays.js 82
  */
 const booleanMatrixToIndexedArray = matrix => matrix
 	.map(row => row
-		.map((value, i) => value === true ? i : undefined)
+		.map((value, i) => (value === true ? i : undefined))
 		.filter(a => a !== undefined));
 /**
  * @description consult the upper right half triangle of the matrix,
@@ -5395,12 +5623,12 @@ const booleanMatrixToIndexedArray = matrix => matrix
  * @param {any[][]} matrix a matrix containing any type
  * @returns {number[][]} array of pairs of numbers, the pairs of indices
  * which are truthy in the matrix.
- * @linkcode Origami ./src/general/arrays.js 94
+ * @linkcode Origami ./src/general/arrays.js 96
  */
 const booleanMatrixToUniqueIndexPairs = matrix => {
 	const pairs = [];
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			if (matrix[i][j]) {
 				pairs.push([i, j]);
 			}
@@ -5416,7 +5644,7 @@ const booleanMatrixToUniqueIndexPairs = matrix => {
  * in that group.
  * @param {number[][]} matrix an array of arrays of numbers
  * @returns {number[][]} groups of the indices where each index appears only once
- * @linkcode Origami ./src/general/arrays.js 115
+ * @linkcode Origami ./src/general/arrays.js 117
  */
 const makeSelfRelationalArrayClusters = (matrix) => {
 	const groups = [];
@@ -5426,7 +5654,7 @@ const makeSelfRelationalArrayClusters = (matrix) => {
 		matrix[index].forEach(i => recurse(i, current_group));
 		return 1; // increment group # for next round
 	};
-	for (let row = 0, group = 0; row < matrix.length; row++) {
+	for (let row = 0, group = 0; row < matrix.length; row += 1) {
 		if (!(row in matrix)) { continue; }
 		group += recurse(row, group);
 	}
@@ -5458,7 +5686,7 @@ const makeSelfRelationalArrayClusters = (matrix) => {
  * circularArrayValidRanges([0, 1, undefined, 2, 3, 4, undefined, undefined, 5])
  * // will return
  * [ [8, 1], [3, 5] ]
- * @linkcode Origami ./src/general/arrays.js 157
+ * @linkcode Origami ./src/general/arrays.js 159
  */
 const circularArrayValidRanges = (array) => {
 	// if the array contains no undefineds, return the default state.
@@ -5477,7 +5705,7 @@ const circularArrayValidRanges = (array) => {
 	const counts = Array(total).fill(0);
 	// we want the set that includes index 0 to be listed first,
 	// if that doesn't exist, the next lowest index should be first.
-	let index = not_undefineds[0] && not_undefineds[array.length-1]
+	let index = not_undefineds[0] && not_undefineds[array.length - 1]
 		? 0
 		: (total - 1);
 	not_undefineds.forEach((el, i) => {
@@ -5516,13 +5744,13 @@ const circularArrayValidRanges = (array) => {
 // 	return b;
 // };
 
-//export const invert_array = (a) => {
+// export const invert_array = (a) => {
 //  const b = [];
 //  a.forEach((x, i) => {
 //		if (typeof x === "number") { b[x] = i; }
 //	});
 //  return b;
-//};
+// };
 
 var arrays = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -5583,8 +5811,8 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
 	// these arrays do not change their size, only their contents
 	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
-			.forEach((_, i) => graph[sKey][i]
-				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	removes.reverse();
@@ -5622,7 +5850,7 @@ const removeGeometryIndices = (graph, key, removeIndices) => {
 // replaceIndices: [4:3, 7:5, 8:3, 12:3, 14:9] where keys are indices to remove
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	const geometry_array_size = count(graph, key);
-	const removes = Object.keys(replaceIndices).map(n => parseInt(n));
+	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));
 	const replaces = uniqueSortedIntegers(removes);
 	const index_map = [];
 	let i, j, walk;
@@ -5643,8 +5871,8 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	// these arrays do not change their size, only their contents
 	getGraphKeysWithSuffix(graph, key)
 		.forEach(sKey => graph[sKey]
-			.forEach((_, i) => graph[sKey][i]
-				.forEach((v, j) => { graph[sKey][i][j] = index_map[v]; })));
+			.forEach((_, ii) => graph[sKey][ii]
+				.forEach((v, jj) => { graph[sKey][ii][jj] = index_map[v]; })));
 	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays do change their size, their contents are untouched
 	replaces.reverse();
@@ -5664,17 +5892,17 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices. todo check this
- * @linkcode Origami ./src/graph/verticesViolations.js 19
+ * @linkcode Origami ./src/graph/verticesViolations.js 15
  */
-const getDuplicateVertices = (graph, epsilon) => {
-	return getVerticesClusters(graph, epsilon)
-		.filter(arr => arr.length > 1);
-};
+const getDuplicateVertices = (graph, epsilon) => (
+	getVerticesClusters(graph, epsilon)
+		.filter(arr => arr.length > 1)
+);
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 29
+ * @linkcode Origami ./src/graph/verticesViolations.js 25
  */
 const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
@@ -5694,7 +5922,7 @@ const getEdgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
  * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 49
+ * @linkcode Origami ./src/graph/verticesViolations.js 45
  */
 const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
@@ -5717,7 +5945,7 @@ const getFaceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
  * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD graph
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 72
+ * @linkcode Origami ./src/graph/verticesViolations.js 68
  */
 const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
@@ -5754,7 +5982,7 @@ const getIsolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }
  * getIsolatedVertices() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 109
+ * @linkcode Origami ./src/graph/verticesViolations.js 105
  */
 const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {
@@ -5778,7 +6006,7 @@ const removeIsolatedVertices = (graph, remove_indices) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 133
+ * @linkcode Origami ./src/graph/verticesViolations.js 129
  */
 const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 	// replaces array will be [index:value] index is the element to delete,
@@ -5791,7 +6019,7 @@ const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 		.filter(arr => arr.length > 1);
 	// for each cluster of n, all indices from [1...n] will be replaced with [0]
 	clusters.forEach(cluster => {
-		for (let i = 1; i < cluster.length; i++) {
+		for (let i = 1; i < cluster.length; i += 1) {
 			replace_indices[cluster[i]] = cluster[0];
 			remove_indices.push(cluster[i]);
 		}
@@ -5804,8 +6032,8 @@ const removeDuplicateVertices = (graph, epsilon = math.core.EPSILON) => {
 		.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
 	return {
 		map: replaceGeometryIndices(graph, _vertices, replace_indices),
-		remove: remove_indices,    
-	}
+		remove: remove_indices,
+	};
 };
 
 // export const removeDuplicateVertices_first = (graph, epsilon = math.core.EPSILON) => {
@@ -5898,7 +6126,7 @@ const ordersArrayNames = {
  * evidenced by their appearance in other arrays; ie: searching faces_vertices
  * for the largest vertex index, and inferring number of vertices is that long.
  * @param {FOLD} graph a FOLD graph
- * @param {string} key the prefix for a key, eg: "vertices" 
+ * @param {string} key the prefix for a key, eg: "vertices"
  * @returns {number} the number of vertices, edges, or faces in the graph.
  * @linkcode Origami ./src/graph/countImplied.js 48
  */
@@ -5906,7 +6134,7 @@ const countImplied = (graph, key) => Math.max(
 	// return the maximum value between (1/2):
 	// 1. a found geometry in another geometry's array ("vertex" in "faces_vertices")
 	array_in_array_max_number(
-		getGraphKeysWithSuffix(graph, key).map(str => graph[str])
+		getGraphKeysWithSuffix(graph, key).map(str => graph[str]),
 	),
 	// 2. a found geometry in a faceOrders or edgeOrders type of array (special case)
 	graph[ordersArrayNames[key]]
@@ -5930,10 +6158,13 @@ countImplied.faces = graph => countImplied(graph, _faces);
  * @param {object} [walked_edges={}] memo object, to prevent walking down
  * duplicate paths, or finding duplicate faces, this dictionary will
  * store and check against vertex pairs "i j".
- * @returns {object} the walked face, an object arrays of numbers under "vertices", "edges", and "angles"
- * @linkcode Origami ./src/graph/walk.js 13
+ * @returns {object} the walked face, an object arrays of numbers
+ * under "vertices", "edges", and "angles"
+ * @linkcode Origami ./src/graph/walk.js 14
  */
-const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, walked_edges = {}) => {
+const counterClockwiseWalk = ({
+	vertices_vertices, vertices_sectors,
+}, v0, v1, walked_edges = {}) => {
 	// each time we visit an edge (vertex pair as string, "4 9") add it here.
 	// this gives us a quick lookup to see if we've visited this edge before.
 	const this_walked_edges = {};
@@ -5982,7 +6213,7 @@ const counterClockwiseWalk = ({ vertices_vertices, vertices_sectors }, v0, v1, w
  * @param {FOLD} graph a FOLD graph
  * @returns {object[]} an array of face objects, where each face has number arrays,
  * "vertices", "edges", and "angles". vertices and edges are indices, angles are radians.
- * @linkcode Origami ./src/graph/walk.js 64
+ * @linkcode Origami ./src/graph/walk.js 67
  */
 const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 	const graph = { vertices_vertices, vertices_sectors };
@@ -5994,7 +6225,7 @@ const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
 		.flat();
 };
 /**
- * @description This should be used in conjuction with planarVertexWalk() and 
+ * @description This should be used in conjuction with planarVertexWalk() and
  * counterClockwiseWalk(). There will be one face in the which winds around the
  * outside of the boundary and encloses the space outside around. This method will
  * find that face and remove it from the set.
@@ -6003,12 +6234,12 @@ const planarVertexWalk = ({ vertices_vertices, vertices_sectors }) => {
  * outlines the piece with opposite winding enclosing Infinity.
  * @param {object[]} walked_faces the result from calling "planarVertexWalk()"
  * @returns {object[]} the same input array with one fewer element
- * @linkcode Origami ./src/graph/walk.js 85
+ * @linkcode Origami ./src/graph/walk.js 88
  */
 const filterWalkedBoundaryFace = walked_faces => walked_faces
 	.filter(face => face.angles
 		.map(a => Math.PI - a)
-		.reduce((a,b) => a + b, 0) > 0);
+		.reduce((a, b) => a + b, 0) > 0);
 
 var walk = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -6030,17 +6261,18 @@ var walk = /*#__PURE__*/Object.freeze({
  * @returns {number[]} indices of vertices, in sorted order
  * @linkcode Origami ./src/graph/sort.js 13
  */
-const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
+const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) => (
 	vertices
 		.map(v => vertices_coords[v])
 		.map(coord => math.core.subtract(coord, vertices_coords[vertex]))
 		.map(vec => Math.atan2(vec[1], vec[0]))
 		// optional line, this makes the cycle loop start/end along the +X axis
-		.map(angle => angle > -math.core.EPSILON ? angle : angle + Math.PI * 2)
-		.map((a, i) => ({a, i}))
+		.map(angle => (angle > -math.core.EPSILON ? angle : angle + Math.PI * 2))
+		.map((a, i) => ({ a, i }))
 		.sort((a, b) => a.a - b.a)
 		.map(el => el.i)
-		.map(i => vertices[i]);
+		.map(i => vertices[i])
+);
 /**
  * @description sort a subset of vertices from a graph along a vector.
  * eg: given the vector [1,0], points according to their X value.
@@ -6048,13 +6280,14 @@ const sortVerticesCounterClockwise = ({ vertices_coords }, vertices, vertex) =>
  * @param {number[]} vertices the indices of vertices to be sorted
  * @param {number[]} vector a vector along which to sort vertices
  * @returns {number[]} indices of vertices, in sorted order
- * @linkcode Origami ./src/graph/sort.js 33
+ * @linkcode Origami ./src/graph/sort.js 34
  */
-const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) =>
+const sortVerticesAlongVector = ({ vertices_coords }, vertices, vector) => (
 	vertices
 		.map(i => ({ i, d: math.core.dot(vertices_coords[i], vector) }))
 		.sort((a, b) => a.d - b.d)
-		.map(a => a.i);
+		.map(a => a.i)
+);
 
 var sort = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -6201,7 +6434,7 @@ const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices 
 				.join(" ")))
 		.map(keys => keys
 			.map(key => face_map[key]));
-		// .filter(a => a !== undefined) // removed. read below.
+	// .filter(a => a !== undefined) // removed. read below.
 };
 // the old version of this method contained a filter to remove "undefined".
 // because in the case of a boundary vertex of a closed polygon shape, there
@@ -6268,7 +6501,7 @@ const makeVerticesToFace = ({ faces_vertices }) => {
 		.forEach((face, f) => face
 			.map((_, i) => [0, 1, 2]
 				.map(j => (i + j) % face.length)
-				.map(i => face[i])
+				.map(n => face[n])
 				.join(" "))
 			.forEach(key => { map[key] = f; }));
 	return map;
@@ -6283,7 +6516,9 @@ const makeVerticesToFace = ({ faces_vertices }) => {
  * @todo this can someday be rewritten without edges_vertices
  * @linkcode Origami ./src/graph/make.js 227
  */
-const makeVerticesVerticesVector = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) => {
+const makeVerticesVerticesVector = ({
+	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+}) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -6304,13 +6539,16 @@ const makeVerticesVerticesVector = ({ vertices_coords, vertices_vertices, edges_
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays contains angles in radians
- * @linkcode Origami ./src/graph/make.js 250
+ * @linkcode Origami ./src/graph/make.js 252
  */
-const makeVerticesSectors = ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector }) =>
-	makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
-		.map(vectors => vectors.length === 1 // leaf node
-			? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
-			: math.core.counterClockwiseSectors2(vectors));
+const makeVerticesSectors = ({
+	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+}) => makeVerticesVerticesVector({
+	vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+})
+	.map(vectors => (vectors.length === 1 // leaf node
+		? [math.core.TWO_PI] // interior_angles gives 0 for leaf nodes. we want 2pi
+		: math.core.counterClockwiseSectors2(vectors)));
 /**
  *
  *    EDGES
@@ -6322,7 +6560,7 @@ const makeVerticesSectors = ({ vertices_coords, vertices_vertices, edges_vertice
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, vertices_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of other edges.
- * @linkcode Origami ./src/graph/make.js 268
+ * @linkcode Origami ./src/graph/make.js 273
  */
 const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
 	edges_vertices.map((verts, i) => {
@@ -6336,7 +6574,7 @@ const makeEdgesEdges = ({ edges_vertices, vertices_edges }) =>
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 282
+ * @linkcode Origami ./src/graph/make.js 287
  */
 const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 	// instead of initializing the array ahead of time (we would need to know
@@ -6357,12 +6595,15 @@ const makeEdgesFacesUnsorted = ({ edges_vertices, faces_edges }) => {
 /**
  * @description Make `edges_faces` where each edge is paired with its incident faces.
  * This is sorted according to the FOLD spec, sorting faces on either side of an edge.
- * @param {FOLD} graph a FOLD object, with entries vertices_coords, edges_vertices, faces_vertices, faces_edges
+ * @param {FOLD} graph a FOLD object, with entries vertices_coords,
+ * edges_vertices, faces_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 306
+ * @linkcode Origami ./src/graph/make.js 312
  */
-const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center }) => {
+const makeEdgesFaces = ({
+	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,
+}) => {
 	if (!edges_vertices) {
 		return makeEdgesFacesUnsorted({ faces_edges });
 	}
@@ -6373,7 +6614,7 @@ const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_v
 	if (!faces_center) {
 		faces_center = makeFacesCenter({ vertices_coords, faces_vertices });
 	}
-	const edges_faces = edges_vertices.map(ev => []);
+	const edges_faces = edges_vertices.map(() => []);
 	faces_edges.forEach((face, f) => {
 		const hash = [];
 		// in the case that one face visits the same edge multiple times,
@@ -6393,12 +6634,14 @@ const makeEdgesFaces = ({ vertices_coords, edges_vertices, edges_vector, faces_v
 	return edges_faces;
 };
 
-const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
+const assignment_angles = {
+	M: -180, m: -180, V: 180, v: 180,
+};
 /**
  * @description Convert edges assignment into fold angle in degrees for every edge.
  * @param {FOLD} graph a FOLD object, with edges_assignment
  * @returns {number[]} array of fold angles in degrees
- * @linkcode Origami ./src/graph/make.js 344
+ * @linkcode Origami ./src/graph/make.js 354
  */
 const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
@@ -6406,7 +6649,7 @@ const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
  * @description Convert edges fold angle into assignment for every edge.
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
- * @linkcode Origami ./src/graph/make.js 352
+ * @linkcode Origami ./src/graph/make.js 362
  */
 const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
@@ -6420,43 +6663,44 @@ const makeEdgesAssignment = ({ edges_foldAngle }) => edges_foldAngle
  * the 2D or 3D coordinate as an array of numbers.
  * @param {FOLD} graph a FOLD graph with vertices and edges
  * @returns {number[][][]} an array of array of points (which are arrays of numbers)
- * @linkcode Origami ./src/graph/make.js 366
+ * @linkcode Origami ./src/graph/make.js 376
  */
-const makeEdgesCoords = ({ vertices_coords, edges_vertices }) =>
-	edges_vertices
-		.map(ev => ev.map(v => vertices_coords[v]));
+const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => edges_vertices
+	.map(ev => ev.map(v => vertices_coords[v]));
 /**
  * @description Turn every edge into a vector, basing the direction on the order of
  * the pair of vertices in each edges_vertices entry.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
  * @returns {number[][]} each entry relates to an edge, each array contains a 2D vector
- * @linkcode Origami ./src/graph/make.js 376
+ * @linkcode Origami ./src/graph/make.js 385
  */
-const makeEdgesVector = ({ vertices_coords, edges_vertices }) =>
-	makeEdgesCoords({ vertices_coords, edges_vertices })
-		.map(verts => math.core.subtract(verts[1], verts[0]));
+const makeEdgesVector = ({ vertices_coords, edges_vertices }) => makeEdgesCoords({
+	vertices_coords, edges_vertices,
+}).map(verts => math.core.subtract(verts[1], verts[0]));
 /**
  * @description For every edge, find the length between the edges pair of vertices.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
  * @returns {number[]} the distance between each edge's pair of vertices
- * @linkcode Origami ./src/graph/make.js 385
+ * @linkcode Origami ./src/graph/make.js 394
  */
-const makeEdgesLength = ({ vertices_coords, edges_vertices }) =>
-	makeEdgesVector({ vertices_coords, edges_vertices })
-		.map(vec => math.core.magnitude(vec));
+const makeEdgesLength = ({ vertices_coords, edges_vertices }) => makeEdgesVector({
+	vertices_coords, edges_vertices,
+}).map(vec => math.core.magnitude(vec));
 /**
  * @description Make an array of axis-aligned bounding boxes, one for each edge,
  * that encloses the edge, and will work in n-dimensions. Intended for
  * fast line-sweep algorithms.
  * @param {FOLD} graph a FOLD graph with vertices and edges.
  * @returns {object[]} an array of boxes, length matching the number of edges
- * @linkcode Origami ./src/graph/make.js 396
+ * @linkcode Origami ./src/graph/make.js 405
  */
-const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = 0) => {
+const makeEdgesBoundingBox = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, epsilon = 0) => {
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
-	return edges_coords.map(coords => math.core.boundingBox(coords, epsilon))
+	return edges_coords.map(coords => math.core.boundingBox(coords, epsilon));
 };
 /**
  *
@@ -6474,22 +6718,27 @@ const makeEdgesBoundingBox = ({ vertices_coords, edges_vertices, edges_coords },
  * var faces = makePlanarFaces(graph);
  * faces_vertices = faces.map(el => el.vertices);
  * faces_edges = faces.map(el => el.edges);
- * @linkcode Origami ./src/graph/make.js 420
+ * @linkcode Origami ./src/graph/make.js 431
  */
-const makePlanarFaces = ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector }) => {
+const makePlanarFaces = ({
+	vertices_coords, vertices_vertices, vertices_edges,
+	vertices_sectors, edges_vertices, edges_vector,
+}) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, edges_vertices, vertices_edges });
 	}
 	if (!vertices_sectors) {
-		vertices_sectors = makeVerticesSectors({ vertices_coords, vertices_vertices, edges_vertices, edges_vector });
+		vertices_sectors = makeVerticesSectors({
+			vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+		});
 	}
 	const vertices_edges_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	// removes the one face that outlines the piece with opposite winding.
 	// planarVertexWalk stores edges as vertex pair strings, "4 9",
 	// convert these into edge indices
-	return filterWalkedBoundaryFace(
-			planarVertexWalk({ vertices_vertices, vertices_sectors }))
-		.map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
+	return filterWalkedBoundaryFace(planarVertexWalk({
+		vertices_vertices, vertices_sectors,
+	})).map(f => ({ ...f, edges: f.edges.map(e => vertices_edges_map[e]) }));
 };
 // export const makePlanarFacesVertices = graph => makePlanarFaces(graph)
 // 	.map(face => face.vertices);
@@ -6510,24 +6759,22 @@ const makePlanarFaces = ({ vertices_coords, vertices_vertices, vertices_edges, v
  * @description Make `faces_vertices` from `faces_edges`.
  * @param {FOLD} graph a FOLD graph, with faces_edges, edges_vertices
  * @returns {number[][]} a `faces_vertices` array
- * @linkcode Origami ./src/graph/make.js 456
+ * @linkcode Origami ./src/graph/make.js 472
  */
-const makeFacesVerticesFromEdges = (graph) => {
-	return graph.faces_edges
-		.map(edges => edges
-			.map(edge => graph.edges_vertices[edge])
-			.map((pairs, i, arr) => {
-				const next = arr[(i + 1) % arr.length];
-				return (pairs[0] === next[0] || pairs[0] === next[1])
-					? pairs[1]
-					: pairs[0];
-			}));
-};
+const makeFacesVerticesFromEdges = (graph) => graph.faces_edges
+	.map(edges => edges
+		.map(edge => graph.edges_vertices[edge])
+		.map((pairs, i, arr) => {
+			const next = arr[(i + 1) % arr.length];
+			return (pairs[0] === next[0] || pairs[0] === next[1])
+				? pairs[1]
+				: pairs[0];
+		}));
 /**
  * @description Make `faces_edges` from `faces_vertices`.
  * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} a `faces_edges` array
- * @linkcode Origami ./src/graph/make.js 473
+ * @linkcode Origami ./src/graph/make.js 487
  */
 const makeFacesEdgesFromVertices = (graph) => {
 	const map = makeVerticesToEdgeBidirectional(graph);
@@ -6541,7 +6788,7 @@ const makeFacesEdgesFromVertices = (graph) => {
  * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
- * @linkcode Origami ./src/graph/make.js 487
+ * @linkcode Origami ./src/graph/make.js 501
  */
 const makeFacesFaces = ({ faces_vertices }) => {
 	const faces_faces = faces_vertices.map(() => []);
@@ -6559,8 +6806,8 @@ const makeFacesFaces = ({ faces_vertices }) => {
 		.map(obj => Object.keys(obj))
 		.filter(arr => arr.length > 1)
 		.forEach(pair => {
-			faces_faces[pair[0]].push(parseInt(pair[1]));
-			faces_faces[pair[1]].push(parseInt(pair[0]));
+			faces_faces[pair[0]].push(parseInt(pair[1], 10));
+			faces_faces[pair[1]].push(parseInt(pair[0], 10));
 		});
 	return faces_faces;
 };
@@ -6569,7 +6816,7 @@ const makeFacesFaces = ({ faces_vertices }) => {
 //   const faces_faces = faces_vertices.map(() => []);
 //   // create a map where each key is a string of the vertices of an edge,
 //   // like "3 4"
-//   // and each value is an array of faces adjacent to this edge. 
+//   // and each value is an array of faces adjacent to this edge.
 //   const edgeMap = {};
 //   faces_vertices.forEach((vertices_index, idx1) => {
 //     vertices_index.forEach((v1, i, vs) => {
@@ -6596,28 +6843,26 @@ const makeFacesFaces = ({ faces_vertices }) => {
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][][]} array of array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 542
+ * @linkcode Origami ./src/graph/make.js 556
  */
-const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =>
-	faces_vertices
-		.map(verts => verts.map(v => vertices_coords[v]))
-		.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
+const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces_vertices
+	.map(verts => verts.map(v => vertices_coords[v]))
+	.map(polygon => math.core.makePolygonNonCollinear(polygon, epsilon));
 /**
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points. "Quick" meaning collinear vertices are
  * not removed, which in some cases, this will be the preferred method.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][][]} array of array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 554
+ * @linkcode Origami ./src/graph/make.js 567
  */
-const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) =>
-	faces_vertices
-		.map(verts => verts.map(v => vertices_coords[v]));
+const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(verts => verts.map(v => vertices_coords[v]));
 /**
  * @description For every face, get the face's centroid.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][]} array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 563
+ * @linkcode Origami ./src/graph/make.js 575
  */
 const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
 	.map(fv => fv.map(v => vertices_coords[v]))
@@ -6628,14 +6873,13 @@ const makeFacesCenter = ({ vertices_coords, faces_vertices }) => faces_vertices
  * this is often more than sufficient.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][]} array of points, where each point is an array of numbers
- * @linkcode Origami ./src/graph/make.js 574
+ * @linkcode Origami ./src/graph/make.js 586
  */
-const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) =>
-	faces_vertices
-		.map(vertices => vertices
-			.map(v => vertices_coords[v])
-			.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-			.map(el => el / vertices.length));
+const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(v => vertices_coords[v])
+		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
+		.map(el => el / vertices.length));
 
 var make = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -6753,7 +6997,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
 		.forEach(sKey => graph[sKey] // faces_edges or vertices_edges...
 			.forEach((elem, i) => { // faces_edges[0], faces_edges[1], ...
 				// reverse iterate through array, remove elements with splice
-				for (let j = elem.length - 1; j >= 0; j--) {
+				for (let j = elem.length - 1; j >= 0; j -= 1) {
 					if (remove_map[elem[j]] === true) {
 						graph[sKey][i].splice(j, 1);
 					}
@@ -6788,7 +7032,7 @@ const removeCircularEdges = (graph, remove_indices) => {
 };
 /**
  * @description Find and remove all duplicate edges from a graph.
- * If an edge is removed, it will mess up the vertices data (vertices_vertices, 
+ * If an edge is removed, it will mess up the vertices data (vertices_vertices,
  * vertices_edges, vertices_faces) so if this method successfully found and
  * removed a duplicate edge, the vertices arrays will be rebuilt as well.
  * @param {FOLD} graph a FOLD object
@@ -6803,7 +7047,7 @@ const removeDuplicateEdges = (graph, replace_indices) => {
 	if (!replace_indices) {
 		replace_indices = getDuplicateEdges(graph);
 	}
-	const remove = Object.keys(replace_indices).map(n => parseInt(n));
+	const remove = Object.keys(replace_indices).map(n => parseInt(n, 10));
 	const map = replaceGeometryIndices(graph, _edges, replace_indices);
 	// if edges were removed, we need to rebuild vertices_edges and then
 	// vertices_vertices since that was built from vertices_edges, and then
@@ -6843,7 +7087,7 @@ var edgesViolations = /*#__PURE__*/Object.freeze({
  * @linkcode Origami ./src/graph/maps.js 10
  */
 const mergeSimpleNextmaps = (...maps) => {
-	if (maps.length === 0) { return; }
+	if (maps.length === 0) { return []; }
 	const solution = maps[0].map((_, i) => i);
 	maps.forEach(map => solution.forEach((s, i) => { solution[i] = map[s]; }));
 	return solution;
@@ -6856,13 +7100,13 @@ const mergeSimpleNextmaps = (...maps) => {
  * @linkcode Origami ./src/graph/maps.js 23
  */
 const mergeNextmaps = (...maps) => {
-	if (maps.length === 0) { return; }
+	if (maps.length === 0) { return []; }
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
-		solution.forEach((s, i) => s.forEach((indx,j) => { solution[i][j] = map[indx]; }));
+		solution.forEach((s, i) => s.forEach((indx, j) => { solution[i][j] = map[indx]; }));
 		solution.forEach((arr, i) => {
 			solution[i] = arr
-				.reduce((a,b) => a.concat(b), [])
+				.reduce((a, b) => a.concat(b), [])
 				.filter(a => a !== undefined);
 		});
 	});
@@ -6876,9 +7120,9 @@ const mergeNextmaps = (...maps) => {
  * @linkcode Origami ./src/graph/maps.js 43
  */
 const mergeSimpleBackmaps = (...maps) => {
-	if (maps.length === 0) { return; }
+	if (maps.length === 0) { return []; }
 	let solution = maps[0].map((_, i) => i);
-	maps.forEach((map, i) => {
+	maps.forEach(map => {
 		const next = map.map(n => solution[n]);
 		solution = next;
 	});
@@ -6892,47 +7136,57 @@ const mergeSimpleBackmaps = (...maps) => {
  * @linkcode Origami ./src/graph/maps.js 59
  */
 const mergeBackmaps = (...maps) => {
-	if (maps.length === 0) { return; }
+	if (maps.length === 0) { return []; }
 	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
-	maps.forEach((map, i) => {
-		let next = [];
+	maps.forEach(map => {
+		const next = [];
 		map.forEach((el, j) => {
-			if (typeof el === _number) { next[j] = solution[el]; }
-			else { next[j] = el.map(n => solution[n]).reduce((a,b) => a.concat(b), []); }
+			if (typeof el === _number) {
+				next[j] = solution[el];
+			} else {
+				next[j] = el.map(n => solution[n]).reduce((a, b) => a.concat(b), []);
+			}
 		});
 		solution = next;
 	});
 	return solution;
 };
 /**
- * @description invert an array of integers so that indices become values and values become indices. in the case of multiple values trying to insert into the same index, a child array is made to house both (or more) numbers.
+ * @description invert an array of integers so that indices become values and
+ * values become indices. in the case of multiple values trying to insert
+ * into the same index, a child array is made to house both (or more) numbers.
  * @param {number[]|number[][]} map an array of integers
  * @returns {number[]|number[][]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 78
+ * @linkcode Origami ./src/graph/maps.js 83
  */
 const invertMap = (map) => {
 	const inv = [];
 	map.forEach((n, i) => {
 		if (n == null) { return; }
-		if (typeof n === _number) { 
+		if (typeof n === _number) {
 			// before we set the inverted map [i] spot, check if something is already there
 			if (inv[n] !== undefined) {
 				// if that thing is a number, turn it into an array
-				if (typeof inv[n] === _number) { inv[n] = [inv[n], i]; }
-				// already an array, add to it
-				else { inv[n].push(i); }
+				if (typeof inv[n] === _number) {
+					inv[n] = [inv[n], i];
+				} else {
+					// already an array, add to it
+					inv[n].push(i);
+				}
+			} else {
+				inv[n] = i;
 			}
-			else { inv[n] = i; }
 		}
-		if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }	
+		if (n.constructor === Array) { n.forEach(m => { inv[m] = i; }); }
 	});
 	return inv;
 };
 /**
- * @description invert an array of integers so that indices become values and values become indices. duplicate entries will be overwritten.
+ * @description invert an array of integers so that indices become values
+ * and values become indices. duplicate entries will be overwritten.
  * @param {number[]} map an array of integers
  * @returns {number[]} the inverted map
- * @linkcode Origami ./src/graph/maps.js 102
+ * @linkcode Origami ./src/graph/maps.js 112
  */
 const invertSimpleMap = (map) => {
 	const inv = [];
@@ -6989,7 +7243,7 @@ const clean = (graph, epsilon) => {
 			map: mergeSimpleNextmaps(change_e1.map, change_e2.map),
 			remove: change_e1.remove.concat(change_e2_remove),
 		},
-	}
+	};
 };
 
 /**
@@ -7020,7 +7274,7 @@ const validate_references = (graph) => {
 		vertices: counts.vertices >= implied.vertices,
 		edges: counts.edges >= implied.edges,
 		faces: counts.faces >= implied.faces,
-	}
+	};
 };
 /**
  * @description Validate a graph, get back a report on its duplicate/circular components.
@@ -7056,7 +7310,7 @@ const validate$1 = (graph, epsilon) => {
 		},
 		faces: {
 			references: references.faces,
-		}
+		},
 	};
 };
 
@@ -7193,21 +7447,23 @@ const populate = (graph, reface) => {
  * an array matching vertices_ length, containing true/false.
  * @linkcode Origami ./src/graph/span.js 14
  */
-const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) =>
+const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) => (
 	makeEdgesBoundingBox(graph, epsilon)
 		.map(min_max => graph.vertices_coords
 			.map(vert => (
-				vert[0] > min_max.min[0] &&
-				vert[1] > min_max.min[1] &&
-				vert[0] < min_max.max[0] &&
-				vert[1] < min_max.max[1])));
+				vert[0] > min_max.min[0]
+				&& vert[1] > min_max.min[1]
+				&& vert[0] < min_max.max[0]
+				&& vert[1] < min_max.max[1])))
+);
 /**
  * @description Calculate every edge's rectangular bounding box and compare every box to
  * every box to determine if boxes overlap. This doesn't claim edges overlap, only that
  * their bounding boxes do, and that two edges *might* overlap.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon to be added as padding to the bounding boxes
- * @returns {boolean[][]} NxN 2D array filled with true/false answering "do edges's bounding boxes overlap?"
+ * @returns {boolean[][]} NxN 2D array filled with true/false answering
+ * "do edges's bounding boxes overlap?"
  * Both triangles of the matrix are filled and the main diagonal contains true.
  * ```text
  *     0  1  2  3
@@ -7216,9 +7472,11 @@ const getEdgesVerticesOverlappingSpan = (graph, epsilon = math.core.EPSILON) =>
  * 2 [  ,  , t,  ]
  * 3 [  ,  ,  , t]
  * ```
- * @linkcode Origami ./src/graph/span.js 39
+ * @linkcode Origami ./src/graph/span.js 41
  */
-const getEdgesEdgesOverlapingSpans = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+const getEdgesEdgesOverlapingSpans = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, epsilon = math.core.EPSILON) => {
 	const min_max = makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon);
 	const span_overlaps = edges_vertices.map(() => []);
 	// span_overlaps will be false if no overlap possible, true if overlap is possible.
@@ -7226,9 +7484,9 @@ const getEdgesEdgesOverlapingSpans = ({ vertices_coords, edges_vertices, edges_c
 		for (let e1 = e0 + 1; e1 < edges_vertices.length; e1 += 1) {
 			// if first max is less than second min, or second max is less than first min,
 			// for both X and Y
-			const outside_of = 
+			const outside_of = (
 				(min_max[e0].max[0] < min_max[e1].min[0] || min_max[e1].max[0] < min_max[e0].min[0])
-			&&(min_max[e0].max[1] < min_max[e1].min[1] || min_max[e1].max[1] < min_max[e0].min[1]);
+				&& (min_max[e0].max[1] < min_max[e1].min[1] || min_max[e1].max[1] < min_max[e0].min[1]));
 			// true if the spans are not touching. flip for overlap
 			span_overlaps[e0][e1] = !outside_of;
 			span_overlaps[e1][e0] = !outside_of;
@@ -7250,40 +7508,43 @@ var span = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 
-const getOppositeVertices$1 = (graph, vertex, edges) => {
+const getOppositeVertices$1 = ({ edges_vertices }, vertex, edges) => {
 	edges.forEach(edge => {
-		if (graph.edges_vertices[edge][0] === vertex
-			&& graph.edges_vertices[edge][1] === vertex) {
+		if (edges_vertices[edge][0] === vertex
+			&& edges_vertices[edge][1] === vertex) {
 			console.warn("removePlanarVertex circular edge");
 		}
 	});
-	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
-		? graph.edges_vertices[edge][1]
-		: graph.edges_vertices[edge][0]);
+	return edges.map(edge => (edges_vertices[edge][0] === vertex
+		? edges_vertices[edge][1]
+		: edges_vertices[edge][0]));
 };
-
 /**
  * @description determine if a vertex exists between two and only two edges, and
- * those edges are both parallel and on opposite ends of the vertex. The idea is
- * that this vertex can be removed and the graph would appear similar.
+ * those edges are both parallel and on opposite ends of the vertex. In a lot of
+ * cases, this vertex can be removed and the graph would function the same.
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
  * @linkcode Origami ./src/graph/verticesCollinear.js 26
  */
-const isVertexCollinear = (graph, vertex) => {
-	const edges = graph.vertices_edges[vertex];
+const isVertexCollinear = ({
+	vertices_coords, vertices_edges, edges_vertices,
+}, vertex, epsilon = math.core.EPSILON) => {
+	if (!vertices_coords || !edges_vertices) { return false; }
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+	const edges = vertices_edges[vertex];
 	if (edges === undefined || edges.length !== 2) { return false; }
 	// don't just check if they are parallel, use the direction of the vertex
 	// to make sure the center vertex is inbetween, instead of the odd
 	// case where the two edges are on top of one another with
 	// a leaf-like vertex.
-	const vertices = getOppositeVertices$1(graph, vertex, edges);
-	const vectors = [[vertices[0], vertex], [vertex, vertices[1]]]
-		.map(verts => verts.map(v => graph.vertices_coords[v]))
-		.map(segment => math.core.subtract(segment[1], segment[0]))
-		.map(vector => math.core.normalize(vector));
-	return math.core.fnEpsilonEqual(1.0, math.core.dot(...vectors));
+	const vertices = getOppositeVertices$1({ edges_vertices }, vertex, edges);
+	const points = [vertices[0], vertex, vertices[1]]
+		.map(v => vertices_coords[v]);
+	return math.core.collinearBetween(...points, false, epsilon);
 };
 /**
  * check each vertex against each edge, we want to know if a vertex is
@@ -7305,14 +7566,16 @@ const isVertexCollinear = (graph, vertex) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} size matched to the edges_ arrays, with an empty array
  * unless a vertex lies collinear, the edge's array will contain that vertex's index.
- * @linkcode Origami ./src/graph/verticesCollinear.js 62
+ * @linkcode Origami ./src/graph/verticesCollinear.js 66
  */
-const getVerticesEdgesOverlap = ({ vertices_coords, edges_vertices, edges_coords }, epsilon = math.core.EPSILON) => {
+const getVerticesEdgesOverlap = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
 	}
 	const edges_span_vertices = getEdgesVerticesOverlappingSpan({
-		vertices_coords, edges_vertices, edges_coords
+		vertices_coords, edges_vertices, edges_coords,
 	}, epsilon);
 	// todo, consider pushing values into a results array instead of modifying,
 	// then filtering the existing one
@@ -7324,13 +7587,13 @@ const getVerticesEdgesOverlap = ({ vertices_coords, edges_vertices, edges_coords
 				edges_coords[e][0],
 				vertices_coords[v],
 				math.core.excludeS,
-				epsilon
+				epsilon,
 			);
 		}
 	}
 	return edges_span_vertices
 		.map(verts => verts
-			.map((vert, i) => vert ? i : undefined)
+			.map((vert, i) => (vert ? i : undefined))
 			.filter(i => i !== undefined));
 };
 
@@ -7352,7 +7615,9 @@ var vertices_collinear = /*#__PURE__*/Object.freeze({
  * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
  * @linkcode Origami ./src/graph/intersect.js 18
  */
-const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vector, point, epsilon = math.core.EPSILON) => {
+const makeEdgesLineParallelOverlap = ({
+	vertices_coords, edges_vertices,
+}, vector, point, epsilon = math.core.EPSILON) => {
 	const normalized = math.core.normalize2(vector);
 	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
 	const edges_vector = edges_vertices
@@ -7362,7 +7627,7 @@ const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vecto
 	const overlap = edges_vector
 		.map(vec => math.core.parallel2(vec, vector, epsilon));
 	// second, filter out edges which do not lie on top of the line
-	for (let e = 0; e < edges_vertices.length; e++) {
+	for (let e = 0; e < edges_vertices.length; e += 1) {
 		if (!overlap[e]) { continue; }
 		if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
 			overlap[e] = true;
@@ -7382,9 +7647,11 @@ const makeEdgesLineParallelOverlap = ({ vertices_coords, edges_vertices }, vecto
  * @param {number[]} point2, the second point of the segment
  * @returns {number[]} array length matching number of edges containing a point
  * if there is an intersection, and undefined if no intersection.
- * @linkcode Origami ./src/graph/intersect.js 50
+ * @linkcode Origami ./src/graph/intersect.js 52
  */
-const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_coords }, point1, point2, epsilon = math.core.EPSILON) => {
+const makeEdgesSegmentIntersection = ({
+	vertices_coords, edges_vertices, edges_coords,
+}, point1, point2, epsilon = math.core.EPSILON) => {
 	if (!edges_coords) {
 		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	}
@@ -7395,14 +7662,15 @@ const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_c
 	// algorithm on this subset.
 	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
 		.map(box => math.core.overlapBoundingBoxes(segment_box, box))
-		.map((overlap, i) => overlap ? (math.core.intersectLineLine(
+		.map((overlap, i) => (overlap ? (math.core.intersectLineLine(
 			segment_vector,
 			point1,
 			math.core.subtract2(edges_coords[i][1], edges_coords[i][0]),
 			edges_coords[i][0],
 			math.core.includeS,
 			math.core.includeS,
-			epsilon)) : undefined);
+			epsilon,
+		)) : undefined));
 };
 /**
  * @description This method compares every edge against every edge (n^2) to see if the
@@ -7419,10 +7687,10 @@ const makeEdgesSegmentIntersection = ({ vertices_coords, edges_vertices, edges_c
  * 1 [ x,  ,  , x]
  * 2 [  ,  ,  ,  ]
  * 3 [  , x,  ,  ]
- * @linkcode Origami ./src/graph/intersect.js 87
+ * @linkcode Origami ./src/graph/intersect.js 92
  */
 const makeEdgesEdgesIntersection = function ({
-	vertices_coords, edges_vertices, edges_vector, edges_origin
+	vertices_coords, edges_vertices, edges_vector, edges_origin,
 }, epsilon = math.core.EPSILON) {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
@@ -7447,7 +7715,7 @@ const makeEdgesEdgesIntersection = function ({
 				edges_origin[j],
 				math.core.excludeS,
 				math.core.excludeS,
-				epsilon
+				epsilon,
 			);
 			edges_intersections[j][i] = edges_intersections[i][j];
 		}
@@ -7471,18 +7739,20 @@ const makeEdgesEdgesIntersection = function ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 139
+ * @linkcode Origami ./src/graph/intersect.js 144
  */
-const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }, face, vector, point, epsilon = math.core.EPSILON) => {
+const intersectConvexFaceLine = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+}, face, vector, point, epsilon = math.core.EPSILON) => {
 	// give us back the indices in the faces_vertices[face] array
 	// we can count on these being sorted (important later)
 	const face_vertices_indices = faces_vertices[face]
 		.map(v => vertices_coords[v])
 		.map(coord => math.core.overlapLinePoint(vector, point, coord, () => true, epsilon))
-		.map((overlap, i) => overlap ? i : undefined)
+		.map((overlap, i) => (overlap ? i : undefined))
 		.filter(i => i !== undefined);
 	// o-----o---o  we have to test against cases like this, where more than two
-	// |         |  vertices lie along one line. 
+	// |         |  vertices lie along one line.
 	// o---------o
 	const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
 	// concat a duplication of the array where the second array's vertices'
@@ -7510,7 +7780,7 @@ const intersectConvexFaceLine = ({ vertices_coords, edges_vertices, faces_vertic
 			seg[0],
 			math.core.includeL,
 			math.core.excludeS,
-			epsilon
+			epsilon,
 		)).map((coords, face_edge_index) => ({
 			coords,
 			edge: faces_edges[face][face_edge_index],
@@ -7578,18 +7848,18 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
 		edges_vector,
-		edges_origin
+		edges_origin,
 	}, 1e-6);
 	// check the new edges' vertices against every edge, in case
 	// one of the endpoints lies along an edge.
 	const edges_collinear_vertices = getVerticesEdgesOverlap({
 		vertices_coords: graph.vertices_coords,
 		edges_vertices: graph.edges_vertices,
-		edges_coords
+		edges_coords,
 	}, epsilon);
 	// exit early
-	if (edges_intersections.flat().filter(a => a !== undefined).length === 0 &&
-	edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
+	if (edges_intersections.flat().filter(a => a !== undefined).length === 0
+		&& edges_collinear_vertices.flat().filter(a => a !== undefined).length === 0) {
 		return;
 	}
 	// remember, edges_intersections contains intersections [x,y] points
@@ -7629,11 +7899,11 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	// to be resolved below
 	graph.edges_vertices.forEach((verts, i) => verts
 		.push(...edges_intersections_flat[i], ...edges_collinear_vertices[i]));
-		// .push(...edges_intersections_flat[i]));
+	// .push(...edges_intersections_flat[i]));
 
 	graph.edges_vertices.forEach((edge, i) => {
 		graph.edges_vertices[i] = sortVerticesAlongVector({
-			vertices_coords: graph.vertices_coords
+			vertices_coords: graph.vertices_coords,
 		}, edge, edges_vector[i]);
 	});
 
@@ -7645,7 +7915,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 
 	graph.edges_vertices = graph.edges_vertices
 		.map(edge => Array.from(Array(edge.length - 1))
-			.map((_, i, arr) => [edge[i], edge[i + 1]]))
+			.map((_, i, arr) => [edge[i], edge[i + 1]])) // todo, is this supposed to be % arr.length
 		.flat();
 	// copy over edge metadata if it exists
 	// make foldAngles and assignments match if foldAngle is longer
@@ -7662,9 +7932,9 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 	if (graph.edges_foldAngle) {
 		graph.edges_foldAngle = edge_map
 			.map(i => graph.edges_foldAngle[i])
-			.map((a, i) => a === undefined
+			.map((a, i) => (a === undefined
 				? edgeAssignmentToFoldAngle(graph.edges_assignment[i])
-				: a);
+				: a));
 	}
 	return {
 		vertices: {
@@ -7673,7 +7943,7 @@ const fragment_graph = (graph, epsilon = math.core.EPSILON) => {
 		},
 		edges: {
 			backmap: edge_map
-		}
+		},
 	};
 	// return graph;
 };
@@ -7690,7 +7960,7 @@ const fragment_keep_keys = [
  * @param {FOLD} graph a FOLD graph
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to the graph
- * @linkcode Origami ./src/graph/fragment.js 176
+ * @linkcode Origami ./src/graph/fragment.js 174
  */
 const fragment = (graph, epsilon = math.core.EPSILON) => {
 	// project all vertices onto the XY plane
@@ -7707,14 +7977,14 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
 		edges: {},
 	};
 	let i;
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i += 1) {
 		const resVert = removeDuplicateVertices(graph, epsilon / 2);
 		const resEdgeDup = removeDuplicateEdges(graph);
 		// console.log("before", JSON.parse(JSON.stringify(graph)));
 		const resEdgeCirc = removeCircularEdges(graph);
 		// console.log("circular", resEdgeCirc);
 		const resFrag = fragment_graph(graph, epsilon);
-		if (resFrag === undefined) { 
+		if (resFrag === undefined) {
 			change.vertices.map = (change.vertices.map === undefined
 				? resVert.map
 				: mergeNextmaps(change.vertices.map, resVert.map));
@@ -7750,10 +8020,10 @@ const fragment = (graph, epsilon = math.core.EPSILON) => {
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  * @linkcode Origami ./src/graph/boundary.js 16
  */
-const getBoundaryVertices = ({ edges_vertices, edges_assignment }) =>
+const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
 	uniqueIntegers(edges_vertices
 		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
-		.flat());
+		.flat()));
 // export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
 // 	// assign vertices to a hash table to make sure they are unique.
 // 	const vertices = {};
@@ -7826,9 +8096,11 @@ const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
  * @usage call populate() before to ensure this works.
  * @linkcode Origami ./src/graph/boundary.js 92
  */
-const getPlanarBoundary = ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices }) => {
+const getPlanarBoundary = ({
+	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
+}) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });    
+		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	const edge_walk = [];
@@ -8020,7 +8292,7 @@ const getFaceFaceSharedVertices = (face_a_vertices, face_b_vertices) => {
 	const hash = {};
 	face_b_vertices.forEach((v) => { hash[v] = true; });
 	// make a copy of face A containing T/F, if the vertex is shared in face B
-	const match = face_a_vertices.map(v => hash[v] ? true : false);
+	const match = face_a_vertices.map(v => !!hash[v]);
 	// filter and keep only the shared vertices.
 	const shared_vertices = [];
 	const notShared = match.indexOf(false); // -1 if no match, code below still works
@@ -8082,11 +8354,13 @@ const makeFaceSpanningTree = ({ faces_vertices, faces_faces }, root_face = 0) =>
 		const next_level = next_level_with_duplicates
 			.filter((_, i) => !dup_indices[i]);
 		// set next_level's edge_vertices
-		// we cannot depend on faces being convex and only sharing 2 vertices in common. if there are more than 2 edges, let's hope they are collinear. either way, grab the first 2 vertices if there are more.
+		// we cannot depend on faces being convex and only sharing 2 vertices in common.
+		// if there are more than 2 edges, let's hope they are collinear.
+		// either way, grab the first 2 vertices if there are more.
 		next_level
 			.map(el => getFaceFaceSharedVertices(
 				faces_vertices[el.face],
-				faces_vertices[el.parent]
+				faces_vertices[el.parent],
 			)).forEach((ev, i) => {
 				const edge_vertices = ev.slice(0, 2);
 				// const edgeKey = edge_vertices.join(" ");
@@ -8120,7 +8394,9 @@ var faceSpanningTree = /*#__PURE__*/Object.freeze({
  * @returns {number[][]} a new set of vertices_coords, transformed.
  * @linkcode Origami ./src/graph/facesMatrix.js 21
  */
-const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_vertices }, faces_matrix) => {
+const multiplyVerticesFacesMatrix2 = ({
+	vertices_coords, vertices_faces, faces_vertices,
+}, faces_matrix) => {
 	if (!vertices_faces) {
 		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
@@ -8128,9 +8404,9 @@ const multiplyVerticesFacesMatrix2 = ({ vertices_coords, vertices_faces, faces_v
 		.map(faces => faces
 			.filter(a => a != null)
 			.shift())
-		.map(face => face === undefined
+		.map(face => (face === undefined
 			? math.core.identity2x3
-			: faces_matrix[face]);
+			: faces_matrix[face]));
 	return vertices_coords
 		.map((coord, i) => math.core.multiplyMatrix2Vector2(vertices_matrix[i], coord));
 };
@@ -8144,10 +8420,12 @@ const unassigned_angle = { U: true, u: true };
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 47
+ * @linkcode Origami ./src/graph/facesMatrix.js 49
  */
 // { vertices_coords, edges_vertices, edges_foldAngle, faces_vertices, faces_faces}
-const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+const makeFacesMatrix = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
 	if (!edges_assignment && edges_foldAngle) {
 		edges_assignment = makeEdgesAssignment({ edges_foldAngle });
 	}
@@ -8179,14 +8457,13 @@ const makeFacesMatrix = ({ vertices_coords, edges_vertices, edges_foldAngle, edg
 				);
 				faces_matrix[entry.face] = math.core
 					.multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
-					// to build the inverse matrix, switch these two parameters
-					// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
+				// to build the inverse matrix, switch these two parameters
+				// .multiplyMatrices3(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };
 const assignment_is_folded = {
-	M: true, m: true, V: true, v: true, U: true, u: true,
-	F: false, f: false, B: false, b: false,
+	M: true, m: true, V: true, v: true, U: true, u: true, F: false, f: false, B: false, b: false,
 };
 /**
  * @description For every edge, give us a boolean:
@@ -8199,19 +8476,19 @@ const assignment_is_folded = {
  * counted as folded edges (true).
  * For this reason, treating "unassigned" as a folded edge, this method's
  * functionality is better considered to be specific to makeFacesMatrix2,
- * instead of a generalized method. 
+ * instead of a generalized method.
  * @param {FOLD} graph a FOLD graph
  * @returns {boolean[]} for every edge, is it folded? or has the potential to be folded?
  * "unassigned"=yes
- * @linkcode Origami ./src/graph/facesMatrix.js 106
+ * @linkcode Origami ./src/graph/facesMatrix.js 109
  */
-const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment}) => {
+const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment }) => {
 	if (edges_assignment === undefined) {
 		return edges_foldAngle === undefined
-			? edges_vertices.map(_ => true)
+			? edges_vertices.map(() => true)
 			: edges_foldAngle.map(angle => angle < -math.core.EPSILON || angle > math.core.EPSILON);
 	}
-	return edges_assignment.map(a => assignment_is_folded[a]);  
+	return edges_assignment.map(a => assignment_is_folded[a]);
 };
 /**
  * @description This ignores any 3D data, and treats all creases as flat-folded.
@@ -8220,9 +8497,11 @@ const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment})
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 123
+ * @linkcode Origami ./src/graph/facesMatrix.js 126
  */
-const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+const makeFacesMatrix2 = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
 	if (!edges_foldAngle) {
 		if (edges_assignment) {
 			edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
@@ -8248,8 +8527,8 @@ const makeFacesMatrix2 = ({ vertices_coords, edges_vertices, edges_foldAngle, ed
 					: math.core.identity2x3;
 				faces_matrix[entry.face] = math.core
 					.multiplyMatrices2(faces_matrix[entry.parent], local_matrix);
-					// to build the inverse matrix, switch these two parameters
-					// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
+				// to build the inverse matrix, switch these two parameters
+				// .multiplyMatrices2(local_matrix, faces_matrix[entry.parent]);
 			}));
 	return faces_matrix;
 };
@@ -8276,8 +8555,13 @@ var facesMatrix = /*#__PURE__*/Object.freeze({
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  * @linkcode Origami ./src/graph/verticesCoordsFolded.js 23
  */
-const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix }, root_face) => {
-	faces_matrix = makeFacesMatrix({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face);
+const makeVerticesCoordsFolded = ({
+	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
+	edges_assignment, faces_vertices, faces_faces, faces_matrix,
+}, root_face) => {
+	faces_matrix = makeFacesMatrix({
+		vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+	}, root_face);
 	if (!vertices_faces) {
 		vertices_faces = makeVerticesFaces({ faces_vertices });
 	}
@@ -8286,9 +8570,9 @@ const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_verti
 		.map(faces => faces
 			.filter(a => a != null) // must filter "undefined" and "null"
 			.shift()) // get any face from the list
-		.map(face => face === undefined
+		.map(face => (face === undefined
 			? math.core.identity3x4
-			: faces_matrix[face]);
+			: faces_matrix[face]));
 	return vertices_coords
 		.map(coord => math.core.resize(3, coord))
 		.map((coord, i) => math.core.multiplyMatrix3Vector3(vertices_matrix[i], coord));
@@ -8302,9 +8586,11 @@ const makeVerticesCoordsFolded = ({ vertices_coords, vertices_faces, edges_verti
  * @param {FOLD} graph a FOLD graph
  * @param {number} [root_face=0] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
- * @linkcode Origami ./src/graph/verticesCoordsFolded.js 51
+ * @linkcode Origami ./src/graph/verticesCoordsFolded.js 56
  */
-const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces }, root_face = 0) => {
+const makeVerticesCoordsFlatFolded = ({
+	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
+}, root_face = 0) => {
 	const edges_is_folded = makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment });
 	const vertices_coords_folded = [];
 	faces_vertices[root_face]
@@ -8314,7 +8600,7 @@ const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_f
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	makeFaceSpanningTree({ faces_vertices, faces_faces }, root_face)
 		.slice(1) // remove the first level, it has no parent face
-		.forEach((level, l) => level
+		.forEach(level => level
 			.forEach(entry => {
 				// coordinates and vectors of the reflecting edge
 				const edge_key = entry.edge_vertices.join(" ");
@@ -8333,7 +8619,7 @@ const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_f
 					? !faces_flipped[entry.parent]
 					: faces_flipped[entry.parent];
 				const vector_folded = math.core.normalize2(math.core.subtract2(coords[1], coords[0]));
-				const origin_folded = coords[0];    
+				const origin_folded = coords[0];
 				const normal_folded = faces_flipped[entry.face]
 					? math.core.rotate270(vector_folded)
 					: math.core.rotate90(vector_folded);
@@ -8341,8 +8627,7 @@ const makeVerticesCoordsFlatFolded = ({ vertices_coords, edges_vertices, edges_f
 				faces_vertices[entry.face]
 					.filter(v => vertices_coords_folded[v] === undefined)
 					.forEach(v => {
-						const coords_cp = vertices_coords[v];
-						const to_point = math.core.subtract2(coords_cp, origin_cp);
+						const to_point = math.core.subtract2(vertices_coords[v], origin_cp);
 						const project_norm = math.core.dot(to_point, normal_cp);
 						const project_line = math.core.dot(to_point, vector_cp);
 						const walk_up = math.core.scale2(vector_folded, project_line);
@@ -8394,15 +8679,13 @@ const makeFacesWindingFromMatrix2 = faces_matrix => faces_matrix
  * @attribution cool trick from https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
  * @linkcode Origami ./src/graph/facesWinding.js 33
  */
-const makeFacesWinding = ({ vertices_coords, faces_vertices }) => {
-	return faces_vertices
-		.map(vertices => vertices
-			.map(v => vertices_coords[v])
-			.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
-			.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]) )
-			.reduce((a, b) => a + b, 0))
-		.map(face => face < 0);
-};
+const makeFacesWinding = ({ vertices_coords, faces_vertices }) => faces_vertices
+	.map(vertices => vertices
+		.map(v => vertices_coords[v])
+		.map((point, i, arr) => [point, arr[(i + 1) % arr.length]])
+		.map(pts => (pts[1][0] - pts[0][0]) * (pts[1][1] + pts[0][1]))
+		.reduce((a, b) => a + b, 0))
+	.map(face => face < 0);
 
 var facesWinding = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -8490,12 +8773,13 @@ var explodeFacesMethods = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 /**
- * @description Iterate through all vertices in a graph and find the one nearest to a provided point. This is the only of the "nearest" graph operations that works in 3D.
+ * @description Iterate through all vertices in a graph and find the one nearest to a
+ * provided point. This is the only of the "nearest" graph operations that works in 3D.
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} point the point to find the nearest vertex
  * @returns {number} the index of the nearest vertex
  * @todo improve with space partitioning
- * @linkcode Origami ./src/graph/nearest.js 12
+ * @linkcode Origami ./src/graph/nearest.js 13
  */
 const nearestVertex = ({ vertices_coords }, point) => {
 	if (!vertices_coords) { return undefined; }
@@ -8513,8 +8797,9 @@ const nearestVertex = ({ vertices_coords }, point) => {
  * @description Iterate through all edges in a graph and find the one nearest to a provided point.
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} point the point to find the nearest edge
- * @returns {number|undefined} the index of the nearest edge, or undefined if there are no vertices_coords or edges_vertices
- * @linkcode Origami ./src/graph/nearest.js 31
+ * @returns {number|undefined} the index of the nearest edge, or undefined
+ * if there are no vertices_coords or edges_vertices
+ * @linkcode Origami ./src/graph/nearest.js 33
  */
 const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
@@ -8524,7 +8809,8 @@ const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 			math.core.subtract(e[1], e[0]),
 			e[0],
 			point,
-			math.core.segmentLimiter));
+			math.core.segmentLimiter,
+		));
 	return math.core.smallestComparisonSearch(point, nearest_points, math.core.distance);
 };
 /**
@@ -8533,7 +8819,7 @@ const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
  * @param {FOLD} graph a FOLD graph
  * @param {number[]} point the point to find the enclosing face
  * @returns {number|undefined} the index of the face, or undefined if no face encloses a point
- * @linkcode Origami ./src/graph/nearest.js 50
+ * @linkcode Origami ./src/graph/nearest.js 53
  */
 const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
 	if (!vertices_coords || !faces_vertices) { return undefined; }
@@ -8550,7 +8836,7 @@ const faceContainingPoint = ({ vertices_coords, faces_vertices }, point) => {
  * @param {number[]} point the point to find the nearest face
  * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
  * @todo make this work if edges_faces is not defined (not hard)
- * @linkcode Origami ./src/graph/nearest.js 67
+ * @linkcode Origami ./src/graph/nearest.js 70
  */
 const nearestFace = (graph, point) => {
 	const face = faceContainingPoint(graph, point);
@@ -8562,12 +8848,12 @@ const nearestFace = (graph, point) => {
 		if (faces.length > 1) {
 			const faces_center = makeFacesCenterQuick({
 				vertices_coords: graph.vertices_coords,
-				faces_vertices: faces.map(f => graph.faces_vertices[f])
+				faces_vertices: faces.map(f => graph.faces_vertices[f]),
 			});
 			const distances = faces_center
 				.map(center => math.core.distance(center, point));
 			let shortest = 0;
-			for (let i = 0; i < distances.length; i++) {
+			for (let i = 0; i < distances.length; i += 1) {
 				if (distances[i] < distances[shortest]) { shortest = i; }
 			}
 			return faces[shortest];
@@ -8649,7 +8935,7 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	const vertices_equivalent_vertices = vertices_coords
 		.map(vertex => graph.vertices_coords
 			.map(v => math.core.distance(v, vertex) < epsilon)
-			.map((on_vertex, i) => on_vertex ? i : undefined)
+			.map((on_vertex, i) => (on_vertex ? i : undefined))
 			.filter(a => a !== undefined)
 			.shift());
 	// to be used in the return data array
@@ -8660,7 +8946,7 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
 	graph.vertices_coords.push(...unique_vertices);
 	// return the indices of the added vertices in the destination graph
 	return vertices_equivalent_vertices
-		.map(el => el === undefined ? index++ : el);
+		.map(el => (el === undefined ? index++ : el));
 };
 
 /**
@@ -8674,7 +8960,9 @@ const addVertices = (graph, vertices_coords, epsilon = math.core.EPSILON) => {
  * @returns {number[]} array of 0, 1, or 2 numbers, the edge's adjacent faces
  * @linkcode Origami ./src/graph/find.js 10
  */
-const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices }, edge) => {
+const findAdjacentFacesToEdge = ({
+	vertices_faces, edges_vertices, edges_faces, faces_edges, faces_vertices,
+}, edge) => {
 	// easiest case, if edges_faces already exists.
 	if (edges_faces && edges_faces[edge]) {
 		return edges_faces[edge];
@@ -8698,7 +8986,7 @@ const findAdjacentFacesToEdge = ({ vertices_faces, edges_vertices, edges_faces, 
 		return faces;
 	}
 	if (faces_edges) {
-		let faces = [];
+		const faces = [];
 		for (let i = 0; i < faces_edges.length; i += 1) {
 			for (let e = 0; e < faces_edges[i].length; e += 1) {
 				if (faces_edges[i][e] === edge) { faces.push(i); }
@@ -8735,7 +9023,7 @@ const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
 		{ edges_vertices: [edge_vertices[0], new_vertex] },
 		{ edges_vertices: [new_vertex, edge_vertices[1]] },
 	];
-	new_edges.forEach((edge, i) => [_edges_assignment, _edges_foldAngle]
+	new_edges.forEach(edge => [_edges_assignment, _edges_foldAngle]
 		.filter(key => graph[key] && graph[key][edge_index] !== undefined)
 		.forEach(key => { edge[key] = graph[key][edge_index]; }));
 	// these are outside the spec values that are easy enough to calculate.
@@ -8768,7 +9056,8 @@ const splitEdgeIntoTwo = (graph, edge_index, new_vertex) => {
  * old endpoints, preserving all other vertices_vertices of the endpoints.
  * @param {object} graph a FOLD object, modified in place
  * @param {number} vertex index of new vertex
- * @param {number[]} incident_vertices vertices that make up the split edge. new vertex lies between.
+ * @param {number[]} incident_vertices vertices that make up the split edge.
+ * the new vertex lies between.
  */
 const update_vertices_vertices$2 = ({ vertices_vertices }, vertex, incident_vertices) => {
 	if (!vertices_vertices) { return; }
@@ -8786,7 +9075,9 @@ const update_vertices_vertices$2 = ({ vertices_vertices }, vertex, incident_vert
 /**
  * @description run this after vertices_vertices has been built
  */
-const update_vertices_sectors = ({ vertices_coords, vertices_vertices, vertices_sectors }, vertex) => {
+const update_vertices_sectors = ({
+	vertices_coords, vertices_vertices, vertices_sectors,
+}, vertex) => {
 	if (!vertices_sectors) { return; }
 	vertices_sectors[vertex] = vertices_vertices[vertex].length === 1
 		? [math.core.TWO_PI]
@@ -8805,7 +9096,9 @@ const update_vertices_sectors = ({ vertices_coords, vertices_vertices, vertices_
  * @param {number[]} vertices the old edge's two vertices, must be aligned with "new_edges"
  * @param {number[]} new_edges the two new edges, must be aligned with "vertices"
  */
-const update_vertices_edges$2 = ({ vertices_edges }, old_edge, new_vertex, vertices, new_edges) => {
+const update_vertices_edges$2 = ({
+	vertices_edges,
+}, old_edge, new_vertex, vertices, new_edges) => {
 	if (!vertices_edges) { return; }
 	// update 1 vertex, our new vertex
 	vertices_edges[new_vertex] = [...new_edges];
@@ -8837,7 +9130,7 @@ const update_vertices_faces$1 = ({ vertices_faces }, vertex, faces) => {
  */
 const update_edges_faces$1 = ({ edges_faces }, new_edges, faces) => {
 	if (!edges_faces) { return; }
-	new_edges.forEach(edge => edges_faces[edge] = [...faces]);
+	new_edges.forEach(edge => { edges_faces[edge] = [...faces]; });
 };
 /**
  * @description a new vertex was added, splitting an edge. rebuild the
@@ -8864,7 +9157,9 @@ const update_faces_vertices = ({ faces_vertices }, new_vertex, incident_vertices
 			.sort((a, b) => b - a)
 			.forEach(i => face.splice(i, 0, new_vertex)));
 };
-const update_faces_edges_with_vertices = ({ edges_vertices, faces_vertices, faces_edges }, faces) => {
+const update_faces_edges_with_vertices = ({
+	edges_vertices, faces_vertices, faces_edges,
+}, faces) => {
 	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
 	faces
 		.map(f => faces_vertices[f]
@@ -9071,7 +9366,7 @@ const splitEdge = (graph, old_edge, coords, epsilon = math.core.EPSILON) => {
 	// and we don't need to bother with faces_faces and faceOrders.
 	// todo: edgeOrders. the only spec key remaining.
 	// remove old data
-	const edge_map = removeGeometryIndices(graph, _edges, [ old_edge ]);
+	const edge_map = removeGeometryIndices(graph, _edges, [old_edge]);
 	// shift our new edge indices since these relate to the graph before remove().
 	new_edges.forEach((_, i) => { new_edges[i] = edge_map[new_edges[i]]; });
 	// we had to run "remove" with the new edges added. to return the change info,
@@ -9119,7 +9414,7 @@ const make_edge = ({ vertices_coords }, vertices, face) => {
 	};
 };
 /**
- * 
+ *
  */
 const rebuild_edge = (graph, face, vertices) => {
 	// now that 2 vertices are in place, add a new edge between them.
@@ -9145,7 +9440,9 @@ const rebuild_edge = (graph, face, vertices) => {
  * @param {number} the face that will be replaced by these 2 new
  * @param {number[]} vertices (in the face) that split the face into 2 sides
  */
-const make_faces = ({ edges_vertices, faces_vertices, faces_edges, faces_faces }, face, vertices) => {
+const make_faces = ({
+	edges_vertices, faces_vertices, faces_edges,
+}, face, vertices) => {
 	// the indices of the two vertices inside the face_vertices array.
 	// this is where we will split the face into two.
 	const indices = vertices.map(el => faces_vertices[face].indexOf(el));
@@ -9154,7 +9451,8 @@ const make_faces = ({ edges_vertices, faces_vertices, faces_edges, faces_faces }
 	if (faces_edges) {
 		// table to build faces_edges
 		const vertices_to_edge = makeVerticesToEdgeBidirectional({ edges_vertices });
-		faces.map(face => face.faces_vertices
+		faces
+			.map(this_face => this_face.faces_vertices
 				.map((fv, i, arr) => `${fv} ${arr[(i + 1) % arr.length]}`)
 				.map(key => vertices_to_edge[key]))
 			.forEach((face_edges, i) => { faces[i].faces_edges = face_edges; });
@@ -9162,7 +9460,7 @@ const make_faces = ({ edges_vertices, faces_vertices, faces_edges, faces_faces }
 	return faces;
 };
 /**
- * 
+ *
  */
 const build_faces = (graph, face, vertices) => {
 	// new face indices at the end of the list
@@ -9170,8 +9468,8 @@ const build_faces = (graph, face, vertices) => {
 	// construct new face data for faces_vertices, faces_edges
 	// add them to the graph
 	make_faces(graph, face, vertices)
-		.forEach((face, i) => Object.keys(face)
-			.forEach((key) => { graph[key][faces[i]] = face[key]; }));
+		.forEach((newface, i) => Object.keys(newface)
+			.forEach((key) => { graph[key][faces[i]] = newface[key]; }));
 	return faces;
 };
 
@@ -9223,13 +9521,14 @@ const split_at_intersections = (graph, { vertices, edges }) => {
 		edges: {
 			map,
 			remove: split_results.map(res => res.edges.remove),
-		}
+		},
 	};
 };
 
 /**
  * Rabbit Ear (c) Kraft
  */
+
 const warning = "splitFace potentially given a non-convex face";
 /**
  * @description a newly-added edge needs to update its two endpoints'
@@ -9238,18 +9537,30 @@ const warning = "splitFace potentially given a non-convex face";
  * @param {object} FOLD object
  * @param {number} index of the newly-added edge
  */
-const update_vertices_vertices$1 = ({ vertices_coords, vertices_vertices, edges_vertices }, edge) => {
+const update_vertices_vertices$1 = ({
+	vertices_coords, vertices_vertices, edges_vertices,
+}, edge) => {
 	const v0 = edges_vertices[edge][0];
 	const v1 = edges_vertices[edge][1];
-	vertices_vertices[v0] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v0].concat(v1), v0);
-	vertices_vertices[v1] = sortVerticesCounterClockwise({ vertices_coords }, vertices_vertices[v1].concat(v0), v1);
+	vertices_vertices[v0] = sortVerticesCounterClockwise(
+		{ vertices_coords },
+		vertices_vertices[v0].concat(v1),
+		v0,
+	);
+	vertices_vertices[v1] = sortVerticesCounterClockwise(
+		{ vertices_coords },
+		vertices_vertices[v1].concat(v0),
+		v1,
+	);
 };
 /**
  * vertices_vertices was just run before this method. use it.
  * vertices_edges should be up to date, except for the addition
  * of this one new edge at both ends of 
  */
-const update_vertices_edges$1 = ({ edges_vertices, vertices_edges, vertices_vertices }, edge) => {
+const update_vertices_edges$1 = ({
+	edges_vertices, vertices_edges, vertices_vertices,
+}, edge) => {
 	// the expensive way, rebuild all arrays
 	// graph.vertices_edges = makeVerticesEdges(graph);
 	if (!vertices_edges || !vertices_vertices) { return; }
@@ -9276,7 +9587,7 @@ const update_vertices_faces = (graph, old_face, new_faces) => {
 	// a list of the new faces to be added to this vertex's vertices_faces.
 	const vertices_replacement_faces = {};
 	new_faces
-		.forEach((f, i) => graph.faces_vertices[f]
+		.forEach(f => graph.faces_vertices[f]
 			.forEach(v => {
 				if (!vertices_replacement_faces[v]) {
 					vertices_replacement_faces[v] = [];
@@ -9308,7 +9619,7 @@ const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 	// most will be length of 1, except the edge which split the face will be 2.
 	const edges_replacement_faces = {};
 	new_faces
-		.forEach((f, i) => graph.faces_edges[f]
+		.forEach(f => graph.faces_edges[f]
 			.forEach(e => {
 				if (!edges_replacement_faces[e]) { edges_replacement_faces[e] = []; }
 				edges_replacement_faces[e].push(f);
@@ -9322,7 +9633,7 @@ const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 		// basically rewriting .indexOf(), but supporting multiple results.
 		// these will be the indices containing a reference to the old face.
 		const indices = [];
-		for (let i = 0; i < graph.edges_faces[e].length; i++) {
+		for (let i = 0; i < graph.edges_faces[e].length; i += 1) {
 			if (graph.edges_faces[e][i] === old_face) { indices.push(i); }
 		}
 		if (indices.length === 0 || !replacements) {
@@ -9354,14 +9665,14 @@ const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces
 	const new_faces_vertices = new_faces.map(f => faces_vertices[f]);
 	// for each of the incident faces (to the old face), set one of two
 	// indices, one of the two new faces. this is the new incident face.
-	const incident_face_face = incident_faces.map((f, i) => {
+	const incident_face_face = incident_faces.map(f => {
 		const incident_face_vertices = faces_vertices[f];
 		const score = [0, 0];
-		for (let n = 0; n < new_faces_vertices.length; n++) {
+		for (let n = 0; n < new_faces_vertices.length; n += 1) {
 			let count = 0;
-			for (let j = 0; j < incident_face_vertices.length; j++) {
+			for (let j = 0; j < incident_face_vertices.length; j += 1) {
 				if (new_faces_vertices[n].indexOf(incident_face_vertices[j]) !== -1) {
-					count++;
+					count += 1;
 				}
 			}
 			score[n] = count;
@@ -9377,7 +9688,7 @@ const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces
 	// 2 things, fill the new face's arrays and update each of the
 	// incident faces to point to the correct of the two new faces.
 	incident_faces.forEach((f, i) => {
-		for (let j = 0; j < faces_faces[f].length; j++) {
+		for (let j = 0; j < faces_faces[f].length; j += 1) {
 			if (faces_faces[f][j] === old_face) {
 				faces_faces[f][j] = incident_face_face[i];
 				faces_faces[incident_face_face[i]].push(f);
@@ -9449,7 +9760,7 @@ const splitFace = (graph, face, vector, point, epsilon) => {
  * @description a graph which includes faces, edges, and vertices, and additional
  * origami-specific information like fold angles of edges and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object, otherwise the graph will initialize empty
- * @linkcode Origami ./src/classes/graph.js 49
+ * @linkcode Origami ./src/classes/graph.js 45
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);
@@ -9492,7 +9803,8 @@ Graph.prototype.splitFace = function (face, ...args) {
  */
 Graph.prototype.copy = function () {
 	// return Object.assign(Object.create(Graph.prototype), clone(this));
-	return Object.assign(Object.create(this.__proto__), clone(this));
+	// return Object.assign(Object.create(this.__proto__), clone(this));
+	return Object.assign(Object.create(Object.getPrototypeOf(this)), clone(this));
 	// todo: switch this for:
 	// Object.getPrototypeOf(this);
 };
@@ -9534,14 +9846,14 @@ Graph.prototype.boundingBox = function () {
  * aspect fit inside the unit square.
  */
 Graph.prototype.unitize = function () {
-	if (!this.vertices_coords) { return; }
+	if (!this.vertices_coords) { return this; }
 	const box = math.core.bounding_box(this.vertices_coords);
 	const longest = Math.max(...box.span);
 	const scale = longest === 0 ? 1 : (1 / longest);
 	const origin = box.min;
 	this.vertices_coords = this.vertices_coords
 		.map(coord => math.core.subtract(coord, origin))
-		.map(coord => coord.map((n, i) => n * scale));
+		.map(coord => coord.map(n => n * scale));
 	return this;
 };
 /**
@@ -9563,13 +9875,14 @@ Graph.prototype.folded = function () {
 	//   : makeFacesLayer(this, arguments[0], 0.001);
 	return Object.assign(
 		// todo: switch this for:
-		// Object.getPrototypeOf(this);
-		Object.create(this.__proto__),
+		Object.create(Object.getPrototypeOf(this)),
+		// Object.create(this.__proto__),
 		Object.assign(clone(this), {
 			vertices_coords,
 			// "faces_re:layer": faces_layer,
-			frame_classes: [_foldedForm]
-		}));
+			frame_classes: [_foldedForm],
+		}),
+	);
 	// delete any arrays that becomes incorrect due to folding
 	// delete copy.edges_vector;
 	// return copy;
@@ -9589,18 +9902,20 @@ Graph.prototype.flatFolded = function () {
 	return Object.assign(
 		// todo: switch this for:
 		// Object.getPrototypeOf(this);
-		Object.create(this.__proto__),
+		Object.create(Object.getPrototypeOf(this)),
+		// Object.create(this.__proto__),
 		Object.assign(clone(this), {
 			vertices_coords,
-			frame_classes: [_foldedForm]
-		}));
+			frame_classes: [_foldedForm],
+		}),
+	);
 };
 /**
  * graph components
  */
 // bind "vertices", "edges", or "faces" to "this"
 // then we can pass in this function directly to map()
-const shortenKeys = function (el, i, arr) {
+const shortenKeys = function (el) {
 	const object = Object.create(null);
 	Object.keys(el).forEach((k) => {
 		object[k.substring(this.length + 1)] = el[k];
@@ -9617,7 +9932,7 @@ const getComponent = function (key) {
 [_vertices, _edges, _faces]
 	.forEach(key => Object.defineProperty(Graph.prototype, key, {
 		enumerable: true,
-		get: function () { return getComponent.call(this, key); }
+		get: function () { return getComponent.call(this, key); },
 	}));
 
 // todo: get boundaries, plural
@@ -9630,7 +9945,7 @@ Object.defineProperty(Graph.prototype, _boundary, {
 		const poly = boundary.vertices.map(v => this.vertices_coords[v]);
 		Object.keys(boundary).forEach(key => { poly[key] = boundary[key]; });
 		return Object.assign(poly, boundary);
-	}
+	},
 });
 /**
  * graph components based on Euclidean distance
@@ -9656,12 +9971,12 @@ Graph.prototype.nearest = function () {
 				if (cache[key] !== undefined) { return cache[key]; }
 				cache[key] = nearestMethods[key](this, point);
 				return cache[key];
-			}
+			},
 		});
 		filterKeysWithPrefix(this, key).forEach(fold_key =>
 			Object.defineProperty(nears, fold_key, {
 				enumerable: true,
-				get: () => this[fold_key][nears[singularize[key]]]
+				get: () => this[fold_key][nears[singularize[key]]],
 			}));
 	});
 	return nears;
@@ -9686,10 +10001,14 @@ const clip = function (graph, line) {
 	const polygon = getBoundary(graph).vertices.map(v => graph.vertices_coords[v]);
 	const vector = line.vector ? line.vector : math.core.subtract2(line[1], line[0]);
 	const origin = line.origin ? line.origin : line[0];
-  const fn_line = line.domain_function ? line.domain_function : math.core.includeL;
-	return math.core.clipLineConvexPolygon(polygon, vector, origin,
+	const fn_line = (line.domain_function ? line.domain_function : math.core.includeL);
+	return math.core.clipLineConvexPolygon(
+		polygon,
+		vector,
+		origin,
 		math.core.include,
-		fn_line);
+		fn_line,
+	);
 };
 
 /**
@@ -9731,7 +10050,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// each segment which already exists as "false".
 	const seg_not_exist_yet = unfiltered_segment_edges_vertices
 		.map(verts => verts.join(" "))
-		.map((str, i) => pre_edge_map[str] === undefined);
+		.map(str => pre_edge_map[str] === undefined);
 	// now, build the actual edges which will be added to the graph
 	// by filtering out the edges which already exist
 	const segment_edges_vertices = unfiltered_segment_edges_vertices
@@ -9758,7 +10077,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 	// and most importantly, use the "seg_not_exist_yet" from earlier to
 	// check if an edge already existed, and prevent joining vertices across
 	// these already existing edges.
-	for (let i = 0; i < segment_vertices.length; i++) {
+	for (let i = 0; i < segment_vertices.length; i += 1) {
 		const vertex = segment_vertices[i];
 		const prev = seg_not_exist_yet[i - 1] ? segment_vertices[i - 1] : undefined;
 		const next = seg_not_exist_yet[i] ? segment_vertices[i + 1] : undefined;
@@ -9770,22 +10089,25 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
 		const unsorted_vertices_vertices = previous_vertices_vertices
 			.concat(new_adjacent_vertices);
 		graph.vertices_vertices[vertex] = sortVerticesCounterClockwise(
-			graph, unsorted_vertices_vertices, segment_vertices[i]);
+			graph,
+			unsorted_vertices_vertices,
+			segment_vertices[i],
+		);
 	}
 	// build vertices_edges from vertices_vertices
 	const edge_map = makeVerticesToEdgeBidirectional(graph);
-	for (let i = 0; i < segment_vertices.length; i++) {
+	for (let i = 0; i < segment_vertices.length; i += 1) {
 		const vertex = segment_vertices[i];
 		graph.vertices_edges[vertex] = graph.vertices_vertices[vertex]
 			.map(v => edge_map[`${vertex} ${v}`]);
 	}
 	// build vertices_sectors from vertices_vertices
 	segment_vertices
-		.map(center => graph.vertices_vertices[center].length === 1
-		? [math.core.TWO_PI]
-		: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
-			.map(v => math.core
-				.subtract2(graph.vertices_coords[v], graph.vertices_coords[center]))))
+		.map(center => (graph.vertices_vertices[center].length === 1
+			? [math.core.TWO_PI]
+			: math.core.counterClockwiseSectors2(graph.vertices_vertices[center]
+				.map(v => math.core
+					.subtract2(graph.vertices_coords[v], graph.vertices_coords[center])))))
 		.forEach((sectors, i) => {
 			graph.vertices_sectors[segment_vertices[i]] = sectors;
 		});
@@ -9803,7 +10125,7 @@ const add_segment_edges = (graph, segment_vertices, pre_edge_map) => {
  * @param {number[]} point2 a 2D point as an array of numbers
  * @param {number} [epsilon=1e-6] optional epsilon for merging vertices
  * @returns {number[]} the indices of the new edge(s) composing the segment.
- * @linkcode Origami ./src/graph/add/addPlanarSegment.js 120
+ * @linkcode Origami ./src/graph/add/addPlanarSegment.js 122
  */
 const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) => {
 	// vertices_sectors not a part of the spec, might not be included.
@@ -9820,10 +10142,14 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	//   .map(coord => coord.slice(0, 2));
 	// get all edges which intersect the segment.
 	const intersections = makeEdgesSegmentIntersection(
-		graph, segment[0], segment[1], epsilon);
+		graph,
+		segment[0],
+		segment[1],
+		epsilon,
+	);
 	// get the indices of the edges, sorted.
 	const intersected_edges = intersections
-		.map((pt, e) => pt === undefined ? undefined : e)
+		.map((pt, e) => (pt === undefined ? undefined : e))
 		.filter(a => a !== undefined)
 		.sort((a, b) => a - b);
 	// using edges_faces, get all faces which have an edge intersected.
@@ -9832,7 +10158,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 		.forEach(e => graph.edges_faces[e]
 			.forEach(f => { faces_map[f] = true; }));
 	const intersected_faces = Object.keys(faces_map)
-		.map(s => parseInt(s))
+		.map(s => parseInt(s, 10))
 		.sort((a, b) => a - b);
 	// split all intersected edges into two edges, in reverse order
 	// so that the "remove()" call only ever removes the last from the
@@ -9862,7 +10188,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	const new_vertex_hash = {};
 	splitEdge_vertices.forEach(v => { new_vertex_hash[v] = true; });
 	endpoint_vertices.forEach(v => { new_vertex_hash[v] = true; });
-	const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n));
+	const new_vertices = Object.keys(new_vertex_hash).map(n => parseInt(n, 10));
 	// these vertices are sorted in the direction of the segment
 	const segment_vertices = sortVerticesAlongVector(graph, new_vertices, segment_vector);
 
@@ -9894,7 +10220,7 @@ const addPlanarSegment = (graph, point1, point2, epsilon = math.core.EPSILON) =>
 	// additionally, we don't have to worry about repeating faces, the
 	// method has a protection against that ("walked_edges").
 	const face_walk_start_pairs = segment_vertices
-		.map((v, i) => graph.vertices_vertices[v]
+		.map(v => graph.vertices_vertices[v]
 			.map(adj_v => [[adj_v, v], [v, adj_v]]))
 		.reduce((a, b) => a.concat(b), [])
 		.reduce((a, b) => a.concat(b), []);
@@ -10000,7 +10326,7 @@ const update_vertices_edges = ({ vertices_edges }, edge, vertices) => {
  * @param {number[]} two face indices in an array.
  */
 const join_faces = (graph, faces, edge, vertices) => {
-	[faces[1], faces[0]];
+	// const other = [faces[1], faces[0]];
 	// the index of the edge in the face's faces_edges array.
 	const faces_edge_index = faces
 		.map(f => graph.faces_edges[f].indexOf(edge));
@@ -10066,7 +10392,8 @@ const removePlanarEdge = (graph, edge) => {
 	const vertices = [...graph.edges_vertices[edge]]
 		.sort((a, b) => b - a);
 	const faces = [...graph.edges_faces[edge]];
-	// console.log("removing edge", edge, "with", faces.length, "adjacent faces", faces, "and", vertices.length, "adjacent vertices", vertices);
+	// console.log("removing edge", edge, "with", faces.length, "adjacent faces",
+	// faces, "and", vertices.length, "adjacent vertices", vertices);
 	update_vertices_vertices(graph, vertices);
 	update_vertices_edges(graph, edge, vertices);
 	// is the vertex isolated? if so, mark it for removal
@@ -10097,7 +10424,8 @@ const removePlanarEdge = (graph, edge) => {
 			arr.forEach((face, j) => {
 				if (face === faces[0] || face === faces[1]) {
 					graph.vertices_faces[i][j] = new_face;
-					already_added ? arr.splice(i, 1) : arr.splice(i, 1, new_face);
+					const params = already_added ? [i, 1] : [i, 1, new_face];
+					arr.splice(...params);
 					already_added = true;
 				}
 			});
@@ -10153,9 +10481,9 @@ const getOppositeVertices = (graph, vertex, edges) => {
 			console.warn("removePlanarVertex circular edge");
 		}
 	});
-	return edges.map(edge => graph.edges_vertices[edge][0] === vertex
+	return edges.map(edge => (graph.edges_vertices[edge][0] === vertex
 		? graph.edges_vertices[edge][1]
-		: graph.edges_vertices[edge][0]);
+		: graph.edges_vertices[edge][0]));
 };
 /**
  * @description given a degree-2 vertex, remove this vertex, merge the adjacent
@@ -10255,12 +10583,15 @@ const alternatingSumDifference = (sectors) => {
 //   return alternating_deviation(...interior_angles(...vectors));
 // };
 /**
- * @description given a set of edges around a single vertex (expressed as an array of radian angles), find all possible single-ray additions which when added to the set, the set
- * satisfies Kawasaki's theorem.
+ * @description given a set of edges around a single vertex (expressed as an array
+ * of radian angles), find all possible single-ray additions which
+ * when added to the set, the set satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
- * @param {number[]} radians the angle of the edges in radians, like vectors around a vertex. pre-sorted.
- * @returns {number[]} for every sector either one vector (as an angle in radians) or undefined if that sector contains no solution.
- * @linkcode Origami ./src/singleVertex/kawasakiMath.js 39
+ * @param {number[]} radians the angle of the edges in radians,
+ * like vectors around a vertex. pre-sorted.
+ * @returns {number[]} for every sector either one vector (as an angle in radians)
+ * or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 42
  */
 const kawasakiSolutionsRadians = (radians) => radians
 	// counter clockwise angle between this index and the next
@@ -10273,18 +10604,23 @@ const kawasakiSolutionsRadians = (radians) => radians
 	// add the deviation to the edge to get the absolute position
 	.map((kawasakis, i) => radians[i] + kawasakis[0])
 	// sometimes this results in a solution OUTSIDE the sector. ignore these
-	.map((angle, i) => (math.core.isCounterClockwiseBetween(angle,
-		radians[i], radians[(i + 1) % radians.length])
+	.map((angle, i) => (math.core.isCounterClockwiseBetween(
+		angle,
+		radians[i],
+		radians[(i + 1) % radians.length],
+	)
 		? angle
 		: undefined));
 // or should we remove the indices so the array reports [ empty x2, ...]
 /**
- * @description given a set of edges around a single vertex (expressed as an array of vectors), find all possible single-ray additions which when added to the set, the set
- * satisfies Kawasaki's theorem.
+ * @description given a set of edges around a single vertex (expressed as an array
+ * of vectors), find all possible single-ray additions which
+ * when added to the set, the set satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
- * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
- * @linkcode Origami ./src/singleVertex/kawasakiMath.js 63
+ * @returns {number[][]} for every sector either one vector
+ * or undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiMath.js 71
  */
 const kawasakiSolutionsVectors = (vectors) => {
 	const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
@@ -10306,7 +10642,9 @@ var kawasakiMath = /*#__PURE__*/Object.freeze({
  * Rabbit Ear (c) Kraft
  */
 
-const flat_assignment = { B:true, b:true, F:true, f:true, U:true, u:true };
+const flat_assignment = {
+	B: true, b: true, F: true, f: true, U: true, u: true,
+};
 /**
  * @description get all vertices indices which are adjacent to edges
  * with no mountain/valleys, only containing either flat, unassigned,
@@ -10316,18 +10654,22 @@ const vertices_flat = ({ vertices_edges, edges_assignment }) => vertices_edges
 	.map(edges => edges
 		.map(e => flat_assignment[edges_assignment[e]])
 		.reduce((a, b) => a && b, true))
-	.map((valid, i) => valid ? i : undefined)
+	.map((valid, i) => (valid ? i : undefined))
 	.filter(a => a !== undefined);
 
-const folded_assignments = { M:true, m:true, V:true, v:true};
-const maekawa_signs = { M:-1, m:-1, V:1, v:1};
+const folded_assignments = {
+	M: true, m: true, V: true, v: true,
+};
+const maekawa_signs = {
+	M: -1, m: -1, V: 1, v: 1,
+};
 /**
  * @description using edges_assignment, check if Maekawa's theorem is satisfied
  * for all vertices, and if not, return the vertices which violate the theorem.
  * todo: this assumes that valley/mountain folds are flat folded.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
- * @linkcode Origami ./src/singleVertex/validate.js 34
+ * @linkcode Origami ./src/singleVertex/validate.js 40
  */
 const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) => {
 	if (!vertices_edges) {
@@ -10345,7 +10687,7 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
-		.map((valid, v) => !valid ? v : undefined)
+		.map((valid, v) => (!valid ? v : undefined))
 		.filter(a => a !== undefined);
 };
 /**
@@ -10354,20 +10696,29 @@ const validateMaekawa = ({ edges_vertices, vertices_edges, edges_assignment }) =
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} indices of vertices which violate the theorem. an empty array has no errors.
- * @linkcode Origami ./src/singleVertex/validate.js 61
+ * @linkcode Origami ./src/singleVertex/validate.js 67
  */
-const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, edges_vector }, epsilon = math.core.EPSILON) => {
+const validateKawasaki = ({
+	vertices_coords,
+	vertices_vertices,
+	vertices_edges,
+	edges_vertices,
+	edges_assignment,
+	edges_vector,
+}, epsilon = math.core.EPSILON) => {
 	if (!vertices_vertices) {
 		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
 	}
-	const is_valid = makeVerticesVerticesVector({ vertices_coords, vertices_vertices, edges_vertices, edges_vector })
+	const is_valid = makeVerticesVerticesVector({
+		vertices_coords, vertices_vertices, edges_vertices, edges_vector,
+	})
 		.map((vectors, v) => vectors
 			.filter((_, i) => folded_assignments[edges_assignment[vertices_edges[v][i]]]))
-		.map(vectors => vectors.length > 1
+		.map(vectors => (vectors.length > 1
 			? math.core.counterClockwiseSectors2(vectors)
-			: [0, 0])
-		.map(sectors => alternating_sum(sectors))
-		.map((pair, v) => Math.abs(pair[0] - pair[1]) < epsilon);
+			: [0, 0]))
+		.map(sectors => alternatingSum(sectors))
+		.map(pair => Math.abs(pair[0] - pair[1]) < epsilon);
 
 	// overwrite any false values to true for all boundary vertices
 	getBoundaryVertices({ edges_vertices, edges_assignment })
@@ -10375,7 +10726,7 @@ const validateKawasaki = ({ vertices_coords, vertices_vertices, vertices_edges, 
 	vertices_flat({ vertices_edges, edges_assignment })
 		.forEach(v => { is_valid[v] = true; });
 	return is_valid
-		.map((valid, v) => !valid ? v : undefined)
+		.map((valid, v) => (!valid ? v : undefined))
 		.filter(a => a !== undefined);
 };
 
@@ -10469,13 +10820,12 @@ const make_edges_array = function (array) {
 			vertices.push(...verts);
 			edges.push(...addEdges(this, verts));
 		});
-		const map = fragment(this).edges.map;
+		const { map } = fragment(this).edges;
 		populate(this);
 		return make_edges_array.call(this, edges.map(e => map[e])
 			.reduce((a, b) => a.concat(b), []));
 	};
 });
-
 
 // ["circle", "ellipse", "rect", "polygon"].forEach((fName) => {
 //   CreasePattern.prototype[fName] = function () {
@@ -10497,13 +10847,12 @@ const make_edges_array = function (array) {
 //   };
 // });
 
-
 CreasePattern.prototype.removeEdge = function (edge) {
 	const vertices = this.edges_vertices[edge];
 	removePlanarEdge(this, edge);
 	vertices
 		.map(v => isVertexCollinear(this, v))
-		.map((collinear, i) => collinear ? vertices[i] : undefined)
+		.map((collinear, i) => (collinear ? vertices[i] : undefined))
 		.filter(a => a !== undefined)
 		.sort((a, b) => b - a)
 		.forEach(v => removePlanarVertex(this, v));
@@ -10516,7 +10865,7 @@ CreasePattern.prototype.validate = function (epsilon) {
 	valid.vertices.maekawa = validateMaekawa(this);
 	if (this.edges_foldAngle) {
 		valid.edges.not_flat = this.edges_foldAngle
-			.map((angle, i) => edgeFoldAngleIsFlat(angle) ? undefined : i)
+			.map((angle, i) => (edgeFoldAngleIsFlat(angle) ? undefined : i))
 			.filter(a => a !== undefined);
 	}
 	if (valid.summary === "valid") {
@@ -10573,11 +10922,14 @@ const foldFacesLayer = (faces_layer, faces_folding) => {
  * the crease pattern and the line (vector origin) is transformed
  * by the face matrix. because of this, we use face_winding to know
  * if this face was flipped over, reversing the result.
+ * @note by flipping the < and > in the return, this one change
+ * will modify the entire method to toggle which side of the line
+ * are the faces which will be folded over.
  */
 const make_face_side = (vector, origin, face_center, face_winding) => {
 	const center_vector = math.core.subtract2(face_center, origin);
 	const determinant = math.core.cross2(vector, center_vector);
-	return face_winding ? determinant < 0 : determinant > 0;
+	return face_winding ? determinant > 0 : determinant < 0;
 };
 /**
  * for quickly determining which side of a crease a face lies
@@ -10587,15 +10939,19 @@ const make_face_side = (vector, origin, face_center, face_winding) => {
  * discrepencies) don't use this method, it's only being used
  * for faces which lie completely on one side or the other.
  */
-const make_face_center = (graph, face) => !graph.faces_vertices[face]
+const make_face_center = (graph, face) => (!graph.faces_vertices[face]
 	? [0, 0]
 	: graph.faces_vertices[face]
 		.map(v => graph.vertices_coords[v])
 		.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-		.map(el => el / graph.faces_vertices[face].length);
+		.map(el => el / graph.faces_vertices[face].length));
 
-const unfolded_assignment = { F:true, f:true, U:true, u:true };
-const opposite_lookup = { M:"V", m:"V", V:"M", v:"M" };
+const unfolded_assignment = {
+	F: true, f: true, U: true, u: true,
+};
+const opposite_lookup = {
+	M: "V", m: "V", V: "M", v: "M",
+};
 /**
  * @description for a mountain or valley, return the opposite.
  * in the case of any other crease (boundary, flat, ...) return the input.
@@ -10630,7 +10986,7 @@ const face_snapshot = (graph, face) => ({
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
- * @linkcode Origami ./src/graph/flatFold/index.js 84
+ * @linkcode Origami ./src/graph/flatFold/index.js 86
  */
 const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.EPSILON) => {
 	const opposite_assignment = get_opposite_assignment(assignment);
@@ -10672,14 +11028,16 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	// will not catch these. we need to find these edges before we modify
 	// the graph, find the face they are attached to and whether the face
 	// is flipped, and set the edge to the proper "V" or "M" (and foldAngle).
-	const vertices_coords_folded = multiplyVerticesFacesMatrix2(graph,
-		graph.faces_matrix2);
+	const vertices_coords_folded = multiplyVerticesFacesMatrix2(
+		graph,
+		graph.faces_matrix2,
+	);
 	// get all (folded) edges which lie parallel and overlap the crease line
 	const collinear_edges = makeEdgesLineParallelOverlap({
 		vertices_coords: vertices_coords_folded,
 		edges_vertices: graph.edges_vertices,
 	}, vector, origin, epsilon)
-		.map((is_collinear, e) => is_collinear ? e : undefined)
+		.map((is_collinear, e) => (is_collinear ? e : undefined))
 		.filter(e => e !== undefined)
 		.filter(e => unfolded_assignment[graph.edges_assignment[e]]);
 	// get the first valid adjacent face for each edge, get that face's winding,
@@ -10687,11 +11045,12 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	collinear_edges
 		.map(e => graph.edges_faces[e].find(f => f != null))
 		.map(f => graph.faces_winding[f])
-		.map(winding => winding ? assignment : opposite_assignment)
-		.forEach((assignment, e) => {
-			graph.edges_assignment[collinear_edges[e]] = assignment;
+		.map(winding => (winding ? assignment : opposite_assignment))
+		.forEach((assign, e) => {
+			graph.edges_assignment[collinear_edges[e]] = assign;
 			graph.edges_foldAngle[collinear_edges[e]] = edgeAssignmentToFoldAngle(
-				assignment);
+				assign,
+			);
 		});
 	// before we start splitting, capture the state of face 0. we will use
 	// it when rebuilding the graph's matrices after all splitting is finished.
@@ -10712,7 +11071,8 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 				i,
 				face.crease.vector,
 				face.crease.origin,
-				epsilon);
+				epsilon,
+			);
 			// console.log("split convex polygon change", change);
 			if (change === undefined) { return undefined; }
 			// const face_winding = folded.faces_winding[i];
@@ -10732,7 +11092,8 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 					face.crease.vector,
 					face.crease.origin,
 					graph.faces_center[f],
-					face.winding);
+					face.winding,
+				);
 				graph.faces_layer[f] = face.layer;
 			});
 			return change;
@@ -10756,7 +11117,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 	// we need its original matrix, and if face 0 was split we need to know
 	// which of its two new faces doesn't move as the new faces matrix
 	// calculation requires we provide the one face that doesn't move.
-	const face0_was_split = faces_map && faces_map[0].length === 2;
+	const face0_was_split = faces_map && faces_map[0] && faces_map[0].length === 2;
 	const face0_newIndex = (face0_was_split
 		? faces_map[0].filter(f => graph.faces_side[f]).shift()
 		: 0);
@@ -10771,10 +11132,12 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 		face0_preMatrix = (!face0_was_split && !graph.faces_side[0]
 			? face0.matrix
 			: math.core.multiplyMatrices2(
-					face0.matrix,
-					math.core.makeMatrix2Reflect(
-						face0.crease.vector,
-						face0.crease.origin))
+				face0.matrix,
+				math.core.makeMatrix2Reflect(
+					face0.crease.vector,
+					face0.crease.origin,
+				),
+			)
 		);
 	}
 	// build our new faces_matrices using face 0 as the starting point,
@@ -10792,7 +11155,7 @@ const flatFold = (graph, vector, origin, assignment = "V", epsilon = math.core.E
 		faces: { map: faces_map, remove: faces_remove },
 		edges: { map: edges_map },
 		// vertices: { new: new_vertices },
-	}
+	};
 };
 
 /**
@@ -10827,10 +11190,10 @@ var OrigamiProto = Origami.prototype;
  * @returns {boolean} true if the graph is folded.
  * @linkcode Origami ./src/graph/query.js 8
  */
-const isFoldedForm = (graph) => {
-	return (graph.frame_classes && graph.frame_classes.includes("foldedForm"))
-		|| (graph.file_classes && graph.file_classes.includes("foldedForm"));
-};
+const isFoldedForm = (graph) => (
+	(graph.frame_classes && graph.frame_classes.includes("foldedForm"))
+		|| (graph.file_classes && graph.file_classes.includes("foldedForm"))
+);
 
 var query = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -10849,7 +11212,9 @@ var query = /*#__PURE__*/Object.freeze({
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
  * @linkcode Origami ./src/graph/overlap.js 18
  */
-const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, edges_faces, faces_edges, faces_vertices }, epsilon) => {
+const makeEdgesFacesOverlap = ({
+	vertices_coords, edges_vertices, edges_vector, edges_faces, faces_vertices,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -10868,7 +11233,7 @@ const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, 
 	const faces_vertices_coords = faces_vertices
 		.map(verts => verts.map(v => vertices_coords[v]));
 		// .map((polygon, f) => faces_winding[f] ? polygon : polygon.reverse());
-	for (let f = 0; f < faces_winding.length; f++) {
+	for (let f = 0; f < faces_winding.length; f += 1) {
 		if (!faces_winding[f]) { faces_vertices_coords[f].reverse(); }
 	}
 	matrix.forEach((row, e) => row.forEach((val, f) => {
@@ -10879,7 +11244,7 @@ const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, 
 				faces_vertices_coords[f],
 				point,
 				math.core.exclude,
-				epsilon
+				epsilon,
 			)).reduce((a, b) => a || b, false);
 		if (point_in_poly) { matrix[e][f] = true; return; }
 		const edge_intersect = math.core.intersectConvexPolygonLine(
@@ -10888,7 +11253,7 @@ const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, 
 			edges_origin[e],
 			math.core.excludeS,
 			math.core.excludeS,
-			epsilon
+			epsilon,
 		);
 		if (edge_intersect) { matrix[e][f] = true; return; }
 		matrix[e][f] = false;
@@ -10922,16 +11287,21 @@ const makeEdgesFacesOverlap = ({ vertices_coords, edges_vertices, edges_vector, 
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} matrix relating edges to faces, answering, do they overlap?
- * @linkcode Origami ./src/graph/overlap.js 93
+ * @linkcode Origami ./src/graph/overlap.js 95
  */
-const makeFacesFacesOverlap = ({ vertices_coords, faces_vertices }, epsilon = math.core.EPSILON) => {
+const makeFacesFacesOverlap = ({
+	vertices_coords, faces_vertices,
+}, epsilon = math.core.EPSILON) => {
 	const matrix = Array.from(Array(faces_vertices.length))
 		.map(() => Array.from(Array(faces_vertices.length)));
 	const faces_polygon = makeFacesPolygon({ vertices_coords, faces_vertices }, epsilon);
-	for (let i = 0; i < faces_vertices.length - 1; i++) {
-		for (let j = i + 1; j < faces_vertices.length; j++) {
+	for (let i = 0; i < faces_vertices.length - 1; i += 1) {
+		for (let j = i + 1; j < faces_vertices.length; j += 1) {
 			const overlap = math.core.overlapConvexPolygons(
-				faces_polygon[i], faces_polygon[j], epsilon);
+				faces_polygon[i],
+				faces_polygon[j],
+				epsilon,
+			);
 			matrix[i][j] = overlap;
 			matrix[j][i] = overlap;
 		}
@@ -10958,7 +11328,9 @@ var overlap = /*#__PURE__*/Object.freeze({
  * @todo wait, no, this is not setting the main diagonal undefined now. what is up?
  * @linkcode Origami ./src/graph/edgesEdges.js 14
  */
-const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => { // = math.core.EPSILON) => {
+const makeEdgesEdgesParallel = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => { // = math.core.EPSILON) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -10966,8 +11338,8 @@ const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector 
 	const edges_edges_parallel = Array
 		.from(Array(edge_count))
 		.map(() => Array.from(Array(edge_count)));
-	for (let i = 0; i < edge_count - 1; i++) {
-		for (let j = i + 1; j < edge_count; j++) {
+	for (let i = 0; i < edge_count - 1; i += 1) {
+		for (let j = i + 1; j < edge_count; j += 1) {
 			const p = math.core.parallel(edges_vector[i], edges_vector[j], epsilon);
 			edges_edges_parallel[i][j] = p;
 			edges_edges_parallel[j][i] = p;
@@ -11015,15 +11387,19 @@ const makeEdgesEdgesParallel = ({ vertices_coords, edges_vertices, edges_vector 
  */
 const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
 	// relationship between i and j is non-directional.
-	for (let i = 0; i < matrix.length - 1; i++) {
-		for (let j = i + 1; j < matrix.length; j++) {
+	for (let i = 0; i < matrix.length - 1; i += 1) {
+		for (let j = i + 1; j < matrix.length; j += 1) {
 			// if value is are already false, skip.
 			if (!matrix[i][j]) { continue; }
 			matrix[i][j] = math.core.overlapLineLine(
-				vectors[i], origins[i],
-				vectors[j], origins[j],
-				func, func,
-				epsilon);
+				vectors[i],
+				origins[i],
+				vectors[j],
+				origins[j],
+				func,
+				func,
+				epsilon,
+			);
 			matrix[j][i] = matrix[i][j];
 		}
 	}
@@ -11038,7 +11414,9 @@ const overwriteEdgesOverlaps = (matrix, vectors, origins, func, epsilon) => {
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
-const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+const makeEdgesEdgesCrossing = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
@@ -11046,10 +11424,10 @@ const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector 
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// convert parallel into NOT parallel.
 	const matrix = makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector
+		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon)
 		.map(row => row.map(b => !b));
-	for (let i = 0; i < matrix.length; i++) {
+	for (let i = 0; i < matrix.length; i += 1) {
 		matrix[i][i] = undefined;
 	}
 	// if edges are parallel (not this value), skip.
@@ -11069,14 +11447,16 @@ const makeEdgesEdgesCrossing = ({ vertices_coords, edges_vertices, edges_vector 
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[][]} a boolean matrix, do two edges cross each other?
  */
-const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_vector }, epsilon) => {
+const makeEdgesEdgesParallelOverlap = ({
+	vertices_coords, edges_vertices, edges_vector,
+}, epsilon) => {
 	if (!edges_vector) {
 		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
 	}
 	const edges_origin = edges_vertices.map(verts => vertices_coords[verts[0]]);
 	// start with edges-edges parallel matrix
 	const matrix = makeEdgesEdgesParallel({
-		vertices_coords, edges_vertices, edges_vector
+		vertices_coords, edges_vertices, edges_vector,
 	}, epsilon);
 	// only if lines are parallel, then run the more expensive overlap method
 	overwriteEdgesOverlaps(matrix, edges_vector, edges_origin, math.core.excludeS, epsilon);
@@ -11085,10 +11465,10 @@ const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_
 /**
  * we want to include this case, where one edge may not overlap another
  * but it still gets included because both are overlapped by a common edge.
- * 
+ *
  *  |----a-----|    |-------c------|
  *          |-----b----|
- * 
+ *
  * "a" and "c" are included together because b causes them to be so.
  */
 /**
@@ -11099,7 +11479,7 @@ const makeEdgesEdgesParallelOverlap = ({ vertices_coords, edges_vertices, edges_
 /*
 const make_groups_edges = (graph, epsilon) => {
 	// gather together all edges which lie on top of one another in the
-	// folded state. take each edge's two adjacent faces, 
+	// folded state. take each edge's two adjacent faces,
 	const overlap_matrix = makeEdgesEdgesParallelOverlap(graph, epsilon)
 	const overlapping_edges = booleanMatrixToIndexedArray(overlap_matrix);
 	// each index will be an edge, each value is a group, starting with 0,
@@ -11149,29 +11529,31 @@ const subgraph = (graph, components) => {
  */
 // import addVertices_splitEdges from "./add/addVertices_splitEdges";
 
-var graph_methods = Object.assign(Object.create(null), {
-	count,
-	countImplied,
-	validate: validate$1,
-	clean,
-	populate,
-	remove: removeGeometryIndices,
-	replace: replaceGeometryIndices,
-	removePlanarVertex,
-	removePlanarEdge,
-	addVertices,
-	addEdges,
-	splitEdge,
-	splitFace,
-	flatFold,
-	addPlanarSegment,
-	// assign,
-	subgraph,
-	clip,
-	fragment,
-	getVerticesClusters,
-	clone,
-},
+var graph_methods = Object.assign(
+	Object.create(null),
+	{
+		count,
+		countImplied,
+		validate: validate$1,
+		clean,
+		populate,
+		remove: removeGeometryIndices,
+		replace: replaceGeometryIndices,
+		removePlanarVertex,
+		removePlanarEdge,
+		addVertices,
+		addEdges,
+		splitEdge,
+		splitFace,
+		flatFold,
+		addPlanarSegment,
+		// assign,
+		subgraph,
+		clip,
+		fragment,
+		getVerticesClusters,
+		clone,
+	},
 	make,
 	boundary,
 	walk,
@@ -11268,8 +11650,8 @@ const make_closed_polygon = (vertices_coords) => populate({
  * @param {number} [scale=1] the length of the sides.
  * @returns {FOLD} a FOLD object
  */
-Create.square = (scale = 1) =>
-	make_closed_polygon(make_rect_vertices_coords(scale, scale));
+Create.square = (scale = 1) => (
+	make_closed_polygon(make_rect_vertices_coords(scale, scale)));
 /**
  * @description Create a new FOLD object which contains one rectangular face,
  * including vertices and boundary edges.
@@ -11277,16 +11659,16 @@ Create.square = (scale = 1) =>
  * @param {number} [height=1] the height of the rectangle
  * @returns {FOLD} a FOLD object
  */
-Create.rectangle = (width = 1, height = 1) =>
-	make_closed_polygon(make_rect_vertices_coords(width, height));
+Create.rectangle = (width = 1, height = 1) => (
+	make_closed_polygon(make_rect_vertices_coords(width, height)));
 /**
  * @description Create a new FOLD object with a regular-polygon shaped boundary.
  * @param {number} [sides=3] the number of sides to the polygon
  * @param {number} [radius=1] the circumradius
  * @returns {FOLD} a FOLD object
  */
-Create.polygon = (sides = 3, radius = 1) =>
-  make_closed_polygon(math.core.makePolygonCircumradius(sides, radius));
+Create.polygon = (sides = 3, radius = 1) => (
+	make_closed_polygon(math.core.makePolygonCircumradius(sides, radius)));
 // Create.circle = (sides = 90) =>
 // 	make_closed_polygon(math.core.makePolygon(sides));
 // origami bases. todo: more
@@ -11295,9 +11677,11 @@ Create.polygon = (sides = 3, radius = 1) =>
  * @returns {FOLD} a FOLD object
  */
 Create.kite = () => populate({
-	vertices_coords: [[0,0], [Math.sqrt(2)-1,0], [1,0], [1,1-(Math.sqrt(2)-1)], [1,1], [0,1]],
-	edges_vertices: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],
-	edges_assignment: Array.from("BBBBBBVVF")
+	vertices_coords: [
+		[0, 0], [Math.sqrt(2) - 1, 0], [1, 0], [1, 1 - (Math.sqrt(2) - 1)], [1, 1], [0, 1],
+	],
+	edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 1], [3, 5], [5, 2]],
+	edges_assignment: Array.from("BBBBBBVVF"),
 });
 
 /**
@@ -11318,11 +11702,16 @@ const ConstructorPrototypes = {
 };
 
 const default_graph = {
-	graph: () => ({}),
+	graph: () => {},
 	cp: Create.square,
 	origami: Create.square,
 };
 
+const CustomProperties = {
+	graph: () => ({ file_spec, file_creator }),
+	cp: () => ({ file_spec, file_creator, frame_classes: ["creasePattern"] }),
+	origami: () => ({ file_spec, file_creator, frame_classes: ["foldedForm"] }),
+};
 /**
  * Calling the initializer also runs populate(), which does
  * take some computation time but it's very quick.
@@ -11337,7 +11726,7 @@ Object.keys(ConstructorPrototypes).forEach(name => {
 			Object.create(ConstructorPrototypes[name]),
 			(argFolds.length ? {} : default_graph[name]()),
 			...argFolds,
-			{ file_spec, file_creator }
+			CustomProperties[name]()
 		));
 	};
 
@@ -11414,18 +11803,24 @@ const intersectionUD = (line1, line2) => {
  */
 const normalAxiom1 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.rotate90(math.core.subtract2(point2, point1)));
-	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
+	return {
+		normal,
+		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+	};
 };
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 38
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 41
  */
 const normalAxiom2 = (point1, point2) => {
 	const normal = math.core.normalize2(math.core.subtract2(point2, point1));
-	return { normal, distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0 };
+	return {
+		normal,
+		distance: math.core.dot2(math.core.add2(point1, point2), normal) / 2.0,
+	};
 };
 /**
  * @description origami axiom 3: form two lines that make the two angular bisectors between
@@ -11433,16 +11828,16 @@ const normalAxiom2 = (point1, point2) => {
  * @param {UniqueLine} line1 one 2D line in {vector, origin} form
  * @param {UniqueLine} line2 one 2D line in {vector, origin} form
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 50
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 56
  */
 const normalAxiom3 = (line1, line2) => {
 	// if no intersect, lines are parallel, only one solution exists
 	const intersect = intersectionUD(line1, line2);
 	return intersect === undefined
 		? [{
-				normal: line1.normal,
-				distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2.0
-			}]
+			normal: line1.normal,
+			distance: (line1.distance + line2.distance * math.core.dot2(line1.normal, line2.normal)) / 2,
+		}]
 		: [math.core.add2, math.core.subtract2]
 			.map(f => math.core.normalize2(f(line1.normal, line2.normal)))
 			.map(normal => ({ normal, distance: math.core.dot2(intersect, normal) }));
@@ -11453,9 +11848,9 @@ const normalAxiom3 = (line1, line2) => {
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
  * @returns {UniqueLine} the line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 70
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 76
  */
- const normalAxiom4 = (line, point) => {
+const normalAxiom4 = (line, point) => {
 	const normal = math.core.rotate90(line.normal);
 	const distance = math.core.dot2(point, normal);
 	return { normal, distance };
@@ -11467,7 +11862,7 @@ const normalAxiom3 = (line1, line2) => {
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 84
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 90
  */
 const normalAxiom5 = (line, point1, point2) => {
 	const p1base = math.core.dot2(point1, line.normal);
@@ -11488,66 +11883,66 @@ const normalAxiom5 = (line, point1, point2) => {
 };
 
 // cube root preserve sign
-const cubrt = n => n < 0
-	? -Math.pow(-n, 1/3)
-	: Math.pow(n, 1/3);
+const cubrt = n => (n < 0
+	? -Math.pow(-n, 1 / 3)
+	: Math.pow(n, 1 / 3));
 
 // Robert Lang's cubic solver from Reference Finder
 // https://langorigami.com/article/referencefinder/
 const polynomial = (degree, a, b, c, d) => {
 	switch (degree) {
-		case 1: return [-d / c];
-		case 2: {
-			// quadratic
-			let discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
-			// no solution
-			if (discriminant < -math.core.EPSILON) { return []; }
-			// one solution
-			let q1 = -c / (2.0 * b);
-			if (discriminant < math.core.EPSILON) { return [q1]; }
-			// two solutions
-			let q2 = Math.sqrt(discriminant) / (2.0 * b);
-			return [q1 + q2, q1 - q2];
+	case 1: return [-d / c];
+	case 2: {
+		// quadratic
+		const discriminant = Math.pow(c, 2.0) - (4.0 * b * d);
+		// no solution
+		if (discriminant < -math.core.EPSILON) { return []; }
+		// one solution
+		const q1 = -c / (2.0 * b);
+		if (discriminant < math.core.EPSILON) { return [q1]; }
+		// two solutions
+		const q2 = Math.sqrt(discriminant) / (2.0 * b);
+		return [q1 + q2, q1 - q2];
+	}
+	case 3: {
+		// cubic
+		// Cardano's formula. convert to depressed cubic
+		const a2 = b / a;
+		const a1 = c / a;
+		const a0 = d / a;
+		const q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
+		const r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
+		const d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
+		const u = -a2 / 3.0;
+		// one solution
+		if (d0 > 0.0) {
+			const sqrt_d0 = Math.sqrt(d0);
+			const s = cubrt(r + sqrt_d0);
+			const t = cubrt(r - sqrt_d0);
+			return [u + s + t];
 		}
-		case 3: {
-			// cubic
-			// Cardano's formula. convert to depressed cubic
-			let a2 = b / a;
-			let a1 = c / a;
-			let a0 = d / a;
-			let q = (3.0 * a1 - Math.pow(a2, 2.0)) / 9.0;
-			let r = (9.0 * a2 * a1 - 27.0 * a0 - 2.0 * Math.pow(a2, 3.0)) / 54.0;
-			let d0 = Math.pow(q, 3.0) + Math.pow(r, 2.0);
-			let u = -a2 / 3.0;
-			// one solution
-			if (d0 > 0.0) {
-				let sqrt_d0 = Math.sqrt(d0);
-				let s = cubrt(r + sqrt_d0);
-				let t = cubrt(r - sqrt_d0);
-				return [u + s + t];
-			}
-			// two solutions
-			if (Math.abs(d0) < math.core.EPSILON) {
-				let s = Math.pow(r, 1.0/3.0);
-				// let S = cubrt(R);
-				// instead of checking if S is NaN, check if R was negative
-				// if (isNaN(S)) { break; }
-				if (r < 0.0) { return []; }
-				return [u + 2.0 * s, u - s];
-			}
-			// three solutions
-			let sqrt_d0 = Math.sqrt(-d0);
-			let phi = Math.atan2(sqrt_d0, r) / 3.0;
-			let r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0/6.0);
-			let s_r = r_s * Math.cos(phi);
-			let s_i = r_s * Math.sin(phi);
-			return [
-				u + 2.0 * s_r,
-				u - s_r - Math.sqrt(3.0) * s_i,
-				u - s_r + Math.sqrt(3.0) * s_i
-			];      
+		// two solutions
+		if (Math.abs(d0) < math.core.EPSILON) {
+			const s = Math.pow(r, 1.0 / 3.0);
+			// const S = cubrt(R);
+			// instead of checking if S is NaN, check if R was negative
+			// if (isNaN(S)) { break; }
+			if (r < 0.0) { return []; }
+			return [u + 2.0 * s, u - s];
 		}
-		default: return [];
+		// three solutions
+		const sqrt_d0 = Math.sqrt(-d0);
+		const phi = Math.atan2(sqrt_d0, r) / 3.0;
+		const r_s = Math.pow((Math.pow(r, 2.0) - d0), 1.0 / 6.0);
+		const s_r = r_s * Math.cos(phi);
+		const s_i = r_s * Math.sin(phi);
+		return [
+			u + 2.0 * s_r,
+			u - s_r - Math.sqrt(3.0) * s_i,
+			u - s_r + Math.sqrt(3.0) * s_i,
+		];
+	}
+	default: return [];
 	}
 };
 /**
@@ -11558,7 +11953,7 @@ const polynomial = (degree, a, b, c, d) => {
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {UniqueLine[]} an array of lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 175
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 181
  */
 const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -11566,7 +11961,10 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(1.0 - (math.core.dot2(line1.normal, point1) / line1.distance)) < 0.02) { return []; }
 	// line vec is the first line's vector, along the line, not the normal
 	const line_vec = math.core.rotate90(line1.normal);
-	const vec1 = math.core.subtract2(math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)), math.core.scale2(point2, 2.0));
+	const vec1 = math.core.subtract2(
+		math.core.add2(point1, math.core.scale2(line1.normal, line1.distance)),
+		math.core.scale2(point2, 2.0),
+	);
 	const vec2 = math.core.subtract2(math.core.scale2(line1.normal, line1.distance), point1);
 	const c1 = math.core.dot2(point2, line2.normal) - line2.distance;
 	const c2 = 2.0 * math.core.dot2(vec2, line_vec);
@@ -11586,9 +11984,15 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
 	if (Math.abs(b) > math.core.EPSILON) { polynomial_degree = 2; }
 	if (Math.abs(a) > math.core.EPSILON) { polynomial_degree = 3; }
 	return polynomial(polynomial_degree, a, b, c, d)
-		.map(n => math.core.add2(math.core.scale2(line1.normal, line1.distance), math.core.scale2(line_vec, n)))
+		.map(n => math.core.add2(
+			math.core.scale2(line1.normal, line1.distance),
+			math.core.scale2(line_vec, n),
+		))
 		.map(p => ({ p, normal: math.core.normalize2(math.core.subtract2(p, point1)) }))
-		.map(el => ({ normal: el.normal, distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)) }));
+		.map(el => ({
+			normal: el.normal,
+			distance: math.core.dot2(el.normal, math.core.midpoint2(el.p, point1)),
+		}));
 };
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
@@ -11600,16 +12004,16 @@ const normalAxiom6 = (line1, line2, point1, point2) => {
  * @param {number[]} point the point to bring onto the line
  * @returns {UniqueLine | undefined} the line in {normal, distance} form
  * or undefined if the given lines are parallel
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 217
+ * @linkcode Origami ./src/axioms/axiomsNormDist.js 232
  */
 const normalAxiom7 = (line1, line2, point) => {
-	let normal = math.core.rotate90(line1.normal);
-	let norm_norm = math.core.dot2(normal, line2.normal);
+	const normal = math.core.rotate90(line1.normal);
+	const norm_norm = math.core.dot2(normal, line2.normal);
 	// if norm_norm is close to 0, the two input lines are parallel, no solution
 	if (Math.abs(norm_norm) < math.core.EPSILON) { return undefined; }
-	let a = math.core.dot2(point, normal);
-	let b = math.core.dot2(point, line2.normal);
-	let distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
+	const a = math.core.dot2(point, normal);
+	const b = math.core.dot2(point, line2.normal);
+	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
 	return { normal, distance };
 };
 
@@ -11653,7 +12057,7 @@ var AxiomsND = /*#__PURE__*/Object.freeze({
  */
 const axiom1 = (point1, point2) => ({
 	vector: math.core.normalize2(math.core.subtract2(...math.core.resizeUp(point2, point1))),
-	origin: point1
+	origin: point1,
 });
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
@@ -11663,8 +12067,10 @@ const axiom1 = (point1, point2) => ({
  * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 39
  */
 const axiom2 = (point1, point2) => ({
-	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(point2, point1)))),
-	origin: math.core.midpoint2(point1, point2)
+	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
+		...math.core.resizeUp(point2, point1),
+	))),
+	origin: math.core.midpoint2(point1, point2),
 });
 // todo: make sure these all get a resizeUp or whatever is necessary
 /**
@@ -11673,22 +12079,21 @@ const axiom2 = (point1, point2) => ({
  * @param {RayLine} line1 one 2D line in {vector, origin} form
  * @param {RayLine} line2 one 2D line in {vector, origin} form
  * @returns {RayLine[]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 52
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 54
  */
-const axiom3 = (line1, line2) => math.core.bisectLines2(
-	line1.vector, line1.origin, line2.vector, line2.origin
-);
+const axiom3 = (line1, line2) => math.core
+	.bisectLines2(line1.vector, line1.origin, line2.vector, line2.origin);
 /**
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
  * @param {RayLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point
  * @returns {RayLine} the line in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 63
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 64
  */
 const axiom4 = (line, point) => ({
 	vector: math.core.rotate90(math.core.normalize2(line.vector)),
-	origin: point
+	origin: point,
 });
 /**
  * @description origami axiom 5: form up to two lines that pass through a point that also
@@ -11697,18 +12102,21 @@ const axiom4 = (line, point) => ({
  * @param {number[]} point one 2D point, the point that the line(s) pass through
  * @param {number[]} point one 2D point, the point that is being brought onto the line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 76
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 77
  */
-const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
+const axiom5 = (line, point1, point2) => (
+	math.core.intersectCircleLine(
 		math.core.distance2(point1, point2),
 		point1,
 		line.vector,
 		line.origin,
-		math.core.include_l
+		math.core.include_l,
 	) || []).map(sect => ({
-		vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(sect, point2)))),
-		origin: math.core.midpoint2(point2, sect)
-	}));
+	vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
+		...math.core.resizeUp(sect, point2),
+	))),
+	origin: math.core.midpoint2(point2, sect),
+}));
 /**
  * @description origami axiom 6: form up to three lines that are made by bringing
  * a point to a line and a second point to a second line.
@@ -11717,13 +12125,15 @@ const axiom5 = (line, point1, point2) => (math.core.intersectCircleLine(
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {RayLine[]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 96
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 100
  */
 const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
-	math.core.makeNormalDistanceLine(line1),
-	math.core.makeNormalDistanceLine(line2),
-	point1, point2).map(math.core.makeVectorOriginLine);
-		// .map(Constructors.line);
+	math.core.rayLineToUniqueLine(line1),
+	math.core.rayLineToUniqueLine(line2),
+	point1,
+	point2,
+).map(math.core.uniqueLineToRayLine);
+// .map(Constructors.line);
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
  * while being perpendicular to another given line.
@@ -11734,20 +12144,26 @@ const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
  * @param {number[]} point the point to bring onto the line
  * @returns {RayLine | undefined} the line in {vector, origin} form
  * or undefined if the given lines are parallel
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 113
+ * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 119
  */
 const axiom7 = (line1, line2, point) => {
 	const intersect = math.core.intersectLineLine(
-		line1.vector, line1.origin,
-		line2.vector, point,
-		math.core.include_l, math.core.include_l);
+		line1.vector,
+		line1.origin,
+		line2.vector,
+		point,
+		math.core.include_l,
+		math.core.include_l,
+	);
 	return intersect === undefined
 		? undefined
-		: ({//Constructors.line(
-// todo: switch this out, but test it as you do
-				vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(...math.core.resizeUp(intersect, point)))),
-				// vector: math.core.normalize2(math.core.rotate90(line2.vector)),
-				origin: math.core.midpoint2(point, intersect)
+		: ({
+		// todo: switch this out, but test it as you do
+			vector: math.core.normalize2(math.core.rotate90(math.core.subtract2(
+				...math.core.resizeUp(intersect, point),
+			))),
+			// vector: math.core.normalize2(math.core.rotate90(line2.vector)),
+			origin: math.core.midpoint2(point, intersect),
 		});
 };
 
@@ -11771,10 +12187,12 @@ var AxiomsVO = /*#__PURE__*/Object.freeze({
  */
 const arrayify = (axiomNumber, solutions) => {
 	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return [solutions];
+	case 3: case "3":
+	case 5: case "5":
+	case 6: case "6": return solutions;
+	// 7 is the only axiom which can return a single undefined (not in an array)
+	case 7: case "7": return solutions === undefined ? [] : [solutions];
+	default: return [solutions];
 	}
 };
 /**
@@ -11784,10 +12202,10 @@ const arrayify = (axiomNumber, solutions) => {
  */
 const unarrayify = (axiomNumber, solutions) => {
 	switch (axiomNumber) {
-		case 3: case "3":
-		case 5: case "5":
-		case 6: case "6": return solutions;
-		default: return solutions ? solutions[0] : undefined;
+	case 3: case "3":
+	case 5: case "5":
+	case 6: case "6": return solutions;
+	default: return solutions ? solutions[0] : undefined;
 	}
 };
 
@@ -11805,7 +12223,7 @@ const reflectPoint = (foldLine, point) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 18
+ * @linkcode Origami ./src/axioms/validate.js 17
  */
 const validateAxiom1 = (params, boundary) => params.points
 	.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
@@ -11816,7 +12234,7 @@ const validateAxiom1 = (params, boundary) => params.points
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 29
+ * @linkcode Origami ./src/axioms/validate.js 28
  */
 const validateAxiom2 = validateAxiom1;
 /**
@@ -11825,7 +12243,7 @@ const validateAxiom2 = validateAxiom1;
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 38
+ * @linkcode Origami ./src/axioms/validate.js 37
  */
 const validateAxiom3 = (params, boundary, results) => {
 	const segments = params.lines
@@ -11849,39 +12267,52 @@ const validateAxiom3 = (params, boundary, results) => {
 	//       line.origin,
 	//       math.core.includeS,
 	//       math.core.excludeL));
-	const results_clip = results.map(line => line === undefined
+	const results_clip = results.map(line => (line === undefined
 		? undefined
-		: math.core.clipLineConvexPolygon(boundary,
+		: math.core.clipLineConvexPolygon(
+			boundary,
 			line.vector,
 			line.origin,
 			math.core.include,
-			math.core.includeL));
+			math.core.includeL,
+		)));
 	const results_inside = [0, 1].map((i) => results_clip[i] !== undefined);
 	// test B:
 	// make sure that for each of the results, the result lies between two
 	// of the parameters, in other words, reflect the segment 0 both ways
 	// (both fold solutions) and make sure there is overlap with segment 1
-	const seg0Reflect = results.map((foldLine, i) => foldLine === undefined
+	const seg0Reflect = results.map(foldLine => (foldLine === undefined
 		? undefined
 		: [
 			reflectPoint(foldLine, segments[0][0]),
-			reflectPoint(foldLine, segments[0][1])
-		]);
-	const reflectMatch = seg0Reflect.map((seg, i) => seg === undefined
+			reflectPoint(foldLine, segments[0][1]),
+		]));
+	const reflectMatch = seg0Reflect.map(seg => (seg === undefined
 		? false
-		: (math.core.overlapLinePoint(math.core
-				.subtract(segments[1][1], segments[1][0]),
-				segments[1][0], seg[0], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(segments[1][1], segments[1][0]),
-				segments[1][0], seg[1], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(seg[1], seg[0]), seg[0],
-				segments[1][0], math.core.includeS) ||
-			math.core.overlapLinePoint(math.core
-				.subtract(seg[1], seg[0]), seg[0],
-				segments[1][1], math.core.includeS)
-		));
+		: (math.core.overlapLinePoint(
+			math.core.subtract(segments[1][1], segments[1][0]),
+			segments[1][0],
+			seg[0],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(segments[1][1], segments[1][0]),
+			segments[1][0],
+			seg[1],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(seg[1], seg[0]),
+			seg[0],
+			segments[1][0],
+			math.core.includeS,
+		)
+		|| math.core.overlapLinePoint(
+			math.core.subtract(seg[1], seg[0]),
+			seg[0],
+			segments[1][1],
+			math.core.includeS,
+		))));
 	// valid if A and B
 	return [0, 1].map(i => reflectMatch[i] === true && results_inside[i] === true);
 };
@@ -11892,7 +12323,7 @@ const validateAxiom3 = (params, boundary, results) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 105
+ * @linkcode Origami ./src/axioms/validate.js 117
  */
 const validateAxiom4 = (params, boundary) => {
 	const intersect = math.core.intersectLineLine(
@@ -11901,7 +12332,8 @@ const validateAxiom4 = (params, boundary) => {
 		math.core.rotate90(params.lines[0].vector),
 		params.points[0],
 		math.core.includeL,
-		math.core.includeL);
+		math.core.includeL,
+	);
 	return [params.points[0], intersect]
 		.filter(a => a !== undefined)
 		.map(p => math.core.overlapConvexPolygonPoint(boundary, p, math.core.include))
@@ -11913,7 +12345,7 @@ const validateAxiom4 = (params, boundary) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 126
+ * @linkcode Origami ./src/axioms/validate.js 139
  */
 const validateAxiom5 = (params, boundary, results) => {
 	if (results.length === 0) { return []; }
@@ -11931,7 +12363,7 @@ const validateAxiom5 = (params, boundary, results) => {
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 144
+ * @linkcode Origami ./src/axioms/validate.js 157
  */
 const validateAxiom6 = function (params, boundary, results) {
 	if (results.length === 0) { return []; }
@@ -11952,7 +12384,7 @@ const validateAxiom6 = function (params, boundary, results) {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 165
+ * @linkcode Origami ./src/axioms/validate.js 178
  */
 const validateAxiom7 = (params, boundary, result) => {
 	// check if the point parameter is inside the polygon
@@ -11963,11 +12395,13 @@ const validateAxiom7 = (params, boundary, result) => {
 	const reflected = reflectPoint(result, params.points[0]);
 	const reflectTest = math.core.overlapConvexPolygonPoint(boundary, reflected, math.core.include);
 	// check if the line to fold onto itself is somewhere inside the polygon
-	const paramLineTest = (math.core.intersectConvexPolygonLine(boundary,
+	const paramLineTest = (math.core.intersectConvexPolygonLine(
+		boundary,
 		params.lines[1].vector,
 		params.lines[1].origin,
 		math.core.includeS,
-		math.core.includeL) !== undefined);
+		math.core.includeL,
+	) !== undefined);
 	// same test we do for axiom 4
 	const intersect = math.core.intersectLineLine(
 		params.lines[1].vector,
@@ -11975,7 +12409,8 @@ const validateAxiom7 = (params, boundary, result) => {
 		result.vector,
 		result.origin,
 		math.core.includeL,
-		math.core.includeL);
+		math.core.includeL,
+	);
 	const intersectInsideTest = intersect
 		? math.core.overlapConvexPolygonPoint(boundary, intersect, math.core.include)
 		: false;
@@ -11987,8 +12422,9 @@ const validateAxiom7 = (params, boundary, result) => {
  * @param {AxiomParams} params the axiom parameters, lines and points in one object
  * @param {number[][]} boundary an array of points, each point is an array of numbers
  * @param {line[]} solutions the solutions from the axiom method (before validation)
- * @returns {boolean} true if the solution is valid
- * @linkcode Origami ./src/axioms/validate.js 201
+ * @returns {boolean|boolean[]} for every solution, true if valid. Axioms 1, 2, 4, 7
+ * return one boolean, 3, 5, 6 return arrays of booleans.
+ * @linkcode Origami ./src/axioms/validate.js 218
  */
 const validate = (number, params, boundary, results) => arrayify(number, [null,
 	validateAxiom1,
@@ -12014,7 +12450,7 @@ var Validate = /*#__PURE__*/Object.freeze({
 
 const paramsVecsToNorms = (params) => ({
 	points: params.points,
-	lines: params.lines.map(math.core.makeVectorOriginLine),
+	lines: params.lines.map(math.core.uniqueLineToRayLine),
 });
 /**
  * @description All axiom method arguments are ordered such that all lines are
@@ -12032,18 +12468,19 @@ const spreadParams = (params) => {
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {AxiomParams} params the origami axiom parameters, lines and points,
  * where the lines are only {RayLine} lines.
- * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
+ * @param {number[][]} [boundary] the optional boundary,
+ * including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 29
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 30
  */
 const axiomInBoundary = (number, params = {}, boundary) => {
-	const solutions = arrayify(number,
-		AxiomsVO[`axiom${number}`](...spreadParams(params)));
-		// .filter(a => a !== undefined);
-		// .map(line => math.line(line));
+	const solutions = arrayify(
+		number,
+		AxiomsVO[`axiom${number}`](...spreadParams(params)),
+	).map(l => math.line(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](params, boundary, solutions))
-			.forEach((valid, i) => valid ? i : undefined)
+			.forEach((valid, i) => (valid ? i : undefined))
 			.filter(a => a !== undefined)
 			.forEach(i => delete solutions[i]);
 	}
@@ -12055,16 +12492,19 @@ const axiomInBoundary = (number, params = {}, boundary) => {
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {AxiomParams} params the origami axiom parameters, lines and points,
  * where the lines are only {UniqueLine} lines.
- * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
+ * @param {number[][]} [boundary] the optional boundary,
+ * including this will exclude results that lie outside.
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 52
+ * @linkcode Origami ./src/axioms/axiomsInBoundary.js 54
  */
 const normalAxiomInBoundary = (number, params = {}, boundary) => {
-	const solutions = arrayify(number,
-		AxiomsND[`normalAxiom${number}`](...spreadParams(params)));
+	const solutions = arrayify(
+		number,
+		AxiomsND[`normalAxiom${number}`](...spreadParams(params)),
+	).map(l => math.line.fromNormalDistance(l));
 	if (boundary) {
 		arrayify(number, Validate[`validateAxiom${number}`](paramsVecsToNorms(params), boundary, solutions))
-			.forEach((valid, i) => valid ? i : undefined)
+			.forEach((valid, i) => (valid ? i : undefined))
 			.filter(a => a !== undefined)
 			.forEach(i => delete solutions[i]);
 	}
@@ -12086,9 +12526,10 @@ var BoundaryAxioms = /*#__PURE__*/Object.freeze({
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {AxiomParams} params the origami axiom parameters, lines and points,
  * where the lines are either {RayLine} or {UniqueLine}.
- * @param {number[][]} [boundary] the optional boundary, including this will exclude results that lie outside.
+ * @param {number[][]} [boundary] the optional boundary,
+ * including this will exclude results that lie outside.
  * @returns {RayLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/index.js 16
+ * @linkcode Origami ./src/axioms/index.js 17
  */
 const axiom = (number, params = {}, boundary) => axiomInBoundary(number, params, boundary);
 
@@ -12102,7 +12543,12 @@ Object.keys(Validate).forEach(key => { axiom[key] = Validate[key]; });
  */
 
 const line_line_for_arrows = (a, b) => math.core.intersectLineLine(
-	a.vector, a.origin, b.vector, b.origin, math.core.includeL, math.core.includeL
+	a.vector,
+	a.origin,
+	b.vector,
+	b.origin,
+	math.core.includeL,
+	math.core.includeL,
 );
 
 const diagram_reflect_point = (foldLine, point) => {
@@ -12110,33 +12556,36 @@ const diagram_reflect_point = (foldLine, point) => {
 	return math.core.multiplyMatrix2Vector2(matrix, point);
 };
 
-const boundary_for_arrows = ({ vertices_coords }) => math.core
+const boundary_for_arrows$1 = ({ vertices_coords }) => math.core
 	.convexHull(vertices_coords);
 
 const widest_perp = (graph, foldLine, point) => {
-	const boundary = boundary_for_arrows(graph);
+	const boundary = boundary_for_arrows$1(graph);
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineConvexPolygon(boundary,
+		const foldSegment = math.core.clipLineConvexPolygon(
+			boundary,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.includeL);
+			math.core.includeL,
+		);
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate270(foldLine.vector);
 	const smallest = math.core
-		.clipLineConvexPolygon(boundary,
+		.clipLineConvexPolygon(
+			boundary,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.includeL)
-		.map(pt => math.core.distance(point, pt))
+			math.core.includeL,
+		).map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
 	const scaled = math.core.scale(math.core.normalize(perpVector), smallest);
 	return math.segment(
 		math.core.add(point, math.core.flip(scaled)),
-		math.core.add(point, scaled)
+		math.core.add(point, scaled),
 	);
 };
 /**
@@ -12159,26 +12608,31 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 		.concat(flippedVectors)
 		.map(vec => math.ray(vec, intersect));
 	// 4 points based on quadrants
-	const a1 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) > 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) > 0
-	).shift();
-	const a2 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) > 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) < 0
-	).shift();
-	const b1 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) < 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) > 0
-	).shift();
-	const b2 = paramRays.filter(ray =>
-		math.core.dot(ray.vector, foldLine.vector) < 0 &&
-		math.core.cross2(ray.vector, foldLine.vector) < 0
-	).shift();
-	const rayEndpoints = [a1, a2, b1, b2].map(ray => math.core
-		.intersectConvexPolygonLine(boundary, ray.vector, ray.origin, math.core.excludeS, math.core.excludeR)
-		.shift()
-		.shift());
+	const a1 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) > 0
+		&& math.core.cross2(ray.vector, foldLine.vector) > 0))
+		.shift();
+	const a2 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) > 0
+		&& math.core.cross2(ray.vector, foldLine.vector) < 0))
+		.shift();
+	const b1 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) < 0
+		&& math.core.cross2(ray.vector, foldLine.vector) > 0))
+		.shift();
+	const b2 = paramRays.filter(ray => (
+		math.core.dot(ray.vector, foldLine.vector) < 0
+		&& math.core.cross2(ray.vector, foldLine.vector) < 0))
+		.shift();
+	const rayEndpoints = [a1, a2, b1, b2]
+		.map(ray => math.core.intersectConvexPolygonLine(
+			boundary,
+			ray.vector,
+			ray.origin,
+			math.core.excludeS,
+			math.core.excludeR,
+		).shift()
+			.shift());
 	const rayLengths = rayEndpoints
 		.map(pt => math.core.distance(pt, intersect));
 	const arrowStart = (rayLengths[0] < rayLengths[1]
@@ -12195,7 +12649,7 @@ const between_2_intersecting_segments = (params, intersect, foldLine, boundary) 
 		: math.core.add(b1.origin, b1.vector.normalize().scale(rayLengths[3])));
 	return [
 		math.segment(arrowStart, arrowEnd),
-		math.segment(arrowStart2, arrowEnd2)
+		math.segment(arrowStart2, arrowEnd2),
 	];
 };
 
@@ -12203,40 +12657,50 @@ const axiom_1_arrows = (params, graph) => axiom(1, params)
 	.map(foldLine => [widest_perp(graph, foldLine)]);
 
 const axiom_2_arrows = params => [
-	[math.segment(params.points)]
+	[math.segment(params.points)],
 ];
 
 const axiom_3_arrows = (params, graph) => {
-	const boundary = boundary_for_arrows(graph);
+	const boundary = boundary_for_arrows$1(graph);
 	const segs = params.lines.map(l => math.core
-		.clipLineConvexPolygon(boundary,
+		.clipLineConvexPolygon(
+			boundary,
 			l.vector,
 			l.origin,
 			math.core.exclude,
-			math.core.includeL));
+			math.core.includeL,
+		));
 	const segVecs = segs.map(seg => math.core.subtract(seg[1], seg[0]));
 	const intersect = math.core.intersectLineLine(
-		segVecs[0], segs[0][0], segVecs[1], segs[1][0],
-		math.core.excludeS, math.core.excludeS);
+		segVecs[0],
+		segs[0][0],
+		segVecs[1],
+		segs[1][0],
+		math.core.excludeS,
+		math.core.excludeS,
+	);
 	return !intersect
 		? [between_2_segments(params, segs, axiom(3, params)
 			.filter(a => a !== undefined).shift())]
 		: axiom(3, params).map(foldLine => between_2_intersecting_segments(
-				params, intersect, foldLine, boundary
-			));
+			params,
+			intersect,
+			foldLine,
+			boundary,
+		));
 };
 
 const axiom_4_arrows = (params, graph) => axiom(4, params)
 	.map(foldLine => [widest_perp(
 		graph,
 		foldLine,
-		line_line_for_arrows(foldLine, params.lines[0])
+		line_line_for_arrows(foldLine, params.lines[0]),
 	)]);
 
 const axiom_5_arrows = (params) => axiom(5, params)
 	.map(foldLine => [math.segment(
 		params.points[1],
-		diagram_reflect_point(foldLine, params.points[1])
+		diagram_reflect_point(foldLine, params.points[1]),
 	)]);
 
 const axiom_6_arrows = (params) => axiom(6, params)
@@ -12246,7 +12710,7 @@ const axiom_6_arrows = (params) => axiom(6, params)
 const axiom_7_arrows = (params, graph) => axiom(7, params)
 	.map(foldLine => [
 		math.segment(params.points[0], diagram_reflect_point(foldLine, params.points[0])),
-		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1]))
+		widest_perp(graph, foldLine, line_line_for_arrows(foldLine, params.lines[1])),
 	]);
 
 const arrow_functions = [null,
@@ -12279,23 +12743,30 @@ Object.keys(arrow_functions).forEach(number => {
  * Rabbit Ear (c) Kraft
  */
 
+const boundary_for_arrows = ({ vertices_coords }) => math.core
+	.convexHull(vertices_coords);
+
 const widest_perpendicular = (polygon, foldLine, point) => {
 	if (point === undefined) {
-		const foldSegment = math.core.clipLineConvexPolygon(polygon,
+		const foldSegment = math.core.clipLineConvexPolygon(
+			polygon,
 			foldLine.vector,
 			foldLine.origin,
 			math.core.exclude,
-			math.core.includeL);
+			math.core.includeL,
+		);
 		if (foldSegment === undefined) { return; }
 		point = math.core.midpoint(...foldSegment);
 	}
 	const perpVector = math.core.rotate90(foldLine.vector);
 	const smallest = math.core
-		.clipLineConvexPolygon(polygon,
+		.clipLineConvexPolygon(
+			polygon,
 			perpVector,
 			point,
 			math.core.exclude,
-			math.core.includeL)
+			math.core.includeL,
+		)
 		.map(pt => math.core.distance(point, pt))
 		.sort((a, b) => a - b)
 		.shift();
@@ -12315,7 +12786,7 @@ const widest_perpendicular = (polygon, foldLine, point) => {
  * the dimensions of the FOLD graph.
  */
 const simpleArrow = (graph, line) => {
-	const hull = math.core.convexHull(graph.vertices_coords);
+	const hull = boundary_for_arrows(graph);
 	const box = math.core.boundingBox(hull);
 	const segment = widest_perpendicular(hull, line);
 	if (segment === undefined) { return undefined; }
@@ -12336,16 +12807,17 @@ const simpleArrow = (graph, line) => {
 /**
  * Rabbit Ear (c) Kraft
  */
-
 /**
  * @description A collection of methods for drawing origami diagrams.
  */
-var diagram = Object.assign(Object.create(null),
+var diagram = Object.assign(
+	Object.create(null),
 	// arrows, {
 	{
-	axiom_arrows: axiomArrows,
-	simple_arrow: simpleArrow,
-});
+		axiom_arrows: axiomArrows,
+		simple_arrow: simpleArrow,
+	},
+);
 
 /**
  * Rabbit Ear (c) Kraft
@@ -13306,7 +13778,7 @@ const completeSuggestionsLoop = (layers, maps, conditions, pair_layer_map) => {
  */
 const hashCode = (string) => {
 	let hash = 0;
-	for (let i = 0; i < string.length; i++) {
+	for (let i = 0; i < string.length; i += 1) {
 		hash = ((hash << 5) - hash) + string.charCodeAt(i);
 		hash |= 0; // Convert to 32bit integer
 	}
@@ -13893,7 +14365,8 @@ const topologicalOrder = (conditions, graph) => {
  * @param {object} graph a FOLD object, make sure the vertices
  * have already been folded.
  * @param {number} [epsilon=1e-6] an optional epsilon value
- * @returns {number[]} a faces_layer object, describing, for each face (key) which layer the face inhabits (value)
+ * @returns {number[]} a faces_layer object, describing,
+ * for each face (key) which layer the face inhabits (value)
  */
 const makeFacesLayer = (graph, epsilon) => {
 	const conditions = oneLayerConditions(graph, epsilon);
@@ -13911,13 +14384,12 @@ const makeFacesLayer = (graph, epsilon) => {
  * @param {object} graph a FOLD object, make sure the vertices
  * have already been folded.
  * @param {number} [epsilon=1e-6] an optional epsilon value
- * @returns {number[][]} an array of faces_layer objects, describing, for each face (key) which layer the face inhabits (value)
+ * @returns {number[][]} an array of faces_layer objects, describing,
+ * for each face (key) which layer the face inhabits (value)
  */
-const makeFacesLayers = (graph, epsilon) => {
-	return allLayerConditions(graph, epsilon)
-		.map(conditions => topologicalOrder(conditions, graph))
-		.map(invertMap);
-};
+const makeFacesLayers = (graph, epsilon) => allLayerConditions(graph, epsilon)
+	.map(conditions => topologicalOrder(conditions, graph))
+	.map(invertMap);
 
 /**
  * Rabbit Ear (c) Kraft
@@ -13928,7 +14400,7 @@ const makeFacesLayers = (graph, epsilon) => {
  * @returns {object} a new faces_layer array
  */
 const flipFacesLayer = faces_layer => invertMap(
-	invertMap(faces_layer).reverse()
+	invertMap(faces_layer).reverse(),
 );
 
 /**
@@ -14452,24 +14924,25 @@ const get_unassigned_indices = (edges_assignment) => edges_assignment
  * some U (unassigned), find all permutations of mountain valley to replace all U.
  * This function solves only one single vertex, the assignments are sorted radially
  * around the vertex. This validates according to Maekawa's theorem only.
- * @param {string[]} vertices_edges_assignments array of single characters FOLD spec edges assignments.
+ * @param {string[]} vertices_edges_assignments array of single character
+ * FOLD spec edges assignments.
  * @returns {string[][]} array of arrays of strings, all permutations where "U"
  * assignments have been replaced with "V" or "M".
- * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 18
+ * @linkcode Origami ./src/singleVertex/maekawaAssignments.js 19
  */
 const maekawaAssignments = (vertices_edges_assignments) => {
 	const unassigneds = get_unassigned_indices(vertices_edges_assignments);
 	const permuts = Array.from(Array(2 ** unassigneds.length))
 		.map((_, i) => i.toString(2))
 		.map(l => Array(unassigneds.length - l.length + 1).join("0") + l)
-		.map(str => Array.from(str).map(l => l === "0" ? "V" : "M"));
+		.map(str => Array.from(str).map(l => (l === "0" ? "V" : "M")));
 	const all = permuts.map(perm => {
 		const array = vertices_edges_assignments.slice();
 		unassigneds.forEach((index, i) => { array[index] = perm[i]; });
 		return array;
 	});
-	if (vertices_edges_assignments.includes("B") ||
-		vertices_edges_assignments.includes("b")) {
+	if (vertices_edges_assignments.includes("B")
+		|| vertices_edges_assignments.includes("b")) {
 		return all;
 	}
 	const count_m = all.map(a => a.filter(l => l === "M" || l === "m").length);
@@ -14513,30 +14986,32 @@ const assignmentSolver = (faces, assignments, epsilon) => {
  * @description A collection of methods for calculating the layer order
  * of the faces of an origami in its folded state.
  */
-var layer = Object.assign(Object.create(null), {
-	makeFacesLayer,
-	makeFacesLayers,
-	flipFacesLayer,
+var layer = Object.assign(
+	Object.create(null),
+	{
+		makeFacesLayer,
+		makeFacesLayers,
+		flipFacesLayer,
 
-	assignmentSolver,
-	singleVertexSolver,
-	validateLayerSolver,
-	validateTacoTacoFacePairs,
-	validateTacoTortillaStrip,
+		assignmentSolver,
+		singleVertexSolver,
+		validateLayerSolver,
+		validateTacoTacoFacePairs,
+		validateTacoTortillaStrip,
 
-	table: slow_lookup,
-	makeConditions,
-	makeTacoMaps,
-	recursiveSolver,
-	singleSolver,
-	dividingAxis,
-	topologicalOrder,
-	conditionsToMatrix,
+		table: slow_lookup,
+		makeConditions,
+		makeTacoMaps,
+		recursiveSolver,
+		singleSolver,
+		dividingAxis,
+		topologicalOrder,
+		conditionsToMatrix,
 
-	makeTacosTortillas,
-	makeFoldedStripTacos,
-	makeTransitivityTrios,
-},
+		makeTacosTortillas,
+		makeFoldedStripTacos,
+		makeTransitivityTrios,
+	},
 	globalSolvers,
 	globalSolverGeneral,
 	edgesAssignments,
@@ -14558,6 +15033,7 @@ const odd_assignment = (assignments) => {
 		if (ms > vs && (assignments[i] === "V" || assignments[i] === "v")) { return i; }
 		if (vs > ms && (assignments[i] === "M" || assignments[i] === "m")) { return i; }
 	}
+	return undefined;
 };
 /**
  * @description fold a degree-4 single vertex in 3D.
@@ -14566,25 +15042,27 @@ const odd_assignment = (assignments) => {
  * @param {string[]} assignments an array of FOLD spec characters, "M" or "V".
  * @param {number} t the fold amount between 0 and 1.
  * @returns {number[]} four fold angles as numbers in an array.
- * @linkcode Origami ./src/singleVertex/foldAngles4.js 23
+ * @linkcode Origami ./src/singleVertex/foldAngles4.js 24
  */
 const foldAngles4 = (sectors, assignments, t = 0) => {
 	const odd = odd_assignment(assignments);
 	if (odd === undefined) { return; }
 	const a = sectors[(odd + 1) % sectors.length];
 	const b = sectors[(odd + 2) % sectors.length];
-	
-	//const pab = (odd + 2) % sectors.length;
-	//const pbc = (odd + 3) % sectors.length;
+
+	// const pab = (odd + 2) % sectors.length;
+	// const pbc = (odd + 3) % sectors.length;
 	const pbc = Math.PI * t;
 
-	const cosE = -Math.cos(a)*Math.cos(b) + Math.sin(a)*Math.sin(b)*Math.cos(Math.PI - pbc);
-	const res = Math.cos(Math.PI - pbc) - ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))/(1 - cosE);
+	const cosE = -Math.cos(a) * Math.cos(b) + Math.sin(a) * Math.sin(b) * Math.cos(Math.PI - pbc);
+	const res = Math.cos(Math.PI - pbc)
+		- ((Math.sin(Math.PI - pbc) ** 2) * Math.sin(a) * Math.sin(b))
+		/ (1 - cosE);
 
 	const pab = -Math.acos(res) + Math.PI;
-	return odd % 2 === 0
-		? [pab, pbc, pab, pbc].map((n, i) => odd === i ? -n : n)
-		: [pbc, pab, pbc, pab].map((n, i) => odd === i ? -n : n);
+	return (odd % 2 === 0
+		? [pab, pbc, pab, pbc].map((n, i) => (odd === i ? -n : n))
+		: [pbc, pab, pbc, pab].map((n, i) => (odd === i ? -n : n)));
 };
 
 /**
@@ -14593,13 +15071,15 @@ const foldAngles4 = (sectors, assignments, t = 0) => {
 
 // todo: this is doing too much work in preparation
 /**
- * @description given a single vertex in a graph which does not yet satisfy Kawasaki's theorem, find all possible single-ray additions which when added to the set, the set
+ * @description given a single vertex in a graph which does not yet satisfy Kawasaki's theorem,
+ * find all possible single-ray additions which when added to the set, the set
  * satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {object} graph a FOLD object
  * @param {number} vertex the index of the vertex
- * @returns {number[][]} for every sector either one vector or undefined if that sector contains no solution.
- * @linkcode Origami ./src/singleVertex/kawasakiGraph.js 19
+ * @returns {number[][]} for every sector either one vector or
+ * undefined if that sector contains no solution.
+ * @linkcode Origami ./src/singleVertex/kawasakiGraph.js 21
  */
 const kawasakiSolutions = ({ vertices_coords, vertices_edges, edges_vertices, edges_vectors }, vertex) => {
 	// to calculate Kawasaki's theorem, we need the 3 edges
@@ -14628,11 +15108,12 @@ var kawasakiGraph = /*#__PURE__*/Object.freeze({
  * @description A collection of operations done on single vertices
  * (one vertex in a graph typically surrounded by edges).
  */
-
-var singleVertex = Object.assign(Object.create(null), {
-	maekawaAssignments,
-	foldAngles4,
-},
+var singleVertex = Object.assign(
+	Object.create(null),
+	{
+		maekawaAssignments,
+		foldAngles4,
+	},
 	kawasakiMath,
 	kawasakiGraph,
 	validateSingleVertex,
@@ -14893,6 +15374,34 @@ const verticesCircle = (graph, attributes = {}) => {
 /**
  * Rabbit Ear (c) Kraft
  */
+// import * as S from "../general/strings";
+/**
+ * @description given a FOLD object, gather all the class names and return
+ * them in a single array
+ * @param {object} FOLD graph
+ * @returns {string[]} an array of class names
+ */
+// const foldClasses = graph => [
+// 	(graph[S._file_classes] ? graph[S._file_classes] : []),
+// 	(graph[S._frame_classes] ? graph[S._frame_classes] : []),
+// ].reduce((a, b) => a.concat(b));
+
+// export default foldClasses;
+
+const addClassToClassList = (el, ...classes) => {
+	if (!el) { return; }
+	const hash = {};
+	const getClass = el.getAttribute("class");
+	const classArray = getClass ? getClass.split(" ") : [];
+	classArray.push(...classes);
+	classArray.forEach(str => { hash[str] = true; });
+	const classString = Object.keys(hash).join(" ");
+	el.setAttribute("class", classString);
+};
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
 
 const GROUP_FOLDED = {};
 
@@ -14912,12 +15421,14 @@ const STYLE_FLAT = {
 };
 
 /**
- * @returns {object} an object with 5 keys, each value is an array 
+ * @returns {object} an object with 5 keys, each value is an array
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  * if no edges_assignment, or only some defined, remaining edges become "unassigned"
  */
 const edgesAssignmentIndices = (graph) => {
-	const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
+	const assignment_indices = {
+		u: [], f: [], v: [], m: [], b: [],
+	};
 	const lowercase_assignment = graph[_edges_assignment]
 		.map(a => a.toLowerCase());
 	graph[_edges_vertices]
@@ -14965,13 +15476,14 @@ const edgesPathsAssign = ({ vertices_coords, edges_vertices, edges_assignment })
 	const data = edgesPathDataAssign({ vertices_coords, edges_vertices, edges_assignment });
 	Object.keys(data).forEach(assignment => {
 		const path = root.svg.path(data[assignment]);
-		path.setAttributeNS(null, _class, edgesAssignmentNames[assignment]);
+		addClassToClassList(path, edgesAssignmentNames[assignment]);
+		// path.setAttributeNS(null, S._class, edgesAssignmentNames[assignment]);
 		data[assignment] = path;
 	});
 	return data;
 };
 
-const applyStyle = (el, attributes = {}) => Object.keys(attributes)
+const applyEdgesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
@@ -14985,17 +15497,19 @@ const edgesPaths = (graph, attributes = {}) => {
 	const isFolded = isFoldedForm(graph);
 	const paths = edgesPathsAssign(graph);
 	Object.keys(paths).forEach(key => {
-		paths[key].setAttributeNS(null, _class, edgesAssignmentNames[key]);
-		applyStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
-		applyStyle(paths[key], attributes[key]);
-		applyStyle(paths[key], attributes[edgesAssignmentNames[key]]);
+		addClassToClassList(paths[key], edgesAssignmentNames[key]);
+		// paths[key].classList.add(edgesAssignmentNames[key]);
+		// paths[key].setAttributeNS(null, S._class, edgesAssignmentNames[key]);
+		applyEdgesStyle(paths[key], isFolded ? STYLE_FOLDED[key] : STYLE_FLAT[key]);
+		applyEdgesStyle(paths[key], attributes[key]);
+		applyEdgesStyle(paths[key], attributes[edgesAssignmentNames[key]]);
 		group.appendChild(paths[key]);
 		Object.defineProperty(group, edgesAssignmentNames[key], { get: () => paths[key] });
 	});
-	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
 	// todo: everything else that isn't a class name. filter out classes
 	// const no_class_attributes = Object.keys(attributes).filter(
-	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 	return group;
 };
 
@@ -15013,11 +15527,13 @@ const edgesLines = (graph, attributes = {}) => {
 	["b", "m", "v", "f", "u"].forEach(k => {
 		const child_group = root.svg.g();
 		group.appendChild(child_group);
-		child_group.setAttributeNS(null, _class, edgesAssignmentNames[k]);
-		applyStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
-		applyStyle(child_group, attributes[edgesAssignmentNames[k]]);
+		addClassToClassList(child_group, edgesAssignmentNames[k]);
+		// child_group.classList.add(edgesAssignmentNames[k]);
+		// child_group.setAttributeNS(null, S._class, edgesAssignmentNames[k]);
+		applyEdgesStyle(child_group, isFolded ? STYLE_FOLDED[k] : STYLE_FLAT[k]);
+		applyEdgesStyle(child_group, attributes[edgesAssignmentNames[k]]);
 		Object.defineProperty(group, edgesAssignmentNames[k], {
-			get: () => child_group
+			get: () => child_group,
 		});
 		groups_by_key[k] = child_group;
 	});
@@ -15027,22 +15543,24 @@ const edgesLines = (graph, attributes = {}) => {
 	if (graph.edges_foldAngle) {
 		lines.forEach((line, i) => {
 			const angle = graph.edges_foldAngle[i];
-			if (angle === 0 || angle === 180 || angle === -180) { return;}
+			if (angle === 0 || angle === 180 || angle === -180) { return; }
 			line.setAttributeNS(null, "opacity", angleToOpacity(angle));
 		});
 	}
 	lines.forEach((line, i) => groups_by_key[edges_assignment[i]]
 		.appendChild(line));
 
-	applyStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
-	applyStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
+	applyEdgesStyle(group, isFolded ? GROUP_FOLDED : GROUP_FLAT);
+	applyEdgesStyle(group, attributes.stroke ? { stroke: attributes.stroke } : {});
 
 	return group;
 };
 
-const drawEdges = (graph, attributes) => edgesFoldAngleAreAllFlat(graph)
-	? edgesPaths(graph, attributes)
-	: edgesLines(graph, attributes);
+const drawEdges = (graph, attributes) => (
+	edgesFoldAngleAreAllFlat(graph)
+		? edgesPaths(graph, attributes)
+		: edgesLines(graph, attributes)
+);
 
 // const make_edgesAssignmentNames = ({ edges_vertices, edges_assignment }) => {
 // 	if (!edges_vertices) { return []; }
@@ -15067,11 +15585,11 @@ const drawEdges = (graph, attributes) => edgesFoldAngleAreAllFlat(graph)
 
 const FACE_STYLE_FOLDED_ORDERED = {
 	back: { fill: _white },
-	front: { fill: "#ddd" }
+	front: { fill: "#ddd" },
 };
 const FACE_STYLE_FOLDED_UNORDERED = {
 	back: { opacity: 0.1 },
-	front: { opacity: 0.1 }
+	front: { opacity: 0.1 },
 };
 const FACE_STYLE_FLAT = {
 	// back: { fill: "white", stroke: "none" },
@@ -15079,15 +15597,15 @@ const FACE_STYLE_FLAT = {
 };
 const GROUP_STYLE_FOLDED_ORDERED = {
 	stroke: _black,
-	"stroke-linejoin": "bevel"
+	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FOLDED_UNORDERED = {
 	stroke: _none,
 	fill: _black,
-	"stroke-linejoin": "bevel"
+	"stroke-linejoin": "bevel",
 };
 const GROUP_STYLE_FLAT = {
-	fill: _none
+	fill: _none,
 };
 
 const faces_sorted_by_layer = function (faces_layer) {
@@ -15096,7 +15614,7 @@ const faces_sorted_by_layer = function (faces_layer) {
 		.map(el => el.i);
 };
 
-const apply_style$1 = (el, attributes = {}) => Object.keys(attributes)
+const applyFacesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 /**
@@ -15117,13 +15635,15 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 	// set these class names, and apply the style as attributes on each face.
 	faces_winding.map(w => (w ? classNames[0] : classNames[1]))
 		.forEach((className, i) => {
-			svg_faces[i].setAttributeNS(null, _class, className);
-			apply_style$1(svg_faces[i], isFolded
+			addClassToClassList(svg_faces[i], className);
+			// svg_faces[i].classList.add(className);
+			// svg_faces[i].setAttributeNS(null, S._class, className);
+			applyFacesStyle(svg_faces[i], (isFolded
 				? (orderIsCertain
 					? FACE_STYLE_FOLDED_ORDERED[className]
 					: FACE_STYLE_FOLDED_UNORDERED[className])
-				: FACE_STYLE_FLAT[className]);
-			apply_style$1(svg_faces[i], attributes[className]);
+				: FACE_STYLE_FLAT[className]));
+			applyFacesStyle(svg_faces[i], attributes[className]);
 		});
 	// if the layer-order exists, sort the faces in order of faces_layer
 	const facesInOrder = (orderIsCertain
@@ -15138,9 +15658,11 @@ const finalize_faces = (graph, svg_faces, group, attributes) => {
 		get: () => svg_faces.filter((_, i) => !faces_winding[i]),
 	});
 	// set style attributes to the group itself which contains the faces.
-	apply_style$1(group, isFolded
-		? (orderIsCertain ? GROUP_STYLE_FOLDED_ORDERED : GROUP_STYLE_FOLDED_UNORDERED)
-		: GROUP_STYLE_FLAT);
+	applyFacesStyle(group, (isFolded
+		? (orderIsCertain
+			? GROUP_STYLE_FOLDED_ORDERED
+			: GROUP_STYLE_FOLDED_UNORDERED)
+		: GROUP_STYLE_FLAT));
 	return group;
 };
 /**
@@ -15200,23 +15722,29 @@ const FLAT = {
 	fill: _white,
 };
 
-const apply_style = (el, attributes = {}) => Object.keys(attributes)
+const applyBoundariesStyle = (el, attributes = {}) => Object.keys(attributes)
 	.forEach(key => el.setAttributeNS(null, key, attributes[key]));
 
 // todo this needs to be able to handle multiple boundaries
 const boundariesPolygon = (graph, attributes = {}) => {
 	const g = root.svg.g();
-	if (!graph || !graph.vertices_coords || !graph.edges_vertices || !graph.edges_assignment) { return g; }
+	if (!graph
+		|| !graph.vertices_coords
+		|| !graph.edges_vertices
+		|| !graph.edges_assignment) {
+		return g;
+	}
 	const boundary = getBoundary(graph)
 		.vertices
 		.map(v => [0, 1].map(i => graph.vertices_coords[v][i]));
 	if (boundary.length === 0) { return g; }
 	// create polygon, append to group
 	const poly = root.svg.polygon(boundary);
-	poly.setAttributeNS(null, _class, _boundary);
+	addClassToClassList(poly, _boundary);
+	// poly.setAttributeNS(null, S._class, S._boundary);
 	g.appendChild(poly);
 	// style attributes on group container
-	apply_style(g, isFoldedForm(graph) ? FOLDED : FLAT);
+	applyBoundariesStyle(g, isFoldedForm(graph) ? FOLDED : FLAT);
 	Object.keys(attributes)
 		.forEach(attr => g.setAttributeNS(null, attr, attributes[attr]));
 	return g;
@@ -15236,7 +15764,7 @@ const svg_draw_func = {
 	vertices: verticesCircle,
 	edges: drawEdges, // edgesPaths
 	faces: facesDrawFunction,
-	boundaries: boundariesPolygon
+	boundaries: boundariesPolygon,
 };
 
 /**
@@ -15244,7 +15772,9 @@ const svg_draw_func = {
  */
 const drawGroup = (key, graph, options) => {
 	const group = options === false ? (root.svg.g()) : svg_draw_func[key](graph, options);
-	group.setAttributeNS(null, _class, key);
+	// group.classList.add(key);
+	addClassToClassList(group, key);
+	// group.setAttributeNS(null, S._class, key);
 	return group;
 };
 /**
@@ -15283,7 +15813,7 @@ const linker = function (library) {
 	library.graph.svg = this;
 
 	const graphProtoMethods = {
-		svg: this
+		svg: this,
 	};
 	Object.keys(graphProtoMethods).forEach(key => {
 		library.graph.prototype[key] = function () {
@@ -15316,7 +15846,10 @@ const getBoundingRect = ({ vertices_coords }) => {
 		if (v[1] < min[1]) { min[1] = v[1]; }
 		if (v[1] > max[1]) { max[1] = v[1]; }
 	});
-	const invalid = isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]);
+	const invalid = Number.isNaN(min[0])
+		|| Number.isNaN(min[1])
+		|| Number.isNaN(max[0])
+		|| Number.isNaN(max[1]);
 	return (invalid
 		? undefined
 		: [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
@@ -15332,7 +15865,7 @@ const getViewBox$1 = (graph) => {
  * set the "r" attribute on all circles.
  */
 const setR = (group, radius) => {
-	for (let i = 0; i < group.childNodes.length; i++) {
+	for (let i = 0; i < group.childNodes.length; i += 1) {
 		group.childNodes[i].setAttributeNS(null, "r", radius);
 	}
 };
@@ -15350,7 +15883,8 @@ const findSVGInParents = (element) => {
  * this includes the viewBox, stroke width, and radius of circles.
  */
 const applyTopLevelOptions = (element, groups, graph, options) => {
-	if (!(options.strokeWidth || options.viewBox || groups[3].length)) { return; }
+	const hasVertices = groups[3] && groups[3].childNodes.length;
+	if (!(options.strokeWidth || options.viewBox || hasVertices)) { return; }
 	const bounds = getBoundingRect(graph);
 	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
 	const svgElement = findSVGInParents(element);
@@ -15359,17 +15893,38 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
 		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
 	}
 	if (options.strokeWidth || options["stroke-width"]) {
-		const strokeWidth = options.strokeWidth ? options.strokeWidth : options["stroke-width"];
+		const strokeWidth = options.strokeWidth
+			? options.strokeWidth
+			: options["stroke-width"];
 		const strokeWidthValue = typeof strokeWidth === "number"
 			? vmax * strokeWidth
 			: vmax * DEFAULT_STROKE_WIDTH;
 		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
 	}
-	if (groups[3].length) {
-		const radius = typeof options.radius === "number"
-			? vmax * options.radius
+	if (hasVertices) {
+		const userRadius = options.vertices && options.vertices.radius != null
+			? options.vertices.radius
+			: options.radius;
+		const radius = typeof userRadius === "string" ? parseFloat(userRadius) : userRadius;
+		const r = typeof radius === "number" && !Number.isNaN(radius)
+			? vmax * radius
 			: vmax * DEFAULT_CIRCLE_RADIUS;
-		setR(groups[3], radius);
+		setR(groups[3], r);
+	}
+};
+/**
+ * @description Inspect the FOLD object for its classes, which will be
+ * in "file_classes" and "frame_classes", and set these as classes on
+ * the top level element.
+ */
+const applyTopLevelClasses = (element, graph) => {
+	const newClasses = [
+		graph.file_classes || [],
+		graph.frame_classes || [],
+	].flat();
+	if (newClasses.length) {
+		addClassToClassList(element, ...newClasses);
+		// element.classList.add(...newClasses);
 	}
 };
 /**
@@ -15381,13 +15936,14 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
  * @param {FOLD} graph a FOLD object
  * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
- * @linkcode Origami ./src/svg/index.js 96
+ * @linkcode Origami ./src/svg/index.js 122
  */
 const drawInto = (element, graph, options = {}) => {
 	const groups = DrawGroups(graph, options);
 	groups.filter(group => group.childNodes.length > 0)
 		.forEach(group => element.appendChild(group));
 	applyTopLevelOptions(element, groups, graph, options);
+	applyTopLevelClasses(element, graph);
 	// set custom getters on the element to grab the component groups
 	Object.keys(DrawGroups)
 		.filter(key => element[key] == null)
@@ -15403,7 +15959,7 @@ const drawInto = (element, graph, options = {}) => {
  * @param {object?} options optional options object to style components
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
- * @linkcode Origami ./src/svg/index.js 118
+ * @linkcode Origami ./src/svg/index.js 145
  */
 const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
 /**
@@ -15429,7 +15985,8 @@ const SVG_Constructor = {
 };
 /**
  * @name svg
- * @description Create an svg element, the object will be bound with instance methods for creating children and styles.
+ * @description Create an svg element, the object will be bound with instance
+ * methods for creating children and styles.
  * @memberof svg
  * @param {Element} [parent=undefined] optional parent DOM element, this will append to.
  * @param {number} [width=undefined] optional width of viewBox (if present, include height)
@@ -15443,6 +16000,7 @@ const SVG_Constructor = {
  * ear.svg(640, 480, document.body, (svg) => {
  *   // window did load, and "svg" is scoped
  * })
+ * @linkcode SVG ./src/library.js 24
  */
 function SVG () {
 	return SVG_Constructor.init(...arguments);
@@ -15490,7 +16048,7 @@ const isNode = typeof process !== str_undefined
 
 const svgErrors = [];
 
-svgErrors[10] = `"error 010: window" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )`;
+svgErrors[10] = "\"error 010: window\" not set. if using node/deno, include package @xmldom/xmldom, set to the main export ( ear.window = xmldom; )";
 
 /**
  * SVG (c) Kraft
@@ -15515,7 +16073,7 @@ if (isBrowser) { svgWindowContainer.window = window; }
  */
 const SVGWindow = () => {
 	if (svgWindowContainer.window === undefined) {
-    throw svgErrors[10];
+		throw svgErrors[10];
 	}
 	return svgWindowContainer.window;
 };
@@ -15614,19 +16172,42 @@ var NodeNames = {
 /**
  * SVG (c) Kraft
  */
-const vec = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
+const svg_magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
+const svg_magnitude2 = (a) => Math.sqrt(svg_magnitudeSq2(a));
+const svg_distanceSq2 = (a, b) => svg_magnitudeSq2(svg_sub2(a, b));
+const svg_distance2 = (a, b) => Math.sqrt(svg_distanceSq2(a, b));
+const svg_polar_to_cart = (a, d) => [Math.cos(a) * d, Math.sin(a) * d];
+
+var svg_algebra = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	svg_add2: svg_add2,
+	svg_sub2: svg_sub2,
+	svg_scale2: svg_scale2,
+	svg_magnitudeSq2: svg_magnitudeSq2,
+	svg_magnitude2: svg_magnitude2,
+	svg_distanceSq2: svg_distanceSq2,
+	svg_distance2: svg_distance2,
+	svg_polar_to_cart: svg_polar_to_cart
+});
+
+/**
+ * SVG (c) Kraft
+ */
 
 const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {
 	if (endAngle == null) { return ""; }
-	const start = vec(startAngle, radius);
-	const end = vec(endAngle, radius);
+	const start = svg_polar_to_cart(startAngle, radius);
+	const end = svg_polar_to_cart(endAngle, radius);
 	const arcVec = [end[0] - start[0], end[1] - start[1]];
 	const py = start[0] * end[1] - start[1] * end[0];
 	const px = start[0] * end[0] + start[1] * end[1];
 	const arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
 	let d = (includeCenter
 		? `M ${x},${y} l ${start[0]},${start[1]} `
-		: `M ${x+start[0]},${y+start[1]} `);
+		: `M ${x + start[0]},${y + start[1]} `);
 	d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
 	if (includeCenter) { d += " Z"; }
 	return d;
@@ -15645,8 +16226,8 @@ var Arc = {
 		args: arcArguments,
 		methods: {
 			setArc: (el, ...args) => el.setAttribute("d", arcArguments(...args)),
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -15662,8 +16243,8 @@ var Wedge = {
 		attributes: ["d"],
 		methods: {
 			setArc: (el, ...args) => el.setAttribute("d", wedgeArguments(...args)),
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -15673,14 +16254,14 @@ const COUNT = 128;
 
 const parabolaArguments = (x = -1, y = 0, width = 2, height = 1) => Array
 	.from(Array(COUNT + 1))
-	.map((_, i) => (i - (COUNT)) / COUNT * 2 + 1)
+	.map((_, i) => ((i - (COUNT)) / COUNT) * 2 + 1)
 	.map(i => [
 		x + (i + 1) * width * 0.5,
-		y + (i ** 2) * height
+		y + (i ** 2) * height,
 	]);
 
 const parabolaPathString = (a, b, c, d) => [
-	parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" ")
+	parabolaArguments(a, b, c, d).map(n => `${n[0]},${n[1]}`).join(" "),
 ];
 
 /**
@@ -15704,14 +16285,14 @@ const regularPolygonArguments = (sides, cX, cY, radius) => {
 	// if we want edge-aligned, add this value to the angle.
 	// const halfwedge = Math.PI / sides;
 	return Array.from(Array(sides))
-		.map((el, i) => 2 * Math.PI * i / sides)
+		.map((el, i) => 2 * Math.PI * (i / sides))
 		.map(a => [Math.cos(a), Math.sin(a)])
 		.map(pts => origin.map((o, i) => o + radius * pts[i]));
 };
 
 const polygonPathString = (sides, cX = 0, cY = 0, radius = 1) => [
 	regularPolygonArguments(sides, cX, cY, radius)
-		.map(a => `${a[0]},${a[1]}`).join(" ")
+		.map(a => `${a[0]},${a[1]}`).join(" "),
 ];
 
 /**
@@ -15722,8 +16303,8 @@ var RegularPolygon = {
 	regularPolygon: {
 		nodeName: "polygon",
 		attributes: [str_points],
-		args: polygonPathString
-	}
+		args: polygonPathString,
+	},
 };
 
 /**
@@ -15746,8 +16327,8 @@ var RoundRect = {
 	roundRect: {
 		nodeName: str_path,
 		attributes: ["d"],
-		args: roundRectArguments
-	}
+		args: roundRectArguments,
+	},
 };
 
 /**
@@ -15756,40 +16337,38 @@ var RoundRect = {
 var Case = {
 	toCamel: s => s
 		.replace(/([-_][a-z])/ig, $1 => $1
-		.toUpperCase()
-		.replace("-", "")
-		.replace("_", "")),
-	 toKebab: s => s
-		 .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-		 .replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
-		 .toLowerCase(),
+			.toUpperCase()
+			.replace("-", "")
+			.replace("_", "")),
+	toKebab: s => s
+		.replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+		.replace(/([A-Z])([A-Z])(?=[a-z])/g, "$1-$2")
+		.toLowerCase(),
 	capitalized: s => s
-		.charAt(0).toUpperCase() + s.slice(1)
+		.charAt(0).toUpperCase() + s.slice(1),
 };
 
 /**
  * SVG (c) Kraft
  */
 
-const svg_is_iterable = (obj) => {
-	return obj != null && typeof obj[Symbol.iterator] === str_function;
-};
+const svg_is_iterable = (obj) => obj != null && typeof obj[Symbol.iterator] === str_function;
 /**
- * flatten only until the point of comma separated entities. recursive
+ * @description flatten only until the point of comma separated entities. recursive
  * @returns always an array
  */
 const svg_semi_flatten_arrays = function () {
 	switch (arguments.length) {
-		case undefined:
-		case 0: return Array.from(arguments);
-		// only if its an array (is iterable) and NOT a string
-		case 1: return svg_is_iterable(arguments[0]) && typeof arguments[0] !== str_string
-			? svg_semi_flatten_arrays(...arguments[0])
-			: [arguments[0]];
-		default:
-			return Array.from(arguments).map(a => (svg_is_iterable(a)
-				? [...svg_semi_flatten_arrays(a)]
-				: a));
+	case undefined:
+	case 0: return Array.from(arguments);
+	// only if its an array (is iterable) and NOT a string
+	case 1: return svg_is_iterable(arguments[0]) && typeof arguments[0] !== str_string
+		? svg_semi_flatten_arrays(...arguments[0])
+		: [arguments[0]];
+	default:
+		return Array.from(arguments).map(a => (svg_is_iterable(a)
+			? [...svg_semi_flatten_arrays(a)]
+			: a));
 	}
 };
 
@@ -15805,41 +16384,17 @@ const svg_semi_flatten_arrays = function () {
  * it's necessary the entries sit at the top level of ...args
  * findCoordinates(...flatten(...args));
  */
-var coordinates = (...args) => {
-	// [top-level numbers] concat [{x:,y:} and [0,1]] style
-	return args.filter(a => typeof a === str_number)
-		.concat(
-			args.filter(a => typeof a === str_object && a !== null)
-				.map((el) => {
-					if (typeof el.x === str_number) { return [el.x, el.y]; }
-					if (typeof el[0] === str_number) { return [el[0], el[1]]; }
-					return undefined;
-				}).filter(a => a !== undefined)
-				.reduce((a, b) => a.concat(b), [])
-		);
-};
-
-/**
- * SVG (c) Kraft
- */
-const svg_magnitudeSq2 = (a) => (a[0] ** 2) + (a[1] ** 2);
-const svg_magnitude2 = (a) => Math.sqrt(svg_magnitudeSq2(a));
-const svg_distanceSq2 = (a, b) => svg_magnitudeSq2(svg_sub2(a, b));
-const svg_distance2 = (a, b) => Math.sqrt(svg_distanceSq2(a, b));
-const svg_add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
-const svg_sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
-const svg_scale2 = (a, s) => [a[0] * s, a[1] * s];
-
-var svg_algebra = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	svg_magnitudeSq2: svg_magnitudeSq2,
-	svg_magnitude2: svg_magnitude2,
-	svg_distanceSq2: svg_distanceSq2,
-	svg_distance2: svg_distance2,
-	svg_add2: svg_add2,
-	svg_sub2: svg_sub2,
-	svg_scale2: svg_scale2
-});
+var coordinates = (...args) => args
+	.filter(a => typeof a === str_number)
+	.concat(args
+		.filter(a => typeof a === str_object && a !== null)
+		.map((el) => {
+			if (typeof el.x === str_number) { return [el.x, el.y]; }
+			if (typeof el[0] === str_number) { return [el[0], el[1]]; }
+			return undefined;
+		}).filter(a => a !== undefined)
+		.reduce((a, b) => a.concat(b), []));
+// [top-level numbers] concat [{x:,y:} and [0,1]] style
 
 /**
  * SVG (c) Kraft
@@ -15923,12 +16478,23 @@ const setArrowheadOptions = (element, options, which) => {
 	}
 };
 
-const setArrowStyle = (element, options = {}, which) => {
+const setArrowStyle = (element, options = {}, which = str_head) => {
 	const path = element.getElementsByClassName(`${str_arrow}-${which}`)[0];
+	// find options which translate to object methods (el.stroke("red"))
 	Object.keys(options)
 		.map(key => ({ key, fn: path[Case.toCamel(key)] }))
-		.filter(el => typeof el.fn === str_function)
+		.filter(el => typeof el.fn === str_function && el.key !== "class")
 		.forEach(el => el.fn(options[el.key]));
+	// find options which don't work as methods, set as attributes
+	// Object.keys(options)
+	// 	.map(key => ({ key, fn: path[Case.toCamel(key)] }))
+	// 	.filter(el => typeof el.fn !== S.str_function && el.key !== "class")
+	// 	.forEach(el => path.setAttribute(el.key, options[el.key]));
+	//
+	// apply a class attribute (add, don't overwrite existing classes)
+	Object.keys(options)
+		.filter(key => key === "class")
+		.forEach(key => path.classList.add(options[key]));
 };
 
 const redraw = (element) => {
@@ -15936,7 +16502,7 @@ const redraw = (element) => {
 	Object.keys(paths)
 		.map(path => ({
 			path,
-			element: element.getElementsByClassName(`${str_arrow}-${path}`)[0]
+			element: element.getElementsByClassName(`${str_arrow}-${path}`)[0],
 		}))
 		.filter(el => el.element)
 		.map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
@@ -15945,7 +16511,8 @@ const redraw = (element) => {
 			"visibility",
 			element.options[el.path].visible
 				? "visible"
-				: "hidden"));
+				: "hidden",
+		));
 	return element;
 };
 
@@ -16024,21 +16591,23 @@ const makeArrowOptions = () => ({
 const arrowKeys = Object.keys(makeArrowOptions());
 
 const matchingOptions = (...args) => {
-	for (let a = 0; a < args.length; a++) {
+	for (let a = 0; a < args.length; a += 1) {
 		if (typeof args[a] !== str_object) { continue; }
 		const keys = Object.keys(args[a]);
-		for (let i = 0; i < keys.length; i++) {
+		for (let i = 0; i < keys.length; i += 1) {
 			if (arrowKeys.includes(keys[i])) {
 				return args[a];
 			}
 		}
 	}
+	return undefined;
 };
 
 const init = function (element, ...args) {
-	element.setAttribute(str_class, str_arrow);
+	element.classList.add(str_arrow);
+	// element.setAttribute(S.str_class, S.str_arrow);
 	const paths = ["line", str_tail, str_head]
-		.map(key => SVG.path().setClass(`${str_arrow}-${key}`).appendTo(element));
+		.map(key => SVG.path().addClass(`${str_arrow}-${key}`).appendTo(element));
 	paths[0].setAttribute(str_style, "fill:none;");
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);
@@ -16061,18 +16630,17 @@ var Arrow = {
 	arrow: {
 		nodeName: "g",
 		attributes: [],
-		args: () => [],  // one function
-		methods: ArrowMethods,  // object of functions
+		args: () => [], // one function
+		methods: ArrowMethods, // object of functions
 		init,
-	}
+	},
 };
 
 /**
  * SVG (c) Kraft
  */
-
 /**
- * totally flatten, recursive
+ * @description totally flatten, recursive
  * @returns an array, always.
  */
 const svg_flatten_arrays = function () {
@@ -16101,7 +16669,7 @@ const makeCurvePath = (endpoints = [], bend = 0, pinch = 0.5) => {
  */
 
 const curveArguments = (...args) => [
-	makeCurvePath(coordinates(...svg_flatten_arrays(...args)))
+	makeCurvePath(coordinates(...svg_flatten_arrays(...args))),
 ];
 
 /**
@@ -16126,10 +16694,10 @@ const getCurveEndpoints = (d) => {
 	const move = getMoveTos(d).shift();
 	const curve = getCurveTos(d).shift();
 	const start = move
-		? [move[move.length-2], move[move.length-1]]
+		? [move[move.length - 2], move[move.length - 1]]
 		: [0, 0];
 	const end = curve
-		? [curve[curve.length-2], curve[curve.length-1]]
+		? [curve[curve.length - 2], curve[curve.length - 1]]
 		: [0, 0];
 	return [...start, ...end];
 };
@@ -16168,9 +16736,9 @@ var Curve = {
 	curve: {
 		nodeName: str_path,
 		attributes: ["d"],
-		args: curveArguments,  // one function
-		methods: curve_methods  // object of functions
-	}
+		args: curveArguments, // one function
+		methods: curve_methods, // object of functions
+	},
 };
 
 /**
@@ -16179,7 +16747,8 @@ var Curve = {
 
 const nodes = {};
 
-Object.assign(nodes,
+Object.assign(
+	nodes,
 	// to include/exclude nodes from this library
 	// comment out nodes below, rebuild
 	Arc,
@@ -16188,7 +16757,7 @@ Object.assign(nodes,
 	RegularPolygon,
 	RoundRect,
 	Arrow,
-	Curve
+	Curve,
 );
 
 /**
@@ -16332,7 +16901,7 @@ const filterWhitespaceNodes = (node) => {
 };
 
 /**
- * parse and checkParseError go together. 
+ * parse and checkParseError go together.
  * checkParseError needs to be called to pull out the .documentElement
  */
 const parse = string => (new (SVGWindow()).DOMParser())
@@ -16357,15 +16926,14 @@ const async = function (input) {
 			fetch(input)
 				.then(response => response.text())
 				.then(str => checkParseError(parse(str)))
-				.then(xml => xml.nodeName === str_svg
+				.then(xml => (xml.nodeName === str_svg
 					? xml
-					: xml.getElementsByTagName(str_svg)[0])
+					: xml.getElementsByTagName(str_svg)[0]))
 				.then(svg => (svg == null
-						? reject("valid XML found, but no SVG element")
-						: resolve(svg)))
+					? reject(new Error("valid XML found, but no SVG element"))
+					: resolve(svg)))
 				.catch(err => reject(err));
-		}
-		else if (input instanceof SVGWindow().Document) {
+		} else if (input instanceof SVGWindow().Document) {
 			return asyncDone(input);
 		}
 	});
@@ -16390,7 +16958,7 @@ const isFilename = input => typeof input === str_string
 	&& /^[\w,\s-]+\.[A-Za-z]{3}$/.test(input)
 	&& input.length < 10000;
 
-const Load = input => (isFilename(input) 
+const Load = input => (isFilename(input)
 	&& isBrowser
 	&& typeof SVGWindow().fetch === str_function
 	? async(input)
@@ -16477,7 +17045,7 @@ const SAVE_OPTIONS = () => ({
 	download: false, // trigger a file download (browser only)
 	output: str_string, // output type ("string", "svg") string or XML DOM object
 	windowStyle: false, // include any external stylesheets present on the window object
-	filename: "image.svg" // if "download" is true, the filename for the downloaded file
+	filename: "image.svg", // if "download" is true, the filename for the downloaded file
 });
 
 const getWindowStylesheets = function () {
@@ -16560,6 +17128,7 @@ const convertToViewBox = function (svg, x, y) {
 	const pt = svg.createSVGPoint();
 	pt.x = x;
 	pt.y = y;
+	// todo: i thought this threw an error once. something about getScreenCTM.
 	const svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
 	return [svgPoint.x, svgPoint.y];
 };
@@ -16704,8 +17273,8 @@ var methods$1 = {
  */
 const libraries = {
 	math: {
-		vector: (...args) => [...args]
-	}
+		vector: (...args) => [...args],
+	},
 };
 
 /**
@@ -16715,7 +17284,7 @@ const libraries = {
 const categories = {
 	move: ["mousemove", "touchmove"],
 	press: ["mousedown", "touchstart"], // "mouseover",
-	release: ["mouseup", "touchend"], // "mouseleave", "touchcancel",
+	release: ["mouseup", "touchend"],
 	leave: ["mouseleave", "touchcancel"],
 };
 
@@ -16734,9 +17303,9 @@ const defineGetter = (obj, prop, value) => Object.defineProperty(obj, prop, {
 });
 
 const assignPress = (e, startPoint) => {
-	["pressX", "pressY"].filter(prop => !e.hasOwnProperty(prop))
+	["pressX", "pressY"].filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
 		.forEach((prop, i) => defineGetter(e, prop, startPoint[i]));
-	if (!e.hasOwnProperty("press")) {
+	if (!Object.prototype.hasOwnProperty.call(e, "press")) {
 		defineGetter(e, "press", libraries.math.vector(...startPoint));
 	}
 };
@@ -16772,42 +17341,46 @@ const TouchEvents = function (element) {
 				startPoint = [];
 			}
 			assignPress(e, startPoint);
-		}
+		},
 	};
 
 	// assign handlers for onMove, onPress, onRelease
 	Object.keys(categories).forEach((category) => {
-		const propName = "on" + Case.capitalized(category);
+		const propName = `on${Case.capitalized(category)}`;
 		Object.defineProperty(element, propName, {
-			set: (handler) => (handler == null)
-				? removeHandler(category)
-				: categories[category].forEach((handlerName) => {
-						const handlerFunc = (e) => {
-							// const pointer = (e.touches != null && e.touches.length
-							const pointer = (e.touches != null
-								? e.touches[0]
-								: e);
-							// onRelease events don't have a pointer
-							if (pointer !== undefined) {
-								const viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY)
-									.map(n => isNaN(n) ? undefined : n); // e.target
-								["x", "y"]
-									.filter(prop => !e.hasOwnProperty(prop))
-									.forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
-								if (!e.hasOwnProperty("position")) {
-									defineGetter(e, "position", libraries.math.vector(...viewPoint));
-								}
-								categoryUpdate[category](e, viewPoint);
+			set: (handler) => {
+				if (handler == null) {
+					removeHandler(category);
+					return;
+				}
+				categories[category].forEach((handlerName) => {
+					const handlerFunc = (e) => {
+						// const pointer = (e.touches != null && e.touches.length
+						const pointer = (e.touches != null
+							? e.touches[0]
+							: e);
+						// onRelease events don't have a pointer
+						if (pointer !== undefined) {
+							const viewPoint = convertToViewBox(element, pointer.clientX, pointer.clientY)
+								.map(n => (Number.isNaN(n) ? undefined : n)); // e.target
+							["x", "y"]
+								.filter(prop => !Object.prototype.hasOwnProperty.call(e, prop))
+								.forEach((prop, i) => defineGetter(e, prop, viewPoint[i]));
+							if (!Object.prototype.hasOwnProperty.call(e, "position")) {
+								defineGetter(e, "position", libraries.math.vector(...viewPoint));
 							}
-							handler(e);
-						};
-						// node.js doesn't have addEventListener
-						if (element.addEventListener) {
-							handlers[handlerName].push(handlerFunc);
-							element.addEventListener(handlerName, handlerFunc);
+							categoryUpdate[category](e, viewPoint);
 						}
-					}),
-			enumerable: true
+						handler(e);
+					};
+					// node.js doesn't have addEventListener
+					if (element.addEventListener) {
+						handlers[handlerName].push(handlerFunc);
+						element.addEventListener(handlerName, handlerFunc);
+					}
+				});
+			},
+			enumerable: true,
 		});
 	});
 
@@ -16819,7 +17392,7 @@ const TouchEvents = function (element) {
  */
 var UUID = () => Math.random()
 	.toString(36)
-	.replace(/[^a-z]+/g, '')
+	.replace(/[^a-z]+/g, "")
 	.concat("aaaaa")
 	.substr(0, 5);
 
@@ -16828,6 +17401,7 @@ var UUID = () => Math.random()
  */
 
 const Animation = function (element) {
+	// let fps; // todo: bring this back
 
 	let start;
 	const handlers = {};
@@ -16870,7 +17444,7 @@ const Animation = function (element) {
 				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
 			}
 		},
-		enumerable: true
+		enumerable: true,
 	});
 	Object.defineProperty(element, "stop", { value: removeHandlers, enumerable: true });
 };
@@ -16912,7 +17486,7 @@ const controlPoint = function (parent, options = {}) {
 			target[property] = value;
 			updateSVG();
 			return true;
-		}
+		},
 	});
 
 	const setPosition = function (...args) {
@@ -16944,14 +17518,14 @@ const controlPoint = function (parent, options = {}) {
 	[str_svg, "updatePosition", "selected"].forEach(key => Object
 		.defineProperty(position, key, {
 			get: () => cp[key],
-			set: (v) => { cp[key] = v; }
+			set: (v) => { cp[key] = v; },
 		}));
 	Object.defineProperty(position, "remove", {
 		value: () => {
 			// todo, do we need to do any other unwinding?
 			removeFromParent(cp.svg);
 			position.delegate = undefined;
-		}
+		},
 	});
 
 	return proxy;
@@ -17065,8 +17639,8 @@ var svgDef = {
 			TouchEvents(element);
 			Animation(element);
 			applyControlsToSVG(element);
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17088,8 +17662,8 @@ var gDef = {
 		init: loadGroup,
 		methods: {
 			load: loadGroup,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17132,7 +17706,7 @@ var attributes = Object.assign(Object.create(null), {
 	radialGradient: [
 		"cx", // <radialGradient>
 		"cy", // <radialGradient>
-		"r",  // <radialGradient>
+		"r", // <radialGradient>
 		"fr", // <radialGradient>
 		"fx", // <radialGradient>
 		"fy", // <radialGradient>
@@ -17172,6 +17746,7 @@ const fromPoints = (a, b, c, d) => [a, b, svg_distance2([a, b], [c, d])];
  * @param {number} radius the radius of the circle
  * @param {...number|number[]} center the center of the circle
  * @returns {Element} an SVG node element
+ * @linkcode SVG ./src/nodes/spec/circle.js 28
  */
 var circleDef = {
 	circle: {
@@ -17179,10 +17754,10 @@ var circleDef = {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d));
 			// console.log("SVG circle coords", coords);
 			switch (coords.length) {
-				case 0: case 1: return [, , ...coords]
-				case 2: case 3: return coords;
-				// case 4
-				default: return fromPoints(...coords);
+			case 0: case 1: return [, , ...coords];
+			case 2: case 3: return coords;
+			// case 4
+			default: return fromPoints(...coords);
 			}
 			// return coordinates(...flatten(a, b, c)).slice(0, 3);
 		},
@@ -17195,8 +17770,8 @@ var circleDef = {
 			setCenter: setOrigin,
 			position: setOrigin,
 			setPosition: setOrigin,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17221,8 +17796,8 @@ var ellipseDef = {
 		args: (a, b, c, d) => {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d)).slice(0, 4);
 			switch (coords.length) {
-				case 0: case 1: case 2: return [, , ...coords]
-				default: return coords;
+			case 0: case 1: case 2: return [, , ...coords];
+			default: return coords;
 			}
 		},
 		methods: {
@@ -17234,8 +17809,8 @@ var ellipseDef = {
 			setCenter,
 			position: setCenter,
 			setPosition: setCenter,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17244,20 +17819,23 @@ var ellipseDef = {
 
 const Args$1 = (...args) => coordinates(...svg_semi_flatten_arrays(...args)).slice(0, 4);
 
-const setPoints$1 = (element, ...args) => { Args$1(...args)
-	.forEach((value, i) => element.setAttribute(attributes.line[i], value)); return element; };
+const setPoints$1 = (element, ...args) => {
+	Args$1(...args).forEach((value, i) => element.setAttribute(attributes.line[i], value));
+	return element;
+};
 /**
  * @name line
  * @description SVG Line element
  * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/line.js 18
  */
 var lineDef = {
 	line: {
 		args: Args$1,
 		methods: {
 			setPoints: setPoints$1,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17277,7 +17855,7 @@ const pathCommands = {
 	s: "smoothCurve",
 	q: "quadCurve",
 	t: "smoothQuadCurve",
-	z: "close"
+	z: "close",
 };
 
 // const expectedArguments = {
@@ -17311,26 +17889,26 @@ const parsePathCommands = function (str) {
 	while ((match = markerRegEx.exec(str)) !== null) {
 		results.push(match);
 	}
-	return results.map(match => ({
-		command: str[match.index],
-		index: match.index
+	return results.map(m => ({
+		command: str[m.index],
+		index: m.index,
 	}))
-	.reduceRight((all, cur) => {
-		const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
-		return all.concat([
-			 { command: cur.command,
-			 index: cur.index,
-			 chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk }
-		]);
-	}, [])
-	.reverse()
-	.map((el) => {
-		const values = el.chunk.match(digitRegEx);
-		el.en = pathCommands[el.command];
-		el.values = values ? values.map(parseFloat) : [];
-		delete el.chunk;
-		return el;
-	});
+		.reduceRight((all, cur) => {
+			const chunk = str.substring(cur.index, all.length ? all[all.length - 1].index : str.length);
+			return all.concat([{
+				command: cur.command,
+				index: cur.index,
+				chunk: (chunk.length > 0) ? chunk.substr(1, chunk.length - 1) : chunk,
+			}]);
+		}, [])
+		.reverse()
+		.map((el) => {
+			const values = el.chunk.match(digitRegEx);
+			el.en = pathCommands[el.command];
+			el.values = values ? values.map(parseFloat) : [];
+			delete el.chunk;
+			return el;
+		});
 };
 
 /**
@@ -17402,8 +17980,8 @@ Object.keys(pathCommands).forEach((key) => {
 
 var pathDef = {
 	path: {
-		methods: path_methods
-	}
+		methods: path_methods,
+	},
 };
 
 /**
@@ -17442,14 +18020,15 @@ const fixNegatives = function (arr) {
  * @param {number} width the length along the x dimension
  * @param {number} height the length along the y dimension
  * @returns {Element} an SVG node element
+ * @linkcode SVG ./src/nodes/spec/rect.js 40
  */
 var rectDef = {
 	rect: {
 		args: (a, b, c, d) => {
 			const coords = coordinates(...svg_flatten_arrays(a, b, c, d)).slice(0, 4);
 			switch (coords.length) {
-				case 0: case 1: case 2: case 3: return fixNegatives([, , ...coords]);
-				default: return fixNegatives(coords);
+			case 0: case 1: case 2: case 3: return fixNegatives([, , ...coords]);
+			default: return fixNegatives(coords);
 			}
 		},
 		methods: {
@@ -17459,8 +18038,8 @@ var rectDef = {
 			setCenter: setRectOrigin,
 			size: setRectSize,
 			setSize: setRectSize,
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17470,17 +18049,17 @@ var rectDef = {
 var styleDef = {
 	style: {
 		init: (el, text) => {
-				el.textContent = "";
-				el.appendChild(cdata(text));
+			el.textContent = "";
+			el.appendChild(cdata(text));
 		},
 		methods: {
 			setTextContent: (el, text) => {
 				el.textContent = "";
 				el.appendChild(cdata(text));
 				return el;
-			}
-		}
-	}
+			},
+		},
+	},
 };
 
 /**
@@ -17489,13 +18068,14 @@ var styleDef = {
 /**
  * @description SVG text element
  * @memberof SVG
+ * @linkcode SVG ./src/nodes/spec/text.js 11
  */
 var textDef = {
 	text: {
 		// assuming people will at most supply coordinate (x,y,z) and text
 		args: (a, b, c) => coordinates(...svg_flatten_arrays(a, b, c)).slice(0, 2),
 		init: (element, a, b, c, d) => {
-			const text = [a,b,c,d].filter(a => typeof a === str_string).shift();
+			const text = [a, b, c, d].filter(el => typeof el === str_string).shift();
 			if (text) {
 				element.appendChild(SVGWindow().document.createTextNode(text));
 				// it seems like this is excessive and will never happen
@@ -17505,8 +18085,8 @@ var textDef = {
 				//   element.appendChild(window().document.createTextNode(text));
 				// }
 			}
-		}
-	}
+		},
+	},
 };
 
 /**
@@ -17519,18 +18099,18 @@ const makeIDString = function () {
 		.shift() || UUID();
 };
 
-const args = (...args) => [makeIDString(...args)];
+const maskArgs = (...args) => [makeIDString(...args)];
 
 var maskTypes = {
-	mask: { args: args },
-	clipPath: { args: args },
-	symbol: { args: args },
+	mask: { args: maskArgs },
+	clipPath: { args: maskArgs },
+	symbol: { args: maskArgs },
 	marker: {
-		args: args,
+		args: maskArgs,
 		methods: {
 			size: setViewBox,
-			setViewBox: setViewBox
-		}
+			setViewBox: setViewBox,
+		},
 	},
 };
 
@@ -17551,7 +18131,7 @@ const polyString = function () {
 };
 
 const stringifyArgs = (...args) => [
-	polyString(...coordinates(...svg_semi_flatten_arrays(...args)))
+	polyString(...coordinates(...svg_semi_flatten_arrays(...args))),
 ];
 
 const setPoints = (element, ...args) => {
@@ -17581,22 +18161,21 @@ var polyDefs = {
 		args: Args,
 		methods: {
 			setPoints,
-			addPoint
-		}
+			addPoint,
+		},
 	},
 	polygon: {
 		args: Args,
 		methods: {
 			setPoints,
-			addPoint
-		}
-	}
+			addPoint,
+		},
+	},
 };
 
 /**
  * SVG (c) Kraft
  */
-
 /**
  * in each of these instances, arguments maps the arguments to attributes
  * as the attributes are listed in the "attributes" folder.
@@ -17606,7 +18185,8 @@ var polyDefs = {
  * make sure it is returning an array.
  *
  */
-var Spec = Object.assign({},
+var Spec = Object.assign(
+	{},
 	svgDef,
 	gDef,
 	circleDef,
@@ -17661,7 +18241,7 @@ var ManyElements = {
 		"transform-origin", // added by Robby
 		"user-select", // added by Robby
 		"vector-effect",
-		"visibility"
+		"visibility",
 	],
 	animation: [
 		"accumulate", // controls whether or not an animation is cumulative
@@ -17735,16 +18315,16 @@ var ManyElements = {
 	text: [
 		// "x",   // <text>
 		// "y",   // <text>
-		"dx",  // <text>
-		"dy",  // <text>
+		"dx", // <text>
+		"dy", // <text>
 		"alignment-baseline", // specifies how a text alignts vertically
 		"baseline-shift",
 		"dominant-baseline",
-		"lengthAdjust",  // <text>
+		"lengthAdjust", // <text>
 		"method", // for <textPath> only
 		"overline-position",
 		"overline-thickness",
-		"rotate",  // rotates each individual glyph
+		"rotate", // rotates each individual glyph
 		"spacing",
 		"startOffset", // <textPath>
 		"strikethrough-position",
@@ -17752,7 +18332,7 @@ var ManyElements = {
 		"text-anchor",
 		"text-decoration",
 		"text-rendering",
-		"textLength",   // <text>
+		"textLength", // <text>
 		"underline-position",
 		"underline-thickness",
 		"word-spacing",
@@ -17770,11 +18350,11 @@ var ManyElements = {
  */
 
 Object.values(NodeNames)
-	.reduce((a,b) => a.concat(b), [])
+	.reduce((a, b) => a.concat(b), [])
 	.filter(nodeName => attributes[nodeName] === undefined)
 	.forEach(nodeName => { attributes[nodeName] = []; });
 
-[ [[str_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
+[[[str_svg, "defs", "g"].concat(NodeNames.v, NodeNames.t), ManyElements.presentation],
 	[["filter"], ManyElements.effects],
 	[NodeNames.cT.concat("text"), ManyElements.text], // todo: should we include "svg" here?
 	[NodeNames.cF, ManyElements.effects],
@@ -17812,7 +18392,7 @@ var classMethods = {
 	},
 	setId: (element, idName) => {
 		element.setAttributeNS(null, str_id, idName);
-	}
+	},
 };
 
 /**
@@ -17825,7 +18405,7 @@ const getAttr = (element) => {
 };
 
 const TransformMethods = {
-	clearTransform: (el) => { el.removeAttribute(str_transform); return el; }
+	clearTransform: (el) => { el.removeAttribute(str_transform); return el; },
 };
 
 ["translate", "rotate", "scale", "matrix"].forEach(key => {
@@ -17833,7 +18413,8 @@ const TransformMethods = {
 		str_transform,
 		[getAttr(element), `${key}(${args.join(" ")})`]
 			.filter(a => a !== undefined)
-			.join(" "));
+			.join(" "),
+	);
 });
 
 /**
@@ -17910,8 +18491,8 @@ Object.keys(Nodes).forEach((key) => {
 });
 
 const assignMethods = (groups, Methods) => {
-	groups.forEach(n =>
-		Object.keys(Methods).forEach((method) => {
+	groups.forEach(n => Object
+		.keys(Methods).forEach((method) => {
 			Nodes[n].methods[method] = function () {
 				Methods[method](...arguments);
 				return arguments[0];
@@ -17934,8 +18515,8 @@ const RequiredAttrMap = {
 		xmlns: NS,
 	},
 	style: {
-		type: "text/css"
-	}
+		type: "text/css",
+	},
 };
 
 // required attributes for elements like <svg>, <style>
@@ -17968,8 +18549,8 @@ const constructor = (nodeName, parent, ...args) => {
 		});
 	});
 	// custom methods from each primitive's definition
-	Object.keys(Nodes[nodeName].methods).forEach(methodName =>
-		Object.defineProperty(element, methodName, {
+	Object.keys(Nodes[nodeName].methods).forEach(methodName => Object
+		.defineProperty(element, methodName, {
 			value: function () {
 				// all custom methods are attached to the node.
 				// if there is no return value specified,
@@ -17977,8 +18558,9 @@ const constructor = (nodeName, parent, ...args) => {
 				// to encourage method-chaining design.
 				// nevermind.
 				// things need to be able to return undefined
-				return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);// || element;
-			}
+				return Nodes[nodeName].methods[methodName].call(bound, element, ...arguments);
+				// || element;
+			},
 		}));
 	// a method to create a child and automatically append it to this node
 	if (nodesAndChildren[nodeName]) {
@@ -18023,7 +18605,7 @@ Object.keys(NodeNames).forEach(key => NodeNames[key]
 const link_rabbitear_math = (svg, ear) => {
 	// give all primitives a .svg() method that turns them into a <path>
 	// ignoring primitives: "vector", "line", "ray", "matrix", "plane"
-	[ "segment",
+	["segment",
 		"circle",
 		"ellipse",
 		"rect",
@@ -18136,15 +18718,13 @@ SVG.core = Object.assign(Object.create(null), {
 // default export of the library @xmldom/xmldom
 Object.defineProperty(SVG, "window", {
 	enumerable: false,
-	set: value => setWindow(value),
+	set: value => { setWindow(value); },
 });
 
 /**
  * Rabbit Ear (c) Kraft
  */
-
 // if three doesn't exist, throw an error
-
 // const make_faces_geometry = (graph, material) => {
 const make_faces_geometry = (graph) => {
 	const { THREE } = RabbitEarWindow();
@@ -18152,14 +18732,14 @@ const make_faces_geometry = (graph) => {
 		.map(v => [v[0], v[1], v[2] || 0])
 		.flat();
 	const normals = graph.vertices_coords
-		.map(v => [0, 0, 1])
+		.map(() => [0, 0, 1])
 		.flat();
 	const colors = graph.vertices_coords
-		.map(v => [1, 1, 1])
+		.map(() => [1, 1, 1])
 		.flat();
 	const faces = graph.faces_vertices
 		.map(fv => fv
-			.map((v, i, arr) => [arr[0], arr[i+1], arr[i+2]])
+			.map((v, i, arr) => [arr[0], arr[i + 1], arr[i + 2]])
 			.slice(0, fv.length - 2))
 		.flat(2);
 	const geometry = new THREE.BufferGeometry();
@@ -18175,11 +18755,11 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 		return [];
 	}
 	const normalized = math.core.normalize(edge_vector);
-	const perp = [ [1,0,0], [0,1,0], [0,0,1] ]
+	const perp = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 		.map(vec => math.core.cross3(vec, normalized))
 		.sort((a, b) => math.core.magnitude(b) - math.core.magnitude(a))
 		.shift();
-	const rotated = [ math.core.normalize(perp) ];
+	const rotated = [math.core.normalize(perp)];
 	// const mat = math.core.make_matrix3_rotate(Math.PI/9, normalized);
 	// for (let i = 1; i < 4; i += 1) {
 	// 	rotated.push(math.core.multiply_matrix3_vector3(mat, rotated[i - 1]));
@@ -18192,7 +18772,7 @@ const make_edge_cylinder = (edge_coords, edge_vector, radius, end_pad = 0) => {
 	const coords = end_pad === 0
 		? edge_coords
 		: edge_coords.map((coord, i) => math.core.add(coord, nudge[i]));
-	//console.log(dirs);
+	// console.log(dirs);
 	return coords
 		.map(v => dirs.map(dir => math.core.add(v, dir)))
 		.flat();
@@ -18215,55 +18795,57 @@ const make_edges_geometry = function ({
 	edges_vector = edges_vector
 		.map(vec => math.core.resize(3, vec));
 	const colorAssignments = {
-		"B": [0.0,0.0,0.0],
- // "M": [0.9,0.31,0.16],
-		"M": [0.0,0.0,0.0],//[34/255, 76/255, 117/255], //[0.6,0.2,0.11],
-		"F": [0.0,0.0,0.0],//[0.25,0.25,0.25],
-		"V": [0.0,0.0,0.0],//[227/255, 85/255, 54/255]//[0.12,0.35,0.50]
+		B: [0.0, 0.0, 0.0],
+		// M: [0.9, 0.31, 0.16],
+		M: [0.0, 0.0, 0.0], // [34/255, 76/255, 117/255], //[0.6,0.2,0.11],
+		F: [0.0, 0.0, 0.0], // [0.25,0.25,0.25],
+		V: [0.0, 0.0, 0.0], // [227/255, 85/255, 54/255]//[0.12,0.35,0.50]
 	};
 
-	const colors = edges_assignment.map(e => 
-		[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
-		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-	).flat(3);
+	const colors = edges_assignment.map(e => [
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+	]).flat(3);
 
 	const vertices = edges_coords
 		.map((coords, i) => make_edge_cylinder(coords, edges_vector[i], scale, end_pad))
 		.flat(2);
 
 	const normals = edges_vector.map(vector => {
-		if (math.core.magSquared(vector) < math.core.EPSILON) { throw "degenerate edge"; }
-		let normalized = math.core.normalize(vector);
+		if (math.core.magSquared(vector) < math.core.EPSILON) {
+			throw new Error("degenerate edge");
+		}
+		math.core.normalize(vector);
 		// scale to line width
-		math.core.scale(normalized, scale);
+		// const scaled = math.core.scale(normalized, scale);
 		// let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
-		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,-1])), scale);
-		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0,0,1])), scale);
+		const c0 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, -1])), scale);
+		const c1 = math.core.scale(math.core.normalize(math.core.cross3(vector, [0, 0, 1])), scale);
 		// let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
 		// let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
 		return [
 			c0, [-c0[2], c0[1], c0[0]],
 			c1, [-c1[2], c1[1], c1[0]],
 			c0, [-c0[2], c0[1], c0[0]],
-			c1, [-c1[2], c1[1], c1[0]]
-		]
+			c1, [-c1[2], c1[1], c1[0]],
+		];
 	}).flat(2);
 
-	let faces = edges_coords.map((e,i) => [
+	const faces = edges_coords.map((e, i) => [
 		// 8 triangles making the long cylinder
-		i*8+0, i*8+4, i*8+1,
-		i*8+1, i*8+4, i*8+5,
-		i*8+1, i*8+5, i*8+2,
-		i*8+2, i*8+5, i*8+6,
-		i*8+2, i*8+6, i*8+3,
-		i*8+3, i*8+6, i*8+7,
-		i*8+3, i*8+7, i*8+0,
-		i*8+0, i*8+7, i*8+4,
+		i * 8 + 0, i * 8 + 4, i * 8 + 1,
+		i * 8 + 1, i * 8 + 4, i * 8 + 5,
+		i * 8 + 1, i * 8 + 5, i * 8 + 2,
+		i * 8 + 2, i * 8 + 5, i * 8 + 6,
+		i * 8 + 2, i * 8 + 6, i * 8 + 3,
+		i * 8 + 3, i * 8 + 6, i * 8 + 7,
+		i * 8 + 3, i * 8 + 7, i * 8 + 0,
+		i * 8 + 0, i * 8 + 7, i * 8 + 4,
 		// endcaps
-		i*8+0, i*8+1, i*8+3,
-		i*8+1, i*8+2, i*8+3,
-		i*8+5, i*8+4, i*8+7,
-		i*8+7, i*8+6, i*8+5,
+		i * 8 + 0, i * 8 + 1, i * 8 + 3,
+		i * 8 + 1, i * 8 + 2, i * 8 + 3,
+		i * 8 + 5, i * 8 + 4, i * 8 + 7,
+		i * 8 + 7, i * 8 + 6, i * 8 + 5,
 	]).flat();
 
 	const geometry = new THREE.BufferGeometry();

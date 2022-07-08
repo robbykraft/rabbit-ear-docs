@@ -6,6 +6,17 @@ const makeObjectTree = require("./make-object-tree");
 const makeMarkdownFiles = require("./markdown/index");
 const makeHTMLFiles = require("./html/index");
 
+const getRabbitEarVersion = () => {
+	// this rule will take the following line, skip 2 words after the /* and
+	// match until the next space (getting the version number). if anything changes
+	// in this formatting, this regex needs to be updated.
+	/* Rabbit Ear 0.9.31 alpha 2022-07-07 (c) Kraft, MIT License */
+	const rule = /(?<=^(\/\*\s)+([^ ]+\s){2})([^ ]+)/g;
+	const libraryFile = fs.readFileSync("./input/rabbit-ear.comments.js", "utf-8");
+	const version = libraryFile.match(rule).shift();
+	return version;
+};
+
 /**
  * clear tmp/ folder only
  */
@@ -148,7 +159,7 @@ const buildDocs = (jsdocs) => {
 	// const topLevelTrees = [rabbitearTree, errorsTree()];
 	const topLevelTrees = [rabbitearTree, errorsTree, typesTree];
 	makeMarkdownFiles(docsEntries, topLevelTrees, customTypes);
-	makeHTMLFiles(topLevelTrees);
+	makeHTMLFiles(topLevelTrees, getRabbitEarVersion());
 	// these template files are copied over to the build folder
 	const copyFileTypes = [".css", ".svg"];
 	fs.readdirSync("./template/")
